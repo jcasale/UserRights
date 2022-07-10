@@ -1,0 +1,44 @@
+name: CI
+on:
+  push:
+    tags:
+      - 'v*'
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup msbuild
+        uses: microsoft/setup-msbuild@v1.1
+
+      - name: Setup vstest
+        uses: darenm/Setup-VSTest@v1
+
+      - name: Setup nuget
+        uses: NuGet/setup-nuget@v1.0.6
+
+      - name: Restore packages
+        run: nuget.exe restore .\src\UserRights.sln
+
+      - name: Build solution
+        run: msbuild.exe .\src\UserRights.sln /p:platform="Any CPU" /p:configuration="Release"
+
+      - name: Run tests
+        run: |
+          vstest.console.exe .\src\Tests.Application\bin\Release\net48\Tests.Application.dll
+          vstest.console.exe .\src\Tests.Cli\bin\Release\net48\Tests.Cli.dll
+
+      - name: Archive release
+        run: |
+          cd ./src/UserRights/bin/Release
+          Compress-Archive -Path ./UserRights.exe -DestinationPath ../../../../UserRights-net462-anycpu.zip
+
+      - name: Publish release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: UserRights-net462-anycpu.zip

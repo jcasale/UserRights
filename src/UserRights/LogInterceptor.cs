@@ -1,8 +1,10 @@
 namespace UserRights;
 
 using System;
-using System.Collections.Generic;
-using System.Globalization;
+using Serilog;
+using Serilog.Context;
+using Serilog.Core;
+using Serilog.Events;
 using Spectre.Console.Cli;
 using UserRights.Application;
 using UserRights.Cli;
@@ -12,7 +14,13 @@ using UserRights.Cli;
 /// </summary>
 public class LogInterceptor : ICommandInterceptor
 {
-    private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+    private readonly LoggingLevelSwitch levelSwitch;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LogInterceptor"/> class.
+    /// </summary>
+    /// <param name="levelSwitch">The console sink level switch.</param>
+    public LogInterceptor(LoggingLevelSwitch levelSwitch) => this.levelSwitch = levelSwitch ?? throw new ArgumentNullException(nameof(levelSwitch));
 
     /// <inheritdoc />
     public void Intercept(CommandContext context, CommandSettings settings)
@@ -39,7 +47,7 @@ public class LogInterceptor : ICommandInterceptor
                 mode = "principal";
                 dryRun = s.DryRun;
 
-                UpdateLoggingConfiguration();
+                this.UpdateLoggingConfiguration();
 
                 break;
 
@@ -48,7 +56,7 @@ public class LogInterceptor : ICommandInterceptor
                 mode = "privilege";
                 dryRun = s.DryRun;
 
-                UpdateLoggingConfiguration();
+                this.UpdateLoggingConfiguration();
 
                 break;
 
@@ -56,38 +64,19 @@ public class LogInterceptor : ICommandInterceptor
                 throw new InvalidOperationException($"The command settings type was unexpected: {settings.GetType()}.");
         }
 
-        var scope = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase) { ["DryRun"] = dryRun };
-
-        Logger.PushScopeProperties(scope);
+        GlobalLogContext.PushProperty("DryRun", dryRun);
 
         var program = AppDomain.CurrentDomain.FriendlyName;
         var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
 
-        var logEvent = new NLog.LogEventInfo(
-            NLog.LogLevel.Info,
-            nameof(Program),
-            CultureInfo.InvariantCulture,
-            "{Program:l} v{Version} executing in {Mode:l} mode.",
-            new object[] { program, version, mode });
-
-        logEvent.Properties.Add(nameof(NLog.Targets.EventLogTarget.EventId), operationId);
-
-        Logger.Log(logEvent);
+        using (LogContext.PushProperty("EventId", operationId))
+        {
+            Log.Information("{Program:l} v{Version} executing in {Mode:l} mode.", program, version, mode);
+        }
     }
 
     /// <summary>
     /// Updates logging configuration for any non-list mode.
     /// </summary>
-    private static void UpdateLoggingConfiguration()
-    {
-        // Get the current configuration.
-        var configuration = NLog.LogManager.Configuration;
-
-        // Update the console rule to enable all log levels.
-        var rule = configuration.FindRuleByName(nameof(NLog.Targets.ColoredConsoleTarget));
-        rule.EnableLoggingForLevels(NLog.LogLevel.Trace, NLog.LogLevel.Fatal);
-
-        // Update configuration and reconfigure all loggers.
-        NLog.LogManager.Configuration = configuration;
-    }
+    private void UpdateLoggingConfiguration() => this.levelSwitch.MinimumLevel = LogEventLevel.Verbose;
 }

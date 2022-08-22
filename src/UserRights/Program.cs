@@ -1,13 +1,14 @@
 namespace UserRights;
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using NLog.Extensions.Logging;
+using Serilog;
+using Serilog.Context;
+using Serilog.Core;
+using Serilog.Events;
+using Serilog.Templates;
 using UserRights.Application;
 using UserRights.Cli;
 
@@ -16,8 +17,6 @@ using UserRights.Cli;
 /// </summary>
 internal static class Program
 {
-    private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
-
     /// <summary>
     /// Represents the programs main entry point.
     /// </summary>
@@ -33,40 +32,26 @@ internal static class Program
         catch (Exception e) when (e is Spectre.Console.Cli.CommandRuntimeException or SyntaxException)
         {
             // Log syntax errors to assist with instrumenting automation.
-            var logEvent = new NLog.LogEventInfo(
-                NLog.LogLevel.Fatal,
-                nameof(Program),
-                CultureInfo.InvariantCulture,
-                "Syntax error: {Message:l}",
-                new object[] { e.Message },
-                null);
-
-            logEvent.Properties.Add(nameof(NLog.Targets.EventLogTarget.EventId), OperationId.SyntaxError);
-
-            Logger.Log(logEvent);
+            using (LogContext.PushProperty("EventId", OperationId.SyntaxError))
+            {
+                Log.Fatal("Syntax error: {Message:l}", e.Message);
+            }
 
             return 1;
         }
         catch (Exception e)
         {
             // Log all other errors as execution failures.
-            var logEvent = new NLog.LogEventInfo(
-                NLog.LogLevel.Fatal,
-                nameof(Program),
-                CultureInfo.InvariantCulture,
-                "Execution failed.",
-                Array.Empty<object>(),
-                e);
-
-            logEvent.Properties.Add(nameof(NLog.Targets.EventLogTarget.EventId), OperationId.FatalError);
-
-            Logger.Log(logEvent);
+            using (LogContext.PushProperty("EventId", OperationId.FatalError))
+            {
+                Log.Fatal(e, "Execution failed.");
+            }
 
             return 1;
         }
         finally
         {
-            NLog.LogManager.Shutdown();
+            Log.CloseAndFlush();
         }
 
         return 0;
@@ -99,61 +84,6 @@ internal static class Program
     }
 
     /// <summary>
-    /// Gets the initial logging configuration.
-    /// </summary>
-    private static NLog.Config.LoggingConfiguration GetInitialLoggingConfiguration()
-    {
-        var programName = AppDomain.CurrentDomain.FriendlyName;
-        var eventLogSource = Path.GetFileNameWithoutExtension(programName);
-
-        var configuration = new NLog.Config.LoggingConfiguration();
-
-        // Create the console target and set the output to the error stream.
-        var consoleTarget = new NLog.Targets.ColoredConsoleTarget(nameof(NLog.Targets.ColoredConsoleTarget))
-        {
-            DetectOutputRedirected = true,
-            StdErr = true,
-            Layout =
-                "[${longDate}] " +
-                "[${level}] " +
-                "[${event-properties:EventId:whenEmpty=0}] " +
-                "${when:when='${scopeProperty:DryRun}'==true:inner=[DRYRUN] }" +
-                "${message}" +
-                "${onException:${newline}${exception:format=ShortType,Message:innerFormat=ShortType,Message:maxInnerExceptionLevel=10:separator=\\: }}"
-        };
-
-        var consoleRule = new NLog.Config.LoggingRule("*", NLog.LogLevel.Warn, NLog.LogLevel.Fatal, consoleTarget)
-        {
-            RuleName = nameof(NLog.Targets.ColoredConsoleTarget)
-        };
-
-        configuration.LoggingRules.Add(consoleRule);
-
-        // Create the Windows event log target.
-        var eventLogTarget = new NLog.Targets.EventLogTarget(nameof(NLog.Targets.EventLogTarget))
-        {
-            EventId = "${event-properties:EventId:whenEmpty=0}",
-            Layout =
-                "${message}${newline}${newline}" +
-                "Context: ${environment:USERDOMAIN}\\${environment:USERNAME}${newline}" +
-                "Process Id: ${processId}${newline}" +
-                "Correlation Id: ${scopeProperty:CorrelationId}${newline}" +
-                "Arguments: ${scopeProperty:Arguments}" +
-                "${onException:${newline}${newline}${exception:format=ToString:innerFormat=ToString:maxInnerExceptionLevel=10}}",
-            Source = eventLogSource
-        };
-
-        var eventLogRule = new NLog.Config.LoggingRule("*", NLog.LogLevel.Trace, NLog.LogLevel.Fatal, eventLogTarget)
-        {
-            RuleName = nameof(NLog.Targets.EventLogTarget)
-        };
-
-        configuration.LoggingRules.Add(eventLogRule);
-
-        return configuration;
-    }
-
-    /// <summary>
     /// Represents the programs execution logic.
     /// </summary>
     /// <param name="args">The command line arguments.</param>
@@ -164,34 +94,53 @@ internal static class Program
             throw new ArgumentNullException(nameof(args));
         }
 
-        // Configure the initial logging state with the console target only enabled for warning level.
-        var configuration = GetInitialLoggingConfiguration();
+        // Use Coalesce to accomodate EventIds from Microsoft.Extensions.Logging and Serilog.
+        const string consoleTemplate =
+            "[{@t:yyyy-MM-dd HH:mm:ss.fff}] " +
+            "[{@l}] " +
+            "[{Coalesce(EventId.Id, EventId)}] " +
+            "{#if DryRun = true}[DryRun] {#end}" +
+            "{@m:l}\n" +
+            "{@x}";
 
-        // Update configuration and reconfigure all loggers.
-        NLog.LogManager.Configuration = configuration;
+        const string eventLogTemplate =
+            "{@m:l}\n\n" +
+            "Context: {EnvironmentUserName}\n" +
+            "Process Id: {ProcessId}\n" +
+            "Correlation Id: {CorrelationId}\n" +
+            "Arguments: {Arguments}" +
+            "{#if @x is not null}\n\n{@x}{#end}";
 
-        var scope = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
-        {
-            // Add a correlation id to the scope to differentiate invocations that run concurrently.
-            ["CorrelationId"] = Guid.NewGuid(),
+        // Configure the initial logging state with the console sink only enabled for warning level.
+        var levelSwitch = new LoggingLevelSwitch { MinimumLevel = LogEventLevel.Warning };
 
-            // Add the command line arguments to the scope for instrumenting automation.
-            ["Arguments"] = FormatArguments(args)
-        };
-
-        Logger.PushScopeProperties(scope);
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Verbose()
+            .Enrich.FromGlobalLogContext()
+            .Enrich.FromLogContext()
+            .Enrich.WithEnvironmentUserName()
+            .Enrich.WithProcessId()
+            .Enrich.WithProperty("Arguments", FormatArguments(args))
+            .Enrich.WithProperty("CorrelationId", Guid.NewGuid())
+            .WriteTo.Console(
+                new ExpressionTemplate(consoleTemplate),
+                levelSwitch: levelSwitch,
+                standardErrorFromLevel: LogEventLevel.Verbose)
+            .WriteTo.EventLog(
+                new ExpressionTemplate(eventLogTemplate),
+                nameof(UserRights),
+                manageEventSource: true,
+                eventIdProvider: new EventIdProvider())
+            .CreateLogger();
 
         var serviceCollection = new ServiceCollection()
             .AddSingleton<ILsaUserRights, LsaUserRights>()
             .AddSingleton<IUserRightsManager, UserRightsManager>()
-            .AddLogging(builder => builder
-                .ClearProviders()
-                .SetMinimumLevel(LogLevel.Trace)
-                .AddNLog(configuration));
+            .AddLogging(logging => logging.AddSerilog());
 
         using var registrar = new TypeRegistrar(serviceCollection);
 
-        var interceptor = new LogInterceptor();
+        var interceptor = new LogInterceptor(levelSwitch);
         var commandApp = CommandAppBuilder.Build(registrar, interceptor);
 
         commandApp.Run(args);

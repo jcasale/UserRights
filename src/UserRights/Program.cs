@@ -30,16 +30,16 @@ internal static class Program
         {
             Run(args);
         }
-        catch (Exception e) when (e is Spectre.Console.Cli.CommandParseException or SyntaxException)
+        catch (Exception e) when (e is Spectre.Console.Cli.CommandRuntimeException or SyntaxException)
         {
             // Log syntax errors to assist with instrumenting automation.
             var logEvent = new NLog.LogEventInfo(
                 NLog.LogLevel.Fatal,
                 nameof(Program),
                 CultureInfo.InvariantCulture,
-                "Syntax error. {Message:l}",
+                "Syntax error: {Message:l}",
                 new object[] { e.Message },
-                e);
+                null);
 
             logEvent.Properties.Add(nameof(NLog.Targets.EventLogTarget.EventId), OperationId.SyntaxError);
 

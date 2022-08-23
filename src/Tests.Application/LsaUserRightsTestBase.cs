@@ -8,6 +8,7 @@ using System.Security.Principal;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using UserRights.Application;
+using UserRights.Extensions.Security;
 
 /// <summary>
 /// Represents the test base for <see cref="LsaUserRights"/> application.
@@ -212,13 +213,19 @@ public abstract class LsaUserRightsTestBase : IDisposable
                 continue;
             }
 
-            var values = child.Value
-                .Split(',')
-                .Select(p => new SecurityIdentifier(p.TrimStart('*')))
-                .ToList()
-                .AsReadOnly();
+            var securityIdentifiers = new List<SecurityIdentifier>();
 
-            dictionary.Add(child.Key, values);
+            var values = child.Value.Split(',');
+            foreach (var value in values)
+            {
+                var securityIdentifier = value.StartsWith("*", StringComparison.Ordinal)
+                    ? new SecurityIdentifier(value.TrimStart('*'))
+                    : value.ToSecurityIdentifier();
+
+                securityIdentifiers.Add(securityIdentifier);
+            }
+
+            dictionary.Add(child.Key, securityIdentifiers.AsReadOnly());
         }
 
         return new ReadOnlyDictionary<string, IReadOnlyCollection<SecurityIdentifier>>(dictionary);

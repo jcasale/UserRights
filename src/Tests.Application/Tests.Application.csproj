@@ -44,6 +44,7 @@
     <ProjectReference Include="..\Tests\Tests.csproj" />
     <ProjectReference Include="..\UserRights.Application\UserRights.Application.csproj" />
     <ProjectReference Include="..\UserRights.Cli\UserRights.Cli.csproj" />
+    <ProjectReference Include="..\UserRights.Extensions\UserRights.Extensions.csproj" />
   </ItemGroup>
 
 </Project>

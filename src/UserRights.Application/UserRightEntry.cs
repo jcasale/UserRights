@@ -27,7 +27,7 @@ public record UserRightEntry : IUserRightEntry
 
         this.Privilege = privilege;
         this.SecurityId = securityId;
-        this.AccountName = string.IsNullOrWhiteSpace(accountName) ? string.Empty : accountName;
+        this.AccountName = string.IsNullOrWhiteSpace(accountName) ? null : accountName;
     }
 
     /// <summary>

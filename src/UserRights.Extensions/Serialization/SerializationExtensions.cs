@@ -4,9 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Text.Json;
 using CsvHelper;
 using CsvHelper.Configuration;
-using Newtonsoft.Json;
 
 /// <summary>
 /// Represents extensions for converting and serializing objects.
@@ -58,20 +58,14 @@ public static class SerializationExtensions
             throw new ArgumentNullException(nameof(data));
         }
 
-        var serializer = new JsonSerializer
+        var options = new JsonSerializerOptions
         {
-            Culture = CultureInfo.InvariantCulture,
-            Formatting = Formatting.Indented,
-            NullValueHandling = NullValueHandling.Include
+            WriteIndented = true
         };
 
         try
         {
-            using var stringWriter = new StringWriter(CultureInfo.InvariantCulture);
-            using var jsonTextWriter = new JsonTextWriter(stringWriter);
-            serializer.Serialize(jsonTextWriter, data);
-
-            return stringWriter.ToString();
+            return JsonSerializer.Serialize(data, options);
         }
         catch (Exception e)
         {

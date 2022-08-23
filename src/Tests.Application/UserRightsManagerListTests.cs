@@ -6,10 +6,10 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security.Principal;
+using System.Text.Json;
 using CsvHelper;
 using CsvHelper.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 using UserRights.Application;
 using UserRights.Extensions.Security;
 using UserRights.Extensions.Serialization;
@@ -136,12 +136,8 @@ public sealed class UserRightsManagerListTests : UserRightsManagerTestBase
 
         var serialized = userRights.ToJson();
 
-        using var stringReader = new StringReader(serialized);
-        using var jsonTextReader = new JsonTextReader(stringReader);
-
-        var serializer = new JsonSerializer();
-        var actual = serializer.Deserialize<UserRightEntry[]>(jsonTextReader)?
-            .OrderBy(p => p.Privilege)
+        var actual = JsonSerializer.Deserialize<UserRightEntry[]>(serialized)
+            ?.OrderBy(p => p.Privilege)
             .ThenBy(p => p.SecurityId)
             .ToArray();
 

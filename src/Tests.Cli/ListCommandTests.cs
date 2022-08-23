@@ -6,9 +6,10 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security.Principal;
+using System.Text;
+using System.Text.Json;
 using CsvHelper;
 using CsvHelper.Configuration;
-using Newtonsoft.Json;
 using UserRights.Application;
 using UserRights.Extensions.Security;
 using Xunit;
@@ -68,12 +69,10 @@ public sealed class ListCommandTests : CliTestBase
         {
             this.CommandApp.Run(args);
 
-            using var streamReader = new StreamReader(file);
-            using var jsonTextReader = new JsonTextReader(streamReader);
+            var json = File.ReadAllText(file, Encoding.UTF8);
 
-            var serializer = new JsonSerializer();
-            actual = serializer.Deserialize<UserRightEntry[]>(jsonTextReader)?
-                .OrderBy(p => p.Privilege)
+            actual = JsonSerializer.Deserialize<UserRightEntry[]>(json)
+                ?.OrderBy(p => p.Privilege)
                 .ThenBy(p => p.SecurityId)
                 .ToArray();
         }

@@ -47,8 +47,8 @@ public static class CommandAppBuilder
             config.AddCommand<PrivilegeCommand>("privilege")
                 .WithExample(new[] { "privilege", "SeServiceLogonRight", "--grant", "DOMAIN\\UserOrGroup", "--revoke", "DOMAIN\\Group" })
                 .WithExample(new[] { "privilege", "SeServiceLogonRight", "--revoke", "DOMAIN\\UserOrGroup" })
-                .WithExample(new[] { "privilege", "SeServiceLogonRight", "--grant", "DOMAIN\\UserOrGroup", "--revoke-pattern", "^S-1-5-21-" })
-                .WithExample(new[] { "privilege", "SeServiceLogonRight", "--revoke-pattern", "^S-1-5-21-" })
+                .WithExample(new[] { "privilege", "SeServiceLogonRight", "--grant", "DOMAIN\\UserOrGroup", "--revoke-pattern", "\"^S-1-5-21-\"" })
+                .WithExample(new[] { "privilege", "SeServiceLogonRight", "--revoke-pattern", "\"^S-1-5-21-\"" })
                 .WithExample(new[] { "privilege", "SeServiceLogonRight", "--revoke-all" });
 
             config.AddCommand<ListCommand>("list")

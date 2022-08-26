@@ -189,7 +189,11 @@ UserRights.exe list --path x:\path\file.csv
 
 ## Additional Info
 
-Releases target .Net Framework 4.6.2 for the most compatibility, and are packed into a single executable to make deployment simple.
+Releases are provided in two formats that both target .Net Framework 4.6.2 for the most compatibility:
+
+  * An archive containing the executable and all required libraries.
+  * An archive containing a single, packed executable to make deployment simple.
+    * This format triggers false positives with antivirus.
 
 ## Useful Links
 

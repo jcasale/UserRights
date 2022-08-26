@@ -36,9 +36,21 @@ jobs:
       - name: Archive release
         run: |
           cd ./src/UserRights/bin/Release
-          Compress-Archive -Path ./UserRights.exe -DestinationPath ../../../../UserRights-net462-anycpu.zip
+          Remove-Item * -Include *.pdb,*.xml
+          Compress-Archive -Path * -DestinationPath ../../../../UserRights-net462-anycpu.zip
+
+      - name: Clean solution
+        run: msbuild.exe .\src\UserRights.sln -t:Clean /p:configuration="Release"
+
+      - name: Build packed solution
+        run: msbuild.exe .\src\UserRights.sln /p:platform="Any CPU" /p:configuration="Release" /p:DoILRepack="true"
+
+      - name: Archive packed release
+        run: |
+          cd ./src/UserRights/bin/Release
+          Compress-Archive -Path ./UserRights.exe -DestinationPath ../../../../UserRights-packed-net462-anycpu.zip
 
       - name: Publish release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: UserRights-net462-anycpu.zip
+          artifacts: UserRights-net462-anycpu.zip,UserRights-packed-net462-anycpu.zip

@@ -13,6 +13,7 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
     <LangVersion>latest</LangVersion>
+    <DoILRepack>false</DoILRepack>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -120,11 +121,5 @@
   </PropertyGroup>
   <Target Name="VersionInfo">
     <Exec Command="cmd.exe /C $(SolutionDir)\VersionInfo.cmd" />
-  </Target>
-  <Target Name="ILRepacker" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
-    <ItemGroup>
-      <InputAssemblies Include="$(OutputPath)$(AssemblyName).exe" />
-    </ItemGroup>
-    <ILRepack Parallel="true" Internalize="true" LibraryPath="@($(OutputPath))" InputAssemblies="@(InputAssemblies)" TargetKind="Exe" OutputFile="$(OutputPath)$(AssemblyName).exe" />
   </Target>
 </Project>

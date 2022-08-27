@@ -28,6 +28,11 @@ public class PrincipalCommand : Command<PrincipalSettings>
     /// <inheritdoc />
     public override int Execute(CommandContext context, PrincipalSettings settings)
     {
+        if (settings is null)
+        {
+            throw new ArgumentNullException(nameof(settings));
+        }
+
         this.policy.Connect(settings.SystemName);
 
         this.manager.ModifyPrincipal(

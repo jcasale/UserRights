@@ -90,6 +90,11 @@ public class LsaUserRights : ILsaUserRights, IDisposable
             throw new InvalidOperationException("A connection to the policy database is required.");
         }
 
+        if (principal is null)
+        {
+            throw new ArgumentNullException(nameof(principal));
+        }
+
         try
         {
             return LsaEnumerateAccountRights(this.policy, principal.GetPSID()).ToArray();

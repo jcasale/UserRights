@@ -28,6 +28,11 @@ public class PrivilegeCommand : Command<PrivilegeSettings>
     /// <inheritdoc />
     public override int Execute(CommandContext context, PrivilegeSettings settings)
     {
+        if (settings is null)
+        {
+            throw new ArgumentNullException(nameof(settings));
+        }
+
         this.policy.Connect(settings.SystemName);
 
         this.manager.ModifyPrivilege(

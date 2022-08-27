@@ -31,6 +31,11 @@ public class ListCommand : Command<ListSettings>
     /// <inheritdoc />
     public override int Execute(CommandContext context, ListSettings settings)
     {
+        if (settings is null)
+        {
+            throw new ArgumentNullException(nameof(settings));
+        }
+
         this.policy.Connect(settings.SystemName);
 
         var results = this.manager.GetUserRights(this.policy);

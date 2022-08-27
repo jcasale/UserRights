@@ -220,7 +220,7 @@ public abstract class LsaUserRightsTestBase : IDisposable
             var values = child.Value.Split(',');
             foreach (var value in values)
             {
-                var securityIdentifier = value.StartsWith("*", StringComparison.Ordinal)
+                var securityIdentifier = value.StartsWith('*')
                     ? new SecurityIdentifier(value.TrimStart('*'))
                     : value.ToSecurityIdentifier();
 

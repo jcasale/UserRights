@@ -13,44 +13,41 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup msbuild
-        uses: microsoft/setup-msbuild@v1.1
-
-      - name: Setup vstest
-        uses: darenm/Setup-VSTest@v1
-
-      - name: Setup nuget
-        uses: NuGet/setup-nuget@v1.0.6
+      - name: Generate version properties
+        shell: cmd
+        run: src\VersionInfo.cmd
 
       - name: Restore packages
-        run: nuget.exe restore .\src\UserRights.sln
-
-      - name: Build solution
-        run: msbuild.exe .\src\UserRights.sln /p:platform="Any CPU" /p:configuration="Release"
+        run: dotnet.exe restore .\src\UserRights.sln
 
       - name: Run tests
-        run: |
-          vstest.console.exe .\src\Tests.Application\bin\Release\net48\Tests.Application.dll
-          vstest.console.exe .\src\Tests.Cli\bin\Release\net48\Tests.Cli.dll
-
-      - name: Archive release
-        run: |
-          cd ./src/UserRights/bin/Release
-          Remove-Item * -Include *.pdb,*.xml
-          Compress-Archive -Path * -DestinationPath ../../../../UserRights-net462-anycpu.zip
+        run: dotnet.exe test .\src\UserRights.sln
 
       - name: Clean solution
-        run: msbuild.exe .\src\UserRights.sln -t:Clean /p:configuration="Release"
+        run: dotnet.exe clean .\src\UserRights.sln --configuration Release
 
-      - name: Build packed solution
-        run: msbuild.exe .\src\UserRights.sln /p:platform="Any CPU" /p:configuration="Release" /p:DoILRepack="true"
+      - name: Publish runtime-dependent release
+        run: dotnet.exe publish .\src\UserRights\UserRights.csproj --configuration Release --runtime win-x64 --no-self-contained --output .\publish
 
-      - name: Archive packed release
+      - name: Archive runtime-dependent release
         run: |
-          cd ./src/UserRights/bin/Release
-          Compress-Archive -Path ./UserRights.exe -DestinationPath ../../../../UserRights-packed-net462-anycpu.zip
+          cd ./publish
+          Remove-Item * -Include *.pdb,*.xml
+          Compress-Archive -Path * -DestinationPath ../UserRights-net60-x64.zip
+
+      - name: Clean solution
+        run: dotnet.exe clean .\src\UserRights.sln --configuration Release
+
+      - name: Publish self-contained release
+        run: dotnet.exe publish .\src\UserRights\UserRights.csproj --configuration Release --runtime win-x64 --self-contained --output .\publish-packed -p:PublishSingleFile=true -p:PublishReadyToRun=true
+
+      - name: Archive self-contained release
+        run: |
+          cd ./publish-packed
+          Compress-Archive -Path ./UserRights.exe -DestinationPath ../UserRights-net60-x64-self-contained.zip
 
       - name: Publish release
-        uses: ncipollo/release-action@v1
+        if: github.ref_type == 'tag'
+        uses: ncipollo/release-action@v1.10.0
         with:
-          artifacts: UserRights-net462-anycpu.zip,UserRights-packed-net462-anycpu.zip
+          artifacts: UserRights-net60-x64.zip,UserRights-net60-x64-self-contained.zip

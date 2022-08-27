@@ -1,5 +1,6 @@
 namespace Tests.Cli;
 
+using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Spectre.Console.Cli;

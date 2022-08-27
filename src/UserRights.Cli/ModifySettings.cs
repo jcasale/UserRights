@@ -2,9 +2,9 @@ namespace UserRights.Cli;
 
 using System;
 using System.ComponentModel;
+using System.Linq;
 using Spectre.Console;
 using Spectre.Console.Cli;
-using UserRights.Extensions.Collections;
 
 /// <summary>
 /// Represents the common settings for all invocation modes that modify the security database.

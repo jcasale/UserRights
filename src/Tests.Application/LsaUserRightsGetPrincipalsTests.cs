@@ -1,5 +1,7 @@
 namespace Tests.Application;
 
+using System;
+using System.Linq;
 using System.Security.Principal;
 using UserRights.Application;
 using Xunit;

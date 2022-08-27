@@ -3,3 +3,4 @@
 **/obj/
 *.user
 VersionInfo.cs
+version.props

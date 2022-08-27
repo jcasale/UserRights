@@ -1,5 +1,6 @@
 namespace Tests.Application;
 
+using System;
 using UserRights.Application;
 using Xunit;
 

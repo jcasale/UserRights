@@ -144,7 +144,7 @@ public class UserRightsManager : IUserRightsManager
         var deficit = grantSet.Where(p => !privileges.Contains(p));
 
         // Determine the surplus grants.
-        var surplus = revocationSet.Where(p => privileges.Contains(p));
+        var surplus = revocationSet.Where(privileges.Contains);
 
         // Perform a revocation of all privileges except those being granted if required.
         if (revokeOthers)
@@ -252,7 +252,7 @@ public class UserRightsManager : IUserRightsManager
         var deficit = grantSet.Where(p => !principals.Contains(p));
 
         // Determine the surplus grants.
-        var surplus = revocationSet.Where(p => principals.Contains(p));
+        var surplus = revocationSet.Where(principals.Contains);
 
         // Perform a revocation of the privilege from each principal except those being granted if required.
         if (revokeOthers)

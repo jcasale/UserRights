@@ -19,7 +19,7 @@ public class LsaUserRightsDisposeTests
 
         policy.Dispose();
 
-        var exception = Record.Exception(() => policy.Dispose());
+        var exception = Record.Exception(policy.Dispose);
 
         Assert.Null(exception);
     }

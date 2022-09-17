@@ -6,6 +6,8 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Security.Principal;
 using System.Text;
 using Microsoft.Extensions.Configuration;
@@ -17,10 +19,11 @@ using UserRights.Extensions.Security;
 /// </summary>
 public abstract class LsaUserRightsTestBase : IDisposable
 {
-    private const string SecurityDatabaseName = "secedit.db";
-    private const string SecurityTemplateName = "secedit.ini";
-    private const string SecurityExportLogName = "export.log";
-    private const string SecurityRestoreLogName = "restore.log";
+    private const string ExportSecurityTemplateName = "export.ini";
+    private const string ExportSecurityLogName = "export.log";
+    private const string RestoreSecurityDatabaseName = "restore.db";
+    private const string RestoreSecurityTemplateName = "restore.ini";
+    private const string RestoreSecurityLogName = "restore.log";
 
     private readonly DirectoryInfo directory = CreateTempDirectory();
     private readonly IReadOnlyDictionary<string, IReadOnlyCollection<SecurityIdentifier>> initialState;
@@ -35,10 +38,13 @@ public abstract class LsaUserRightsTestBase : IDisposable
         try
         {
             // Create a backup to restore during disposal.
-            CreateSecurityDatabaseBackup(this.directory);
+            CreateSecurityDatabaseBackup(this.directory.FullName);
 
             // Load the contents of the backup for use as initial state.
-            this.initialState = ReadSecurityDatabaseBackup(this.directory);
+            this.initialState = ReadSecurityDatabaseBackup(this.directory.FullName);
+
+            // Create the updated configuration file to remove assignments for any privileges that were originally empty.
+            CreateRestoreTemplate(this.directory.FullName, this.initialState);
         }
         catch
         {
@@ -86,7 +92,7 @@ public abstract class LsaUserRightsTestBase : IDisposable
         {
             if (this.directory is not null)
             {
-                RestoreSecurityDatabaseBackup(this.directory);
+                RestoreSecurityDatabaseBackup(this.directory.FullName);
 
                 this.directory.Delete(true);
             }
@@ -108,9 +114,9 @@ public abstract class LsaUserRightsTestBase : IDisposable
 
         var directoryInfo = CreateTempDirectory();
 
-        CreateSecurityDatabaseBackup(directoryInfo);
+        CreateSecurityDatabaseBackup(directoryInfo.FullName);
 
-        var results = ReadSecurityDatabaseBackup(directoryInfo);
+        var results = ReadSecurityDatabaseBackup(directoryInfo.FullName);
 
         directoryInfo.Delete(true);
 
@@ -118,21 +124,73 @@ public abstract class LsaUserRightsTestBase : IDisposable
     }
 
     /// <summary>
+    /// Creates an updated restore template.
+    /// </summary>
+    /// <param name="workingDirectory">The path to a directory where the backup files exist.</param>
+    /// <param name="stateBackup">The map of privilege to security identifiers for the backup configuration file.</param>
+    private static void CreateRestoreTemplate(string workingDirectory, IReadOnlyDictionary<string, IReadOnlyCollection<SecurityIdentifier>> stateBackup)
+    {
+        if (string.IsNullOrWhiteSpace(workingDirectory))
+        {
+            throw new ArgumentException("Value cannot be null or whitespace.", nameof(workingDirectory));
+        }
+
+        if (stateBackup is null)
+        {
+            throw new ArgumentNullException(nameof(stateBackup));
+        }
+
+        // Load existing assignments.
+        var pathBackup = Path.Combine(workingDirectory, ExportSecurityTemplateName);
+
+        var lines = File.ReadAllLines(pathBackup).ToList();
+
+        // Locate the start of the assignments.
+        var index = lines.IndexOf("[Privilege Rights]");
+        if (index == -1)
+        {
+            throw new InvalidOperationException("Failed to determine index of privilege rights.");
+        }
+
+        var privileges = typeof(PrivilegeConstants)
+            .GetFields(BindingFlags.Public | BindingFlags.Static)
+            .Where(p => p.IsLiteral)
+            .Select(p => p.Name);
+
+        // Add an empty privilege for each unset assignment to force the removal of any new assignments for previously unset privileges.
+        foreach (var privilege in privileges)
+        {
+            if (stateBackup.ContainsKey(privilege))
+            {
+                continue;
+            }
+
+            var entry = string.Format(CultureInfo.InvariantCulture, "{0} =", privilege);
+            lines.Insert(index + 1, entry);
+        }
+
+        // Write restore template.
+        var pathRestore = Path.Combine(workingDirectory, RestoreSecurityTemplateName);
+
+        File.WriteAllLines(pathRestore, lines, Encoding.Unicode);
+    }
+
+    /// <summary>
     /// Creates a backup of the security database.
     /// </summary>
-    /// <param name="directory">The temporary directory to create files in.</param>
-    private static void CreateSecurityDatabaseBackup(DirectoryInfo directory)
+    /// <param name="workingDirectory">The path to a directory where the backup files will be created.</param>
+    private static void CreateSecurityDatabaseBackup(string workingDirectory)
     {
-        if (directory is null)
+        if (string.IsNullOrWhiteSpace(workingDirectory))
         {
-            throw new ArgumentNullException(nameof(directory));
+            throw new ArgumentException("Value cannot be null or whitespace.", nameof(workingDirectory));
         }
 
         var arguments = string.Format(
             CultureInfo.InvariantCulture,
-            "/export /cfg {0} /areas user_rights /log {1} /quiet",
-            SecurityTemplateName,
-            SecurityExportLogName);
+            "/export /cfg {0} /areas user_rights /log {1}",
+            ExportSecurityTemplateName,
+            ExportSecurityLogName);
 
         var stringBuilder = new StringBuilder();
 
@@ -140,7 +198,7 @@ public abstract class LsaUserRightsTestBase : IDisposable
 
         process.StartInfo.FileName = "secedit.exe";
         process.StartInfo.Arguments = arguments;
-        process.StartInfo.WorkingDirectory = directory.FullName;
+        process.StartInfo.WorkingDirectory = workingDirectory;
         process.StartInfo.CreateNoWindow = true;
         process.StartInfo.UseShellExecute = false;
         process.StartInfo.RedirectStandardError = true;
@@ -187,16 +245,16 @@ public abstract class LsaUserRightsTestBase : IDisposable
     /// <summary>
     /// Reads a backup of the security database.
     /// </summary>
-    /// <param name="directory">The temporary directory where the backup files reside.</param>
+    /// <param name="workingDirectory">The path to a directory where the backup files exist.</param>
     /// <returns>A map of privilege to security identifiers.</returns>
-    private static IReadOnlyDictionary<string, IReadOnlyCollection<SecurityIdentifier>> ReadSecurityDatabaseBackup(DirectoryInfo directory)
+    private static IReadOnlyDictionary<string, IReadOnlyCollection<SecurityIdentifier>> ReadSecurityDatabaseBackup(string workingDirectory)
     {
-        if (directory is null)
+        if (string.IsNullOrWhiteSpace(workingDirectory))
         {
-            throw new ArgumentNullException(nameof(directory));
+            throw new ArgumentException("Value cannot be null or whitespace.", nameof(workingDirectory));
         }
 
-        var path = Path.Combine(directory.FullName, SecurityTemplateName);
+        var path = Path.Combine(workingDirectory, ExportSecurityTemplateName);
 
         using var manager = new ConfigurationManager();
         var configuration = manager
@@ -236,20 +294,20 @@ public abstract class LsaUserRightsTestBase : IDisposable
     /// <summary>
     /// Restores a backup of the security database.
     /// </summary>
-    /// <param name="directory">The temporary directory where the backup files reside.</param>
-    private static void RestoreSecurityDatabaseBackup(DirectoryInfo directory)
+    /// <param name="workingDirectory">The path to a directory where the backup files exist.</param>
+    private static void RestoreSecurityDatabaseBackup(string workingDirectory)
     {
-        if (directory is null)
+        if (string.IsNullOrWhiteSpace(workingDirectory))
         {
-            throw new ArgumentNullException(nameof(directory));
+            throw new ArgumentException("Value cannot be null or whitespace.", nameof(workingDirectory));
         }
 
         var arguments = string.Format(
             CultureInfo.InvariantCulture,
-            "/configure /db {0} /cfg {1} /areas user_rights /log {2} /quiet",
-            SecurityDatabaseName,
-            SecurityTemplateName,
-            SecurityRestoreLogName);
+            "/configure /db {0} /cfg {1} /areas user_rights /log {2}",
+            RestoreSecurityDatabaseName,
+            RestoreSecurityTemplateName,
+            RestoreSecurityLogName);
 
         var stringBuilder = new StringBuilder();
 
@@ -257,7 +315,7 @@ public abstract class LsaUserRightsTestBase : IDisposable
 
         process.StartInfo.FileName = "secedit.exe";
         process.StartInfo.Arguments = arguments;
-        process.StartInfo.WorkingDirectory = directory.FullName;
+        process.StartInfo.WorkingDirectory = workingDirectory;
         process.StartInfo.CreateNoWindow = true;
         process.StartInfo.UseShellExecute = false;
         process.StartInfo.RedirectStandardError = true;

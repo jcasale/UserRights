@@ -4,6 +4,8 @@ using System;
 using System.Security.Principal;
 using UserRights.Application;
 using Xunit;
+using static Tests.PrivilegeConstants;
+using static Tests.SecurityIdentifierConstants;
 
 /// <summary>
 /// Represents tests for <see cref="LsaUserRights"/> grant functionality.
@@ -15,27 +17,25 @@ public sealed class LsaUserRightsGrantPrivilegeTests : LsaUserRightsTestBase
     /// Tests granting a privilege.
     /// </summary>
     /// <remarks>
-    /// We assume the BUILTIN\Users group is not granted the SeTakeOwnershipPrivilege privilege.
+    /// We assume the BUILTIN\Users group is not granted the SeMachineAccountPrivilege privilege.
     /// </remarks>
     [AdminOnlyFact]
     public void GrantPrivilegeShouldWork()
     {
-        const string privilege = "SeMachineAccountPrivilege";
-        const string sid = "S-1-5-32-545";
-        var securityIdentifier = new SecurityIdentifier(sid);
+        var securityIdentifier = new SecurityIdentifier(Users);
 
-        if (this.InitialState.TryGetValue(privilege, out var initial))
+        if (this.InitialState.TryGetValue(SeMachineAccountPrivilege, out var initial))
         {
             Assert.DoesNotContain(securityIdentifier, initial);
         }
 
         using var policy = new LsaUserRights();
         policy.Connect(null);
-        policy.GrantPrivilege(securityIdentifier, privilege);
+        policy.GrantPrivilege(securityIdentifier, SeMachineAccountPrivilege);
 
         var current = this.GetCurrentState();
 
-        current.TryGetValue(privilege, out var collection);
+        current.TryGetValue(SeMachineAccountPrivilege, out var collection);
 
         Assert.NotNull(collection);
         Assert.Contains(securityIdentifier, collection);
@@ -47,12 +47,10 @@ public sealed class LsaUserRightsGrantPrivilegeTests : LsaUserRightsTestBase
     [AdminOnlyFact]
     public void GrantPrivilegeWithoutConnectingThrowsException()
     {
-        const string privilege = "SeMachineAccountPrivilege";
-        const string sid = "S-1-5-32-545";
-        var securityIdentifier = new SecurityIdentifier(sid);
+        var securityIdentifier = new SecurityIdentifier(Users);
 
         using var policy = new LsaUserRights();
 
-        Assert.Throws<InvalidOperationException>(() => policy.GrantPrivilege(securityIdentifier, privilege));
+        Assert.Throws<InvalidOperationException>(() => policy.GrantPrivilege(securityIdentifier, SeMachineAccountPrivilege));
     }
 }

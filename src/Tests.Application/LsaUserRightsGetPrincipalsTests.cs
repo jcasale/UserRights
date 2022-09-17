@@ -5,6 +5,8 @@ using System.Linq;
 using System.Security.Principal;
 using UserRights.Application;
 using Xunit;
+using static Tests.PrivilegeConstants;
+using static Tests.SecurityIdentifierConstants;
 
 /// <summary>
 /// Represents tests for <see cref="LsaUserRights"/> list functionality.
@@ -43,14 +45,12 @@ public sealed class LsaUserRightsGetPrincipalsTests : LsaUserRightsTestBase
     [AdminOnlyFact]
     public void GetPrincipalsSinglePrivilegeShouldWork()
     {
-        const string privilege = "SeTakeOwnershipPrivilege";
-        const string sid = "S-1-5-32-544";
-        var securityIdentifier = new SecurityIdentifier(sid);
+        var securityIdentifier = new SecurityIdentifier(Administrators);
 
         using var policy = new LsaUserRights();
         policy.Connect(null);
 
-        var collection = policy.GetPrincipals(privilege).ToArray();
+        var collection = policy.GetPrincipals(SeTakeOwnershipPrivilege).ToArray();
 
         Assert.Contains(securityIdentifier, collection);
     }
@@ -72,10 +72,8 @@ public sealed class LsaUserRightsGetPrincipalsTests : LsaUserRightsTestBase
     [AdminOnlyFact]
     public void GetPrincipalsSinglePrivilegeWithoutConnectingThrowsException()
     {
-        const string privilege = "SeTakeOwnershipPrivilege";
-
         using var policy = new LsaUserRights();
 
-        Assert.Throws<InvalidOperationException>(() => policy.GetPrincipals(privilege).ToArray());
+        Assert.Throws<InvalidOperationException>(() => policy.GetPrincipals(SeTakeOwnershipPrivilege).ToArray());
     }
 }

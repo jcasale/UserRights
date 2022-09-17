@@ -4,6 +4,8 @@ using System;
 using System.Security.Principal;
 using UserRights.Application;
 using Xunit;
+using static Tests.PrivilegeConstants;
+using static Tests.SecurityIdentifierConstants;
 
 /// <summary>
 /// Represents tests for <see cref="LsaUserRights"/> revoke functionality.
@@ -20,22 +22,20 @@ public sealed class LsaUserRightsRevokePrivilegeTests : LsaUserRightsTestBase
     [AdminOnlyFact]
     public void RevokePrivilegeShouldWork()
     {
-        const string privilege = "SeBackupPrivilege";
-        const string sid = "S-1-5-32-551";
-        var securityIdentifier = new SecurityIdentifier(sid);
+        var securityIdentifier = new SecurityIdentifier(BackupOperators);
 
-        this.InitialState.TryGetValue(privilege, out var initial);
+        this.InitialState.TryGetValue(SeBackupPrivilege, out var initial);
 
         Assert.NotNull(initial);
         Assert.Contains(securityIdentifier, initial);
 
         using var policy = new LsaUserRights();
         policy.Connect(null);
-        policy.RevokePrivilege(securityIdentifier, privilege);
+        policy.RevokePrivilege(securityIdentifier, SeBackupPrivilege);
 
         var current = this.GetCurrentState();
 
-        if (current.TryGetValue(privilege, out var collection))
+        if (current.TryGetValue(SeBackupPrivilege, out var collection))
         {
             Assert.DoesNotContain(securityIdentifier, collection);
         }
@@ -47,12 +47,10 @@ public sealed class LsaUserRightsRevokePrivilegeTests : LsaUserRightsTestBase
     [AdminOnlyFact]
     public void RevokePrivilegeWithoutConnectingThrowsException()
     {
-        const string privilege = "SeMachineAccountPrivilege";
-        const string sid = "S-1-5-32-545";
-        var securityIdentifier = new SecurityIdentifier(sid);
+        var securityIdentifier = new SecurityIdentifier(BackupOperators);
 
         using var policy = new LsaUserRights();
 
-        Assert.Throws<InvalidOperationException>(() => policy.RevokePrivilege(securityIdentifier, privilege));
+        Assert.Throws<InvalidOperationException>(() => policy.RevokePrivilege(securityIdentifier, SeBackupPrivilege));
     }
 }

@@ -67,6 +67,6 @@ jobs:
 
       - name: Publish release
         if: github.ref_type == 'tag'
-        uses: ncipollo/release-action@v1.10.0
+        uses: ncipollo/release-action@v1
         with:
           artifacts: UserRights-net60-x64.zip,UserRights-net60-x64-self-contained.zip

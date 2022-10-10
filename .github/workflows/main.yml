@@ -38,8 +38,14 @@ jobs:
       - name: Archive runtime-dependent release
         run: |
           cd ./publish
-          Remove-Item * -Include *.pdb,*.xml
-          Compress-Archive -Path * -DestinationPath ../UserRights-net60-x64.zip
+          Get-ChildItem . -Exclude *.pdb,*.xml -Recurse |Compress-Archive -DestinationPath ../UserRights-net60-x64.zip
+
+      - name: Upload runtime-dependent release
+        uses: actions/upload-artifact@v3
+        with:
+            name: UserRights-net60-x64
+            path: publish
+            if-no-files-found: error
 
       - name: Clean solution
         run: dotnet.exe clean .\src\UserRights.sln --configuration Release
@@ -51,6 +57,13 @@ jobs:
         run: |
           cd ./publish-packed
           Compress-Archive -Path ./UserRights.exe -DestinationPath ../UserRights-net60-x64-self-contained.zip
+
+      - name: Upload self-contained release
+        uses: actions/upload-artifact@v3
+        with:
+            name: UserRights-net60-x64-self-contained
+            path: publish-packed
+            if-no-files-found: error
 
       - name: Publish release
         if: github.ref_type == 'tag'

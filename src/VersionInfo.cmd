@@ -8,15 +8,14 @@ if exist %PATH_OUTPUT% (
     del /Q %PATH_OUTPUT%
 )
 
-for /F "tokens=*" %%a IN ('git.exe describe HEAD --tags --long') do set GIT=%%a
-if "%GIT%" == "" (exit /B)
+for /F "tokens=*" %%a IN ('git.exe describe HEAD --tags --long') do set INFORMATIONAL_VERSION=%%a
+if "%INFORMATIONAL_VERSION%" == "" (
+    set INFORMATIONAL_VERSION=0.0.0.1-dev
+) else (
+    set INFORMATIONAL_VERSION=!INFORMATIONAL_VERSION:~1!
+)
 
-set INFORMATIONAL_VERSION=%GIT%
-set INFORMATIONAL_VERSION=!INFORMATIONAL_VERSION:~1!
-
-for /f "tokens=1 delims=-" %%a IN ("%GIT%") do set GIT=%%a
-set VERSION=%GIT%
-set VERSION=!VERSION:~1!
+for /f "tokens=1 delims=-" %%a IN ("%INFORMATIONAL_VERSION%") do set VERSION=%%a
 
 (
 echo ^<Project^>

@@ -19,6 +19,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Install .NET 7 SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 7.0.x
+
       - name: Generate version properties
         shell: cmd
         run: src\VersionInfo.cmd
@@ -38,12 +43,12 @@ jobs:
       - name: Archive runtime-dependent release
         run: |
           cd ./publish
-          Get-ChildItem . -Exclude *.pdb,*.xml -Recurse |Compress-Archive -DestinationPath ../UserRights-net60-x64.zip
+          Get-ChildItem . -Exclude *.pdb,*.xml -Recurse |Compress-Archive -DestinationPath ../UserRights-net70-x64.zip
 
       - name: Upload runtime-dependent release
         uses: actions/upload-artifact@v3
         with:
-            name: UserRights-net60-x64
+            name: UserRights-net70-x64
             path: publish
             if-no-files-found: error
 
@@ -56,12 +61,12 @@ jobs:
       - name: Archive self-contained release
         run: |
           cd ./publish-packed
-          Compress-Archive -Path ./UserRights.exe -DestinationPath ../UserRights-net60-x64-self-contained.zip
+          Compress-Archive -Path ./UserRights.exe -DestinationPath ../UserRights-net70-x64-self-contained.zip
 
       - name: Upload self-contained release
         uses: actions/upload-artifact@v3
         with:
-            name: UserRights-net60-x64-self-contained
+            name: UserRights-net70-x64-self-contained
             path: publish-packed
             if-no-files-found: error
 
@@ -69,4 +74,4 @@ jobs:
         if: github.ref_type == 'tag'
         uses: ncipollo/release-action@v1
         with:
-          artifacts: UserRights-net60-x64.zip,UserRights-net60-x64-self-contained.zip
+          artifacts: UserRights-net70-x64.zip,UserRights-net70-x64-self-contained.zip

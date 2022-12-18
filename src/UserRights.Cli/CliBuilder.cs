@@ -129,12 +129,15 @@ public class CliBuilder
             {
                 var stringBuilder = new StringBuilder();
 
-                stringBuilder.Append("Syntax error.");
-
-                foreach (var error in context.ParseResult.Errors)
+                for (var i = 0; i < context.ParseResult.Errors.Count; i++)
                 {
-                    stringBuilder.AppendLine();
+                    var error = context.ParseResult.Errors[i];
                     stringBuilder.Append(error.Message);
+
+                    if (i < context.ParseResult.Errors.Count - 1)
+                    {
+                        stringBuilder.AppendLine();
+                    }
                 }
 
                 throw new SyntaxException(stringBuilder.ToString());

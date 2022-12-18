@@ -39,7 +39,7 @@ internal static class Program
             // Log syntax errors to assist with instrumenting automation.
             using (LogContext.PushProperty("EventId", OperationId.SyntaxError))
             {
-                Log.Fatal("Syntax error: {Message:l}", e.Message);
+                Log.Fatal(e, "Syntax error.");
             }
 
             rc = 1;
@@ -106,7 +106,7 @@ internal static class Program
             "[{Coalesce(EventId.Id, EventId)}] " +
             "{#if DryRun = true}[DryRun] {#end}" +
             "{@m:l}\n" +
-            "{@x}";
+            "{#if ConsoleException is not null}{ConsoleException}\n{#end}";
 
         const string eventLogTemplate =
             "{@m:l}\n\n" +
@@ -127,6 +127,7 @@ internal static class Program
             .Enrich.WithProcessId()
             .Enrich.WithProperty("Arguments", FormatArguments(args))
             .Enrich.WithProperty("CorrelationId", Guid.NewGuid())
+            .Enrich.With<ConsoleExceptionEnricher>()
             .WriteTo.Console(
                 new ExpressionTemplate(consoleTemplate),
                 levelSwitch: levelSwitch,

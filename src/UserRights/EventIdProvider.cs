@@ -30,7 +30,7 @@ public class EventIdProvider : IEventIdProvider
             ScalarValue scalar => scalar.ToString(),
 
             // The EventId property was provided by Microsoft.Extensions.Logging.
-            StructureValue structure => structure.Properties.FirstOrDefault(p => string.Equals("Id", p.Name, StringComparison.OrdinalIgnoreCase))?.Value?.ToString(),
+            StructureValue structure => structure.Properties.FirstOrDefault(p => string.Equals("Id", p.Name, StringComparison.OrdinalIgnoreCase))?.Value.ToString(),
 
             _ => default
         };

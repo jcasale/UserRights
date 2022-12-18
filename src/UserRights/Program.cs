@@ -12,6 +12,7 @@ using Serilog.Context;
 using Serilog.Core;
 using Serilog.Events;
 using Serilog.Templates;
+using Serilog.Templates.Themes;
 using UserRights.Application;
 using UserRights.Cli;
 
@@ -129,7 +130,7 @@ internal static class Program
             .Enrich.WithProperty("CorrelationId", Guid.NewGuid())
             .Enrich.With<ConsoleExceptionEnricher>()
             .WriteTo.Console(
-                new ExpressionTemplate(consoleTemplate),
+                new ExpressionTemplate(consoleTemplate, theme: TemplateTheme.Literate),
                 levelSwitch: levelSwitch,
                 standardErrorFromLevel: LogEventLevel.Verbose)
             .WriteTo.EventLog(

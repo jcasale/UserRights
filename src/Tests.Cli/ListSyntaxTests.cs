@@ -1,6 +1,9 @@
 namespace Tests.Cli;
 
+using System.CommandLine.Parsing;
+using Microsoft.Extensions.DependencyInjection;
 using UserRights.Application;
+using UserRights.Cli;
 using Xunit;
 
 /// <summary>
@@ -8,13 +11,21 @@ using Xunit;
 /// </summary>
 public sealed class ListSyntaxTests : CliTestBase
 {
+    private readonly Parser parser;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="ListSyntaxTests"/> class.
     /// </summary>
     public ListSyntaxTests()
     {
-        this.Registrar.Register(typeof(ILsaUserRights), typeof(MockLsaUserRights));
-        this.Registrar.Register(typeof(IUserRightsManager), typeof(MockUserRightsManager));
+        this.ServiceCollection.AddSingleton<ILsaUserRights, MockLsaUserRights>();
+        this.ServiceCollection.AddSingleton<IUserRightsManager, MockUserRightsManager>();
+        this.ServiceCollection.AddSingleton<CliBuilder>();
+
+        var cliBuilder = this.ServiceProvider.GetRequiredService<CliBuilder>();
+
+        var commandLineBuilder = cliBuilder.Create();
+        this.parser = commandLineBuilder.Build();
     }
 
     /// <summary>
@@ -25,9 +36,9 @@ public sealed class ListSyntaxTests : CliTestBase
     {
         var args = new[] { "list" };
 
-        var exception = Record.Exception(() => this.CommandApp.Run(args));
+        var rc = this.parser.Invoke(args);
 
-        Assert.Null(exception);
+        Assert.Equal(0, rc);
     }
 
     /// <summary>
@@ -38,10 +49,30 @@ public sealed class ListSyntaxTests : CliTestBase
     {
         var args = new[] { "list", "--path", "file.csv" };
 
-        var exception = Record.Exception(() => this.CommandApp.Run(args));
+        var rc = this.parser.Invoke(args);
 
-        Assert.Null(exception);
+        Assert.Equal(0, rc);
     }
+
+    /// <summary>
+    /// Ensures an empty or whitespace path is rejected.
+    /// </summary>
+    /// <param name="args">The test arguments.</param>
+    [Theory]
+    [InlineData("list", "--path", "")]
+    [InlineData("list", "--path", " ")]
+    public void PathWithInvalidStringThrowsException(params string[] args)
+        => Assert.Throws<SyntaxException>(() => this.parser.Invoke(args));
+
+    /// <summary>
+    /// Ensures an empty or whitespace system name is rejected.
+    /// </summary>
+    /// <param name="args">The test arguments.</param>
+    [Theory]
+    [InlineData("list", "--system-name", "")]
+    [InlineData("list", "--system-name", " ")]
+    public void SystemNameWithInvalidStringThrowsException(params string[] args)
+        => Assert.Throws<SyntaxException>(() => this.parser.Invoke(args));
 
     /// <summary>
     /// Verifies list mode with JSON formatted output sent to STDOUT is parsed successfully.
@@ -51,9 +82,9 @@ public sealed class ListSyntaxTests : CliTestBase
     {
         var args = new[] { "list", "--json" };
 
-        var exception = Record.Exception(() => this.CommandApp.Run(args));
+        var rc = this.parser.Invoke(args);
 
-        Assert.Null(exception);
+        Assert.Equal(0, rc);
     }
 
     /// <summary>
@@ -64,8 +95,8 @@ public sealed class ListSyntaxTests : CliTestBase
     {
         var args = new[] { "list", "--json", "--path", "file.csv" };
 
-        var exception = Record.Exception(() => this.CommandApp.Run(args));
+        var rc = this.parser.Invoke(args);
 
-        Assert.Null(exception);
+        Assert.Equal(0, rc);
     }
 }

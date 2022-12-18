@@ -2,6 +2,7 @@ namespace Tests.Cli;
 
 using System;
 using System.Collections.Generic;
+using System.CommandLine.Parsing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -10,7 +11,9 @@ using System.Text;
 using System.Text.Json;
 using CsvHelper;
 using CsvHelper.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using UserRights.Application;
+using UserRights.Cli;
 using UserRights.Extensions.Security;
 using Xunit;
 using static Tests.TestData;
@@ -52,8 +55,14 @@ public sealed class ListCommandTests : CliTestBase
 
         var policy = new MockLsaUserRights(database);
 
-        this.Registrar.RegisterInstance(typeof(ILsaUserRights), policy);
-        this.Registrar.Register(typeof(IUserRightsManager), typeof(UserRightsManager));
+        this.ServiceCollection.AddSingleton<ILsaUserRights>(policy);
+        this.ServiceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
+        this.ServiceCollection.AddSingleton<CliBuilder>();
+
+        var cliBuilder = this.ServiceProvider.GetRequiredService<CliBuilder>();
+
+        var commandLineBuilder = cliBuilder.Create();
+        var parser = commandLineBuilder.Build();
 
         var file = Path.GetTempFileName();
         var args = new[]
@@ -64,10 +73,11 @@ public sealed class ListCommandTests : CliTestBase
             file
         };
 
+        int rc;
         UserRightEntry[] actual;
         try
         {
-            this.CommandApp.Run(args);
+            rc = parser.Invoke(args);
 
             var json = File.ReadAllText(file, Encoding.UTF8);
 
@@ -81,6 +91,7 @@ public sealed class ListCommandTests : CliTestBase
             File.Delete(file);
         }
 
+        Assert.Equal(0, rc);
         Assert.Equal(expected, actual, new UserRightEntryEqualityComparer());
     }
 
@@ -115,8 +126,14 @@ public sealed class ListCommandTests : CliTestBase
             .ThenBy(p => p.SecurityId)
             .ToArray();
 
-        this.Registrar.RegisterInstance(typeof(ILsaUserRights), policy);
-        this.Registrar.Register(typeof(IUserRightsManager), typeof(UserRightsManager));
+        this.ServiceCollection.AddSingleton<ILsaUserRights>(policy);
+        this.ServiceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
+        this.ServiceCollection.AddSingleton<CliBuilder>();
+
+        var cliBuilder = this.ServiceProvider.GetRequiredService<CliBuilder>();
+
+        var commandLineBuilder = cliBuilder.Create();
+        var parser = commandLineBuilder.Build();
 
         var file = Path.GetTempFileName();
         var args = new[]
@@ -126,10 +143,11 @@ public sealed class ListCommandTests : CliTestBase
             file
         };
 
+        int rc;
         UserRightEntry[] actual;
         try
         {
-            this.CommandApp.Run(args);
+            rc = parser.Invoke(args);
 
             var configuration = new CsvConfiguration(CultureInfo.InvariantCulture)
             {
@@ -149,6 +167,7 @@ public sealed class ListCommandTests : CliTestBase
             File.Delete(file);
         }
 
+        Assert.Equal(0, rc);
         Assert.Equal(expected, actual, new UserRightEntryEqualityComparer());
     }
 }

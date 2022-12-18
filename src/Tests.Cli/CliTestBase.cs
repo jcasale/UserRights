@@ -3,16 +3,14 @@ namespace Tests.Cli;
 using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Spectre.Console.Cli;
-using UserRights.Cli;
 
 /// <summary>
 /// Represents a test configuration that provides command line infrastructure.
 /// </summary>
 public abstract class CliTestBase : IDisposable
 {
-    private readonly TypeRegistrar registrar;
-    private readonly CommandApp commandApp;
+    private readonly IServiceCollection serviceCollection;
+    private readonly Lazy<ServiceProvider> serviceProvider;
 
     private bool disposed;
 
@@ -21,21 +19,19 @@ public abstract class CliTestBase : IDisposable
     /// </summary>
     protected CliTestBase()
     {
-        var serviceCollection = new ServiceCollection()
+        this.serviceCollection = new ServiceCollection()
             .AddLogging(builder => builder
                 .ClearProviders()
                 .SetMinimumLevel(LogLevel.Trace)
                 .AddDebug());
 
-        this.registrar = new TypeRegistrar(serviceCollection);
-
-        this.commandApp = CommandAppBuilder.Build(this.registrar);
+        this.serviceProvider = new Lazy<ServiceProvider>(this.serviceCollection.BuildServiceProvider);
     }
 
     /// <summary>
-    /// Gets the command line application.
+    /// Gets the service collection.
     /// </summary>
-    protected CommandApp CommandApp
+    protected IServiceCollection ServiceCollection
     {
         get
         {
@@ -44,14 +40,14 @@ public abstract class CliTestBase : IDisposable
                 throw new ObjectDisposedException(this.GetType().FullName);
             }
 
-            return this.commandApp;
+            return this.serviceCollection;
         }
     }
 
     /// <summary>
-    /// Gets the type registrar.
+    /// Gets the service provider.
     /// </summary>
-    protected TypeRegistrar Registrar
+    protected ServiceProvider ServiceProvider
     {
         get
         {
@@ -60,7 +56,7 @@ public abstract class CliTestBase : IDisposable
                 throw new ObjectDisposedException(this.GetType().FullName);
             }
 
-            return this.registrar;
+            return this.serviceProvider.Value;
         }
     }
 
@@ -84,7 +80,7 @@ public abstract class CliTestBase : IDisposable
 
         if (disposing)
         {
-            this.registrar?.Dispose();
+            this.serviceProvider.Value.Dispose();
             this.disposed = true;
         }
     }

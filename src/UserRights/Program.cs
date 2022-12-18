@@ -1,8 +1,11 @@
 namespace UserRights;
 
 using System;
+using System.CommandLine.Builder;
+using System.CommandLine.Parsing;
 using System.Globalization;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Context;
@@ -22,14 +25,16 @@ internal static class Program
     /// </summary>
     /// <param name="args">The command line arguments.</param>
     /// <returns>A value representing the operation status code.</returns>
-    private static int Main(string[] args)
+    private static async Task<int> Main(string[] args)
     {
+        int rc;
+
         // Wrap the execution with error handling.
         try
         {
-            Run(args);
+            rc = await Run(args).ConfigureAwait(false);
         }
-        catch (Exception e) when (e is Spectre.Console.Cli.CommandRuntimeException or SyntaxException)
+        catch (SyntaxException e)
         {
             // Log syntax errors to assist with instrumenting automation.
             using (LogContext.PushProperty("EventId", OperationId.SyntaxError))
@@ -37,7 +42,7 @@ internal static class Program
                 Log.Fatal("Syntax error: {Message:l}", e.Message);
             }
 
-            return 1;
+            rc = 1;
         }
         catch (Exception e)
         {
@@ -47,14 +52,14 @@ internal static class Program
                 Log.Fatal(e, "Execution failed.");
             }
 
-            return 1;
+            rc = 2;
         }
         finally
         {
-            Log.CloseAndFlush();
+            await Log.CloseAndFlushAsync().ConfigureAwait(false);
         }
 
-        return 0;
+        return rc;
     }
 
     /// <summary>
@@ -87,7 +92,7 @@ internal static class Program
     /// Represents the programs execution logic.
     /// </summary>
     /// <param name="args">The command line arguments.</param>
-    private static void Run(string[] args)
+    private static async Task<int> Run(string[] args)
     {
         if (args is null)
         {
@@ -133,16 +138,31 @@ internal static class Program
                 eventIdProvider: new EventIdProvider())
             .CreateLogger();
 
-        var serviceCollection = new ServiceCollection()
+        var serviceProvider = new ServiceCollection()
             .AddSingleton<ILsaUserRights, LsaUserRights>()
             .AddSingleton<IUserRightsManager, UserRightsManager>()
-            .AddLogging(logging => logging.AddSerilog());
+            .AddSingleton<CliBuilder>()
+            .AddLogging(logging => logging.AddSerilog())
+            .BuildServiceProvider();
 
-        using var registrar = new TypeRegistrar(serviceCollection);
+        await using var _ = serviceProvider.ConfigureAwait(false);
 
-        var interceptor = new LogInterceptor(levelSwitch);
-        var commandApp = CommandAppBuilder.Build(registrar, interceptor);
+        var cliBuilder = serviceProvider.GetRequiredService<CliBuilder>();
 
-        commandApp.Run(args);
+        var commandLineBuilder = cliBuilder.Create();
+        commandLineBuilder.AddMiddleware(
+            async (context, next) =>
+            {
+                if (!string.Equals(context.ParseResult.CommandResult.Command.Name, "list", StringComparison.Ordinal))
+                {
+                    levelSwitch.MinimumLevel = LogEventLevel.Verbose;
+                }
+
+                await next(context).ConfigureAwait(false);
+            });
+
+        var parser = commandLineBuilder.Build();
+
+        return await parser.InvokeAsync(args).ConfigureAwait(false);
     }
 }

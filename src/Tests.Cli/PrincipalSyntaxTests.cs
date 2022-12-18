@@ -1,7 +1,9 @@
 namespace Tests.Cli;
 
-using Spectre.Console.Cli;
+using System.CommandLine.Parsing;
+using Microsoft.Extensions.DependencyInjection;
 using UserRights.Application;
+using UserRights.Cli;
 using Xunit;
 
 /// <summary>
@@ -9,13 +11,21 @@ using Xunit;
 /// </summary>
 public sealed class PrincipalSyntaxTests : CliTestBase
 {
+    private readonly Parser parser;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="PrincipalSyntaxTests"/> class.
     /// </summary>
     public PrincipalSyntaxTests()
     {
-        this.Registrar.Register(typeof(ILsaUserRights), typeof(MockLsaUserRights));
-        this.Registrar.Register(typeof(IUserRightsManager), typeof(MockUserRightsManager));
+        this.ServiceCollection.AddSingleton<ILsaUserRights, MockLsaUserRights>();
+        this.ServiceCollection.AddSingleton<IUserRightsManager, MockUserRightsManager>();
+        this.ServiceCollection.AddSingleton<CliBuilder>();
+
+        var cliBuilder = this.ServiceProvider.GetRequiredService<CliBuilder>();
+
+        var commandLineBuilder = cliBuilder.Create();
+        this.parser = commandLineBuilder.Build();
     }
 
     /// <summary>
@@ -26,9 +36,9 @@ public sealed class PrincipalSyntaxTests : CliTestBase
     {
         var args = new[] { "principal", "DOMAIN\\UserOrGroup", "--grant", "SeServiceLogonRight", "--revoke", "SeBatchLogonRight" };
 
-        var exception = Record.Exception(() => this.CommandApp.Run(args));
+        var rc = this.parser.Invoke(args);
 
-        Assert.Null(exception);
+        Assert.Equal(0, rc);
     }
 
     /// <summary>
@@ -39,9 +49,9 @@ public sealed class PrincipalSyntaxTests : CliTestBase
     {
         var args = new[] { "principal", "DOMAIN\\UserOrGroup", "--grant", "SeServiceLogonRight", "--grant", "SeBatchLogonRight" };
 
-        var exception = Record.Exception(() => this.CommandApp.Run(args));
+        var rc = this.parser.Invoke(args);
 
-        Assert.Null(exception);
+        Assert.Equal(0, rc);
     }
 
     /// <summary>
@@ -52,10 +62,20 @@ public sealed class PrincipalSyntaxTests : CliTestBase
     {
         var args = new[] { "principal", "DOMAIN\\UserOrGroup", "--grant", "SeServiceLogonRight" };
 
-        var exception = Record.Exception(() => this.CommandApp.Run(args));
+        var rc = this.parser.Invoke(args);
 
-        Assert.Null(exception);
+        Assert.Equal(0, rc);
     }
+
+    /// <summary>
+    /// Ensures an empty or whitespace grant is rejected.
+    /// </summary>
+    /// <param name="args">The test arguments.</param>
+    [Theory]
+    [InlineData("principal", "DOMAIN\\UserOrGroup", "--grant", "")]
+    [InlineData("principal", "DOMAIN\\UserOrGroup", "--grant", " ")]
+    public void GrantWithInvalidStringThrowsException(params string[] args)
+        => Assert.Throws<SyntaxException>(() => this.parser.Invoke(args));
 
     /// <summary>
     /// Ensures granting a privilege and revoking all other privileges is rejected.
@@ -65,7 +85,7 @@ public sealed class PrincipalSyntaxTests : CliTestBase
     {
         var args = new[] { "principal", "DOMAIN\\UserOrGroup", "--grant", "SeServiceLogonRight", "--revoke-all" };
 
-        Assert.Throws<CommandRuntimeException>(() => this.CommandApp.Run(args));
+        Assert.Throws<SyntaxException>(() => this.parser.Invoke(args));
     }
 
     /// <summary>
@@ -76,7 +96,7 @@ public sealed class PrincipalSyntaxTests : CliTestBase
     {
         var args = new[] { "principal" };
 
-        Assert.Throws<CommandRuntimeException>(() => this.CommandApp.Run(args));
+        Assert.Throws<SyntaxException>(() => this.parser.Invoke(args));
     }
 
     /// <summary>
@@ -88,7 +108,17 @@ public sealed class PrincipalSyntaxTests : CliTestBase
     [InlineData("principal", "DOMAIN\\UserOrGroup", "--grant", "SeServiceLogonRight", "--grant", "SeServiceLogonRight")]
     [InlineData("principal", "DOMAIN\\UserOrGroup", "--revoke", "SeServiceLogonRight", "--revoke", "SeServiceLogonRight")]
     public void OverlappingGrantsAndRevokesThrowsException(params string[] args)
-        => Assert.Throws<CommandRuntimeException>(() => this.CommandApp.Run(args));
+        => Assert.Throws<SyntaxException>(() => this.parser.Invoke(args));
+
+    /// <summary>
+    /// Ensures an empty or whitespace principal is rejected.
+    /// </summary>
+    /// <param name="args">The test arguments.</param>
+    [Theory]
+    [InlineData("principal", "", "--grant", "SeServiceLogonRight")]
+    [InlineData("principal", " ", "--grant", "SeServiceLogonRight")]
+    public void PrincipalWithInvalidStringThrowsException(params string[] args)
+        => Assert.Throws<SyntaxException>(() => this.parser.Invoke(args));
 
     /// <summary>
     /// Ensures revoking all privileges is accepted.
@@ -98,9 +128,9 @@ public sealed class PrincipalSyntaxTests : CliTestBase
     {
         var args = new[] { "principal", "DOMAIN\\UserOrGroup", "--revoke-all" };
 
-        var exception = Record.Exception(() => this.CommandApp.Run(args));
+        var rc = this.parser.Invoke(args);
 
-        Assert.Null(exception);
+        Assert.Equal(0, rc);
     }
 
     /// <summary>
@@ -111,7 +141,7 @@ public sealed class PrincipalSyntaxTests : CliTestBase
     {
         var args = new[] { "principal", "DOMAIN\\UserOrGroup", "--revoke-all", "--grant", "SeServiceLogonRight" };
 
-        Assert.Throws<CommandRuntimeException>(() => this.CommandApp.Run(args));
+        Assert.Throws<SyntaxException>(() => this.parser.Invoke(args));
     }
 
     /// <summary>
@@ -122,7 +152,7 @@ public sealed class PrincipalSyntaxTests : CliTestBase
     {
         var args = new[] { "principal", "DOMAIN\\UserOrGroup", "--revoke-all", "--revoke", "SeServiceLogonRight" };
 
-        Assert.Throws<CommandRuntimeException>(() => this.CommandApp.Run(args));
+        Assert.Throws<SyntaxException>(() => this.parser.Invoke(args));
     }
 
     /// <summary>
@@ -133,7 +163,7 @@ public sealed class PrincipalSyntaxTests : CliTestBase
     {
         var args = new[] { "principal", "DOMAIN\\UserOrGroup", "--revoke-all", "--revoke-others" };
 
-        Assert.Throws<CommandRuntimeException>(() => this.CommandApp.Run(args));
+        Assert.Throws<SyntaxException>(() => this.parser.Invoke(args));
     }
 
     /// <summary>
@@ -144,9 +174,9 @@ public sealed class PrincipalSyntaxTests : CliTestBase
     {
         var args = new[] { "principal", "DOMAIN\\UserOrGroup", "--revoke", "SeServiceLogonRight", "--revoke", "SeBatchLogonRight" };
 
-        var exception = Record.Exception(() => this.CommandApp.Run(args));
+        var rc = this.parser.Invoke(args);
 
-        Assert.Null(exception);
+        Assert.Equal(0, rc);
     }
 
     /// <summary>
@@ -157,7 +187,7 @@ public sealed class PrincipalSyntaxTests : CliTestBase
     {
         var args = new[] { "principal", "DOMAIN\\UserOrGroup", "--revoke-others" };
 
-        Assert.Throws<CommandRuntimeException>(() => this.CommandApp.Run(args));
+        Assert.Throws<SyntaxException>(() => this.parser.Invoke(args));
     }
 
     /// <summary>
@@ -168,7 +198,7 @@ public sealed class PrincipalSyntaxTests : CliTestBase
     {
         var args = new[] { "principal", "DOMAIN\\UserOrGroup", "--revoke-others", "--revoke", "SeServiceLogonRight" };
 
-        Assert.Throws<CommandRuntimeException>(() => this.CommandApp.Run(args));
+        Assert.Throws<SyntaxException>(() => this.parser.Invoke(args));
     }
 
     /// <summary>
@@ -179,8 +209,28 @@ public sealed class PrincipalSyntaxTests : CliTestBase
     {
         var args = new[] { "principal", "DOMAIN\\UserOrGroup", "--revoke", "SeServiceLogonRight" };
 
-        var exception = Record.Exception(() => this.CommandApp.Run(args));
+        var rc = this.parser.Invoke(args);
 
-        Assert.Null(exception);
+        Assert.Equal(0, rc);
     }
+
+    /// <summary>
+    /// Ensures an empty or whitespace revocation is rejected.
+    /// </summary>
+    /// <param name="args">The test arguments.</param>
+    [Theory]
+    [InlineData("principal", "DOMAIN\\UserOrGroup", "--revoke", "")]
+    [InlineData("principal", "DOMAIN\\UserOrGroup", "--revoke", " ")]
+    public void RevokeWithInvalidStringThrowsException(params string[] args)
+        => Assert.Throws<SyntaxException>(() => this.parser.Invoke(args));
+
+    /// <summary>
+    /// Ensures an empty or whitespace system name is rejected.
+    /// </summary>
+    /// <param name="args">The test arguments.</param>
+    [Theory]
+    [InlineData("principal", "DOMAIN\\UserOrGroup", "--grant", "SeServiceLogonRight", "--system-name", "")]
+    [InlineData("principal", "DOMAIN\\UserOrGroup", "--grant", "SeServiceLogonRight", "--system-name", " ")]
+    public void SystemNameWithInvalidStringThrowsException(params string[] args)
+        => Assert.Throws<SyntaxException>(() => this.parser.Invoke(args));
 }

@@ -2,9 +2,12 @@ namespace Tests.Cli;
 
 using System;
 using System.Collections.Generic;
+using System.CommandLine.Parsing;
 using System.Linq;
 using System.Security.Principal;
+using Microsoft.Extensions.DependencyInjection;
 using UserRights.Application;
+using UserRights.Cli;
 using Xunit;
 using static Tests.TestData;
 
@@ -47,8 +50,14 @@ public sealed class PrivilegeCommandTests : CliTestBase
 
         policy.ResetConnection();
 
-        this.Registrar.RegisterInstance(typeof(ILsaUserRights), policy);
-        this.Registrar.Register(typeof(IUserRightsManager), typeof(UserRightsManager));
+        this.ServiceCollection.AddSingleton<ILsaUserRights>(policy);
+        this.ServiceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
+        this.ServiceCollection.AddSingleton<CliBuilder>();
+
+        var cliBuilder = this.ServiceProvider.GetRequiredService<CliBuilder>();
+
+        var commandLineBuilder = cliBuilder.Create();
+        var parser = commandLineBuilder.Build();
 
         var args = new[]
         {
@@ -59,8 +68,9 @@ public sealed class PrivilegeCommandTests : CliTestBase
             "--revoke-others"
         };
 
-        this.CommandApp.Run(args);
+        var rc = parser.Invoke(args);
 
+        Assert.Equal(0, rc);
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.OrderBy(p => p), policy.GetPrincipals().OrderBy(p => p));
         Assert.Equal(new[] { Privilege1, Privilege2 }.OrderBy(p => p), policy.GetPrivileges(PrincipalSid1).OrderBy(p => p));
         Assert.Equal(new[] { Privilege1 }, policy.GetPrivileges(PrincipalSid2));
@@ -100,8 +110,14 @@ public sealed class PrivilegeCommandTests : CliTestBase
 
         policy.ResetConnection();
 
-        this.Registrar.RegisterInstance(typeof(ILsaUserRights), policy);
-        this.Registrar.Register(typeof(IUserRightsManager), typeof(UserRightsManager));
+        this.ServiceCollection.AddSingleton<ILsaUserRights>(policy);
+        this.ServiceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
+        this.ServiceCollection.AddSingleton<CliBuilder>();
+
+        var cliBuilder = this.ServiceProvider.GetRequiredService<CliBuilder>();
+
+        var commandLineBuilder = cliBuilder.Create();
+        var parser = commandLineBuilder.Build();
 
         var args = new[]
         {
@@ -113,8 +129,9 @@ public sealed class PrivilegeCommandTests : CliTestBase
             PrincipalName1
         };
 
-        this.CommandApp.Run(args);
+        var rc = parser.Invoke(args);
 
+        Assert.Equal(0, rc);
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.OrderBy(p => p), policy.GetPrincipals().OrderBy(p => p));
         Assert.Equal(new[] { Privilege2 }, policy.GetPrivileges(PrincipalSid1));
         Assert.Equal(new[] { Privilege1, Privilege2 }.OrderBy(p => p), policy.GetPrivileges(PrincipalSid2).OrderBy(p => p));
@@ -157,8 +174,14 @@ public sealed class PrivilegeCommandTests : CliTestBase
 
         policy.ResetConnection();
 
-        this.Registrar.RegisterInstance(typeof(ILsaUserRights), policy);
-        this.Registrar.Register(typeof(IUserRightsManager), typeof(UserRightsManager));
+        this.ServiceCollection.AddSingleton<ILsaUserRights>(policy);
+        this.ServiceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
+        this.ServiceCollection.AddSingleton<CliBuilder>();
+
+        var cliBuilder = this.ServiceProvider.GetRequiredService<CliBuilder>();
+
+        var commandLineBuilder = cliBuilder.Create();
+        var parser = commandLineBuilder.Build();
 
         var args = new[]
         {
@@ -170,8 +193,9 @@ public sealed class PrivilegeCommandTests : CliTestBase
             "^S-1-5-21"
         };
 
-        this.CommandApp.Run(args);
+        var rc = parser.Invoke(args);
 
+        Assert.Equal(0, rc);
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2, PrincipalSid3 }.OrderBy(p => p), policy.GetPrincipals().OrderBy(p => p));
         Assert.Equal(new[] { Privilege1, Privilege2 }.OrderBy(p => p), policy.GetPrivileges(PrincipalSid1).OrderBy(p => p));
         Assert.Equal(new[] { Privilege1, Privilege2 }, policy.GetPrivileges(PrincipalSid2).OrderBy(p => p));
@@ -209,8 +233,14 @@ public sealed class PrivilegeCommandTests : CliTestBase
 
         policy.ResetConnection();
 
-        this.Registrar.RegisterInstance(typeof(ILsaUserRights), policy);
-        this.Registrar.Register(typeof(IUserRightsManager), typeof(UserRightsManager));
+        this.ServiceCollection.AddSingleton<ILsaUserRights>(policy);
+        this.ServiceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
+        this.ServiceCollection.AddSingleton<CliBuilder>();
+
+        var cliBuilder = this.ServiceProvider.GetRequiredService<CliBuilder>();
+
+        var commandLineBuilder = cliBuilder.Create();
+        var parser = commandLineBuilder.Build();
 
         var args = new[]
         {
@@ -220,8 +250,9 @@ public sealed class PrivilegeCommandTests : CliTestBase
             PrincipalName1
         };
 
-        this.CommandApp.Run(args);
+        var rc = parser.Invoke(args);
 
+        Assert.Equal(0, rc);
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.OrderBy(p => p), policy.GetPrincipals().OrderBy(p => p));
         Assert.Equal(new[] { Privilege1, Privilege2 }.OrderBy(p => p), policy.GetPrivileges(PrincipalSid1).OrderBy(p => p));
         Assert.Equal(new[] { Privilege2 }, policy.GetPrivileges(PrincipalSid2));
@@ -262,8 +293,14 @@ public sealed class PrivilegeCommandTests : CliTestBase
 
         policy.ResetConnection();
 
-        this.Registrar.RegisterInstance(typeof(ILsaUserRights), policy);
-        this.Registrar.Register(typeof(IUserRightsManager), typeof(UserRightsManager));
+        this.ServiceCollection.AddSingleton<ILsaUserRights>(policy);
+        this.ServiceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
+        this.ServiceCollection.AddSingleton<CliBuilder>();
+
+        var cliBuilder = this.ServiceProvider.GetRequiredService<CliBuilder>();
+
+        var commandLineBuilder = cliBuilder.Create();
+        var parser = commandLineBuilder.Build();
 
         var args = new[]
         {
@@ -272,8 +309,9 @@ public sealed class PrivilegeCommandTests : CliTestBase
             "--revoke-all"
         };
 
-        this.CommandApp.Run(args);
+        var rc = parser.Invoke(args);
 
+        Assert.Equal(0, rc);
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.OrderBy(p => p), policy.GetPrincipals().OrderBy(p => p));
         Assert.Equal(new[] { Privilege2 }, policy.GetPrivileges(PrincipalSid1));
         Assert.Equal(new[] { Privilege2 }, policy.GetPrivileges(PrincipalSid2));
@@ -313,8 +351,14 @@ public sealed class PrivilegeCommandTests : CliTestBase
 
         policy.ResetConnection();
 
-        this.Registrar.RegisterInstance(typeof(ILsaUserRights), policy);
-        this.Registrar.Register(typeof(IUserRightsManager), typeof(UserRightsManager));
+        this.ServiceCollection.AddSingleton<ILsaUserRights>(policy);
+        this.ServiceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
+        this.ServiceCollection.AddSingleton<CliBuilder>();
+
+        var cliBuilder = this.ServiceProvider.GetRequiredService<CliBuilder>();
+
+        var commandLineBuilder = cliBuilder.Create();
+        var parser = commandLineBuilder.Build();
 
         var args = new[]
         {
@@ -324,8 +368,9 @@ public sealed class PrivilegeCommandTests : CliTestBase
             PrincipalName2
         };
 
-        this.CommandApp.Run(args);
+        var rc = parser.Invoke(args);
 
+        Assert.Equal(0, rc);
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.OrderBy(p => p), policy.GetPrincipals().OrderBy(p => p));
         Assert.Equal(new[] { Privilege1 }, policy.GetPrivileges(PrincipalSid1));
         Assert.Equal(new[] { Privilege2 }, policy.GetPrivileges(PrincipalSid2));
@@ -368,8 +413,14 @@ public sealed class PrivilegeCommandTests : CliTestBase
 
         policy.ResetConnection();
 
-        this.Registrar.RegisterInstance(typeof(ILsaUserRights), policy);
-        this.Registrar.Register(typeof(IUserRightsManager), typeof(UserRightsManager));
+        this.ServiceCollection.AddSingleton<ILsaUserRights>(policy);
+        this.ServiceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
+        this.ServiceCollection.AddSingleton<CliBuilder>();
+
+        var cliBuilder = this.ServiceProvider.GetRequiredService<CliBuilder>();
+
+        var commandLineBuilder = cliBuilder.Create();
+        var parser = commandLineBuilder.Build();
 
         var args = new[]
         {
@@ -379,8 +430,9 @@ public sealed class PrivilegeCommandTests : CliTestBase
             "^S-1-5-21"
         };
 
-        this.CommandApp.Run(args);
+        var rc = parser.Invoke(args);
 
+        Assert.Equal(0, rc);
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2, PrincipalSid3 }.OrderBy(p => p), policy.GetPrincipals().OrderBy(p => p));
         Assert.Equal(new[] { Privilege2 }, policy.GetPrivileges(PrincipalSid1));
         Assert.Equal(new[] { Privilege1, Privilege2 }, policy.GetPrivileges(PrincipalSid2).OrderBy(p => p));

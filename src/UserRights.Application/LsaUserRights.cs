@@ -1,10 +1,9 @@
 namespace UserRights.Application;
 
 using System;
-using System.Globalization;
 using System.Linq;
 using System.Security.Principal;
-using System.Text;
+using Vanara.Extensions;
 using Vanara.PInvoke;
 using Vanara.Security.AccessControl;
 using static Vanara.PInvoke.AdvApi32;
@@ -130,24 +129,15 @@ public class LsaUserRights : ILsaUserRights, IDisposable
 
         var privileges = new[] { privilege };
 
-        NTStatus result;
         try
         {
-            result = LsaAddAccountRights(this.policy, principal.GetPSID(), privileges, (uint)privileges.Length);
+            var status = LsaAddAccountRights(this.policy, principal.GetPSID(), privileges, (uint)privileges.Length);
+
+            LsaNtStatusToWinError(status).ThrowIfFailed();
         }
         catch (Exception e)
         {
             throw new LsaUserRightsException($"Error granting privileges to {principal.Value}.", e);
-        }
-
-        if (result.Failed)
-        {
-            var stringBuilder = new StringBuilder();
-            stringBuilder.AppendFormat(CultureInfo.InvariantCulture, "Failed to grant privileges to {0}.", principal.Value);
-            stringBuilder.AppendLine();
-            stringBuilder.AppendLine(result.ToString());
-
-            throw new LsaUserRightsException(stringBuilder.ToString());
         }
     }
 
@@ -176,24 +166,15 @@ public class LsaUserRights : ILsaUserRights, IDisposable
 
         var privileges = new[] { privilege };
 
-        NTStatus result;
         try
         {
-            result = LsaRemoveAccountRights(this.policy, principal.GetPSID(), false, privileges, (uint)privileges.Length);
+            var status = LsaRemoveAccountRights(this.policy, principal.GetPSID(), false, privileges, (uint)privileges.Length);
+
+            LsaNtStatusToWinError(status).ThrowIfFailed();
         }
         catch (Exception e)
         {
             throw new LsaUserRightsException($"Error revoking privilege from {principal.Value}.", e);
-        }
-
-        if (result.Failed)
-        {
-            var stringBuilder = new StringBuilder();
-            stringBuilder.AppendFormat(CultureInfo.InvariantCulture, "Failed to revoke privilege from {0}.", principal.Value);
-            stringBuilder.AppendLine();
-            stringBuilder.AppendLine(result.ToString());
-
-            throw new LsaUserRightsException(stringBuilder.ToString());
         }
     }
 
@@ -240,34 +221,29 @@ public class LsaUserRights : ILsaUserRights, IDisposable
         }
 
         // Enumerate all accounts in the policy database.
-        PSID[] psids;
+        SafeLsaMemoryHandle buffer = default;
         try
         {
-            psids = LsaEnumerateAccountsWithUserRight(this.policy, privilege).ToArray();
+            var status = LsaEnumerateAccountsWithUserRight(this.policy, privilege, out buffer, out var count);
+            if (status == NTStatus.STATUS_NO_MORE_ENTRIES)
+            {
+                return Array.Empty<SecurityIdentifier>();
+            }
+
+            LsaNtStatusToWinError(status).ThrowIfFailed();
+
+            return buffer.DangerousGetHandle()
+                .ToIEnum<LSA_ENUMERATION_INFORMATION>(count)
+                .Select(a => new SecurityIdentifier((nint)a.Sid))
+                .ToArray();
         }
         catch (Exception e)
         {
             throw new LsaUserRightsException("Error enumerating accounts in the policy database.", e);
         }
-
-        // Dereference all pointers to security identifiers.
-        var sids = new SecurityIdentifier[psids.Length];
-
-        try
+        finally
         {
-            for (var i = 0; i < psids.Length; i++)
-            {
-                var psid = psids[i];
-                var sid = new SecurityIdentifier(psid.DangerousGetHandle());
-
-                sids[i] = sid;
-            }
+            buffer?.Dispose();
         }
-        catch (Exception e)
-        {
-            throw new LsaUserRightsException("Error converting accounts from the policy database.", e);
-        }
-
-        return sids;
     }
 }

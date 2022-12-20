@@ -91,5 +91,5 @@ public interface IUserRightsManager
     /// </item>
     /// </list>
     /// </remarks>
-    void ModifyPrivilege(IUserRights policy, string privilege, string[] grants, string[] revocations, bool revokeAll, bool revokeOthers, Regex revokePattern, bool dryRun);
+    void ModifyPrivilege(IUserRights policy, string privilege, string[] grants, string[] revocations, bool revokeAll, bool revokeOthers, Regex? revokePattern, bool dryRun);
 }

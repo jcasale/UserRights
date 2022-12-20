@@ -13,17 +13,10 @@ public record UserRightEntry : IUserRightEntry
     /// <param name="privilege">The privilege assigned to the principal.</param>
     /// <param name="securityId">The security id of the principal.</param>
     /// <param name="accountName">The account name of the principal.</param>
-    public UserRightEntry(string privilege, string securityId, string accountName)
+    public UserRightEntry(string privilege, string securityId, string? accountName)
     {
-        if (string.IsNullOrWhiteSpace(privilege))
-        {
-            throw new ArgumentException("Value cannot be null or whitespace.", nameof(privilege));
-        }
-
-        if (string.IsNullOrWhiteSpace(securityId))
-        {
-            throw new ArgumentException("Value cannot be null or whitespace.", nameof(securityId));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(privilege);
+        ArgumentException.ThrowIfNullOrEmpty(securityId);
 
         this.Privilege = privilege;
         this.SecurityId = securityId;
@@ -46,5 +39,5 @@ public record UserRightEntry : IUserRightEntry
     /// <remarks>
     /// The account name may be empty if the query was performed remotely due to the translation possibly not working.
     /// </remarks>
-    public string AccountName { get; }
+    public string? AccountName { get; }
 }

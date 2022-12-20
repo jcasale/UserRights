@@ -30,7 +30,7 @@ public sealed class LsaUserRightsRevokePrivilegeTests : LsaUserRightsTestBase
         Assert.Contains(securityIdentifier, initial);
 
         using var policy = new LsaUserRights();
-        policy.Connect(null);
+        policy.Connect();
         policy.RevokePrivilege(securityIdentifier, SeBackupPrivilege);
 
         var current = this.GetCurrentState();

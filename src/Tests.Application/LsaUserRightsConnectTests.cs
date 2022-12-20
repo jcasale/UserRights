@@ -17,8 +17,8 @@ public class LsaUserRightsConnectTests
     public void MultipleConnectionsThrowsException()
     {
         using var policy = new LsaUserRights();
-        policy.Connect(null);
+        policy.Connect();
 
-        Assert.Throws<InvalidOperationException>(() => policy.Connect(null));
+        Assert.Throws<InvalidOperationException>(() => policy.Connect());
     }
 }

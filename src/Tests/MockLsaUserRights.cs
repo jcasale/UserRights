@@ -27,7 +27,7 @@ public class MockLsaUserRights : ILsaUserRights
         => this.database = database ?? throw new ArgumentNullException(nameof(database));
 
     /// <inheritdoc />
-    public void Connect(string systemName)
+    public void Connect(string? systemName = default)
     {
         if (this.connected)
         {

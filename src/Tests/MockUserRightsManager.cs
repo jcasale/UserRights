@@ -19,7 +19,7 @@ public class MockUserRightsManager : IUserRightsManager
     }
 
     /// <inheritdoc />
-    public void ModifyPrivilege(IUserRights policy, string privilege, string[] grants, string[] revocations, bool revokeAll, bool revokeOthers, Regex revokePattern, bool dryRun)
+    public void ModifyPrivilege(IUserRights policy, string privilege, string[] grants, string[] revocations, bool revokeAll, bool revokeOthers, Regex? revokePattern, bool dryRun)
     {
     }
 }

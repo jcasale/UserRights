@@ -27,7 +27,7 @@ public sealed class LsaUserRightsGetPrincipalsTests : LsaUserRightsTestBase
             .ToArray();
 
         using var policy = new LsaUserRights();
-        policy.Connect(null);
+        policy.Connect();
 
         var actual = policy.GetPrincipals()
             .OrderBy(p => p)
@@ -48,7 +48,7 @@ public sealed class LsaUserRightsGetPrincipalsTests : LsaUserRightsTestBase
         var securityIdentifier = new SecurityIdentifier(Administrators);
 
         using var policy = new LsaUserRights();
-        policy.Connect(null);
+        policy.Connect();
 
         var collection = policy.GetPrincipals(SeTakeOwnershipPrivilege).ToArray();
 

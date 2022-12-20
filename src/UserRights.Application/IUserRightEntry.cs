@@ -21,5 +21,5 @@ public interface IUserRightEntry
     /// <remarks>
     /// The account name may be empty if the query was performed remotely due to the translation possibly not working.
     /// </remarks>
-    string AccountName { get; }
+    string? AccountName { get; }
 }

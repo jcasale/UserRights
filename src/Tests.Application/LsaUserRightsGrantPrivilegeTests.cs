@@ -30,7 +30,7 @@ public sealed class LsaUserRightsGrantPrivilegeTests : LsaUserRightsTestBase
         }
 
         using var policy = new LsaUserRights();
-        policy.Connect(null);
+        policy.Connect();
         policy.GrantPrivilege(securityIdentifier, SeMachineAccountPrivilege);
 
         var current = this.GetCurrentState();

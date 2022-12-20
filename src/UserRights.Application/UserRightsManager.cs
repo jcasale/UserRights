@@ -36,7 +36,7 @@ public class UserRightsManager : IUserRightsManager
         var entries = new List<UserRightEntry>();
         foreach (var principal in principals)
         {
-            string accountName = null;
+            string? accountName = default;
             try
             {
                 accountName = principal.ToAccountName();
@@ -170,7 +170,7 @@ public class UserRightsManager : IUserRightsManager
     }
 
     /// <inheritdoc />
-    public void ModifyPrivilege(IUserRights policy, string privilege, string[] grants, string[] revocations, bool revokeAll, bool revokeOthers, Regex revokePattern, bool dryRun)
+    public void ModifyPrivilege(IUserRights policy, string privilege, string[] grants, string[] revocations, bool revokeAll, bool revokeOthers, Regex? revokePattern, bool dryRun)
     {
         if (policy is null)
         {

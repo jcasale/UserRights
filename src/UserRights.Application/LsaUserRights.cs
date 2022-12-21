@@ -7,7 +7,6 @@ using System.Security.Principal;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.Security.Authentication.Identity;
-using Windows.Win32.Storage.FileSystem;
 using Windows.Win32.System.WindowsProgramming;
 
 /// <summary>
@@ -33,19 +32,9 @@ public class LsaUserRights : ILsaUserRights, IDisposable
 
         OBJECT_ATTRIBUTES objectAttributes = default;
 
-        const uint desiredAccess = (uint)FILE_ACCESS_FLAGS.STANDARD_RIGHTS_REQUIRED |
-            PInvoke.POLICY_VIEW_LOCAL_INFORMATION |
-            PInvoke.POLICY_VIEW_AUDIT_INFORMATION |
-            PInvoke.POLICY_GET_PRIVATE_INFORMATION |
-            PInvoke.POLICY_TRUST_ADMIN |
-            PInvoke.POLICY_CREATE_ACCOUNT |
-            PInvoke.POLICY_CREATE_SECRET |
-            PInvoke.POLICY_CREATE_PRIVILEGE |
-            PInvoke.POLICY_SET_DEFAULT_QUOTA_LIMITS |
-            PInvoke.POLICY_SET_AUDIT_REQUIREMENTS |
-            PInvoke.POLICY_AUDIT_LOG_ADMIN |
-            PInvoke.POLICY_SERVER_ADMIN |
-            PInvoke.POLICY_LOOKUP_NAMES;
+        const uint desiredAccess = PInvoke.POLICY_CREATE_ACCOUNT |
+            PInvoke.POLICY_LOOKUP_NAMES |
+            PInvoke.POLICY_VIEW_LOCAL_INFORMATION;
 
         this.handle = this.LsaOpenPolicy(ref objectAttributes, desiredAccess, systemName);
     }

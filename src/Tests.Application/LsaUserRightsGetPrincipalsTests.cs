@@ -29,7 +29,7 @@ public sealed class LsaUserRightsGetPrincipalsTests : LsaUserRightsTestBase
         using var policy = new LsaUserRights();
         policy.Connect();
 
-        var actual = policy.GetPrincipals()
+        var actual = policy.LsaEnumerateAccountsWithUserRight()
             .OrderBy(p => p)
             .ToArray();
 
@@ -50,7 +50,7 @@ public sealed class LsaUserRightsGetPrincipalsTests : LsaUserRightsTestBase
         using var policy = new LsaUserRights();
         policy.Connect();
 
-        var collection = policy.GetPrincipals(SeTakeOwnershipPrivilege).ToArray();
+        var collection = policy.LsaEnumerateAccountsWithUserRight(SeTakeOwnershipPrivilege).ToArray();
 
         Assert.Contains(securityIdentifier, collection);
     }
@@ -63,7 +63,7 @@ public sealed class LsaUserRightsGetPrincipalsTests : LsaUserRightsTestBase
     {
         using var policy = new LsaUserRights();
 
-        Assert.Throws<InvalidOperationException>(() => policy.GetPrincipals().ToArray());
+        Assert.Throws<InvalidOperationException>(() => policy.LsaEnumerateAccountsWithUserRight().ToArray());
     }
 
     /// <summary>
@@ -74,6 +74,6 @@ public sealed class LsaUserRightsGetPrincipalsTests : LsaUserRightsTestBase
     {
         using var policy = new LsaUserRights();
 
-        Assert.Throws<InvalidOperationException>(() => policy.GetPrincipals(SeTakeOwnershipPrivilege).ToArray());
+        Assert.Throws<InvalidOperationException>(() => policy.LsaEnumerateAccountsWithUserRight(SeTakeOwnershipPrivilege).ToArray());
     }
 }

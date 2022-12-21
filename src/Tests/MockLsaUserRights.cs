@@ -38,22 +38,14 @@ public class MockLsaUserRights : ILsaUserRights
     }
 
     /// <inheritdoc />
-    public SecurityIdentifier[] GetPrincipals()
+    public void LsaAddAccountRights(SecurityIdentifier accountSid, params string[] userRights)
     {
-        if (!this.connected)
-        {
-            throw new InvalidOperationException("A connection to the policy database is required.");
-        }
+        ArgumentNullException.ThrowIfNull(accountSid);
+        ArgumentNullException.ThrowIfNull(userRights);
 
-        return this.database.Values.SelectMany(p => p).Distinct().ToArray();
-    }
-
-    /// <inheritdoc />
-    public SecurityIdentifier[] GetPrincipals(string privilege)
-    {
-        if (string.IsNullOrWhiteSpace(privilege))
+        if (userRights.Length == 0)
         {
-            throw new ArgumentException("Value cannot be null or whitespace.", nameof(privilege));
+            throw new ArgumentException("Value cannot be an empty collection.", nameof(userRights));
         }
 
         if (!this.connected)
@@ -61,20 +53,33 @@ public class MockLsaUserRights : ILsaUserRights
             throw new InvalidOperationException("A connection to the policy database is required.");
         }
 
-        if (this.database.TryGetValue(privilege, out var principals))
+        foreach (var userRight in userRights)
         {
-            return principals.ToArray();
-        }
+            if (this.database.TryGetValue(userRight, out var accountSids))
+            {
+                if (!accountSids.Contains(accountSid))
+                {
+                    accountSids.Add(accountSid);
+                }
+            }
+            else
+            {
+                accountSids = new HashSet<SecurityIdentifier>
+                {
+                    accountSid
+                };
 
-        return Array.Empty<SecurityIdentifier>();
+                this.database.Add(userRight, accountSids);
+            }
+        }
     }
 
     /// <inheritdoc />
-    public string[] GetPrivileges(SecurityIdentifier principal)
+    public string[] LsaEnumerateAccountRights(SecurityIdentifier accountSid)
     {
-        if (principal is null)
+        if (accountSid is null)
         {
-            throw new ArgumentNullException(nameof(principal));
+            throw new ArgumentNullException(nameof(accountSid));
         }
 
         if (!this.connected)
@@ -83,22 +88,41 @@ public class MockLsaUserRights : ILsaUserRights
         }
 
         return this.database
-            .Where(p => p.Value.Contains(principal))
+            .Where(p => p.Value.Contains(accountSid))
             .Select(p => p.Key)
             .ToArray();
     }
 
     /// <inheritdoc />
-    public void GrantPrivilege(SecurityIdentifier principal, string privilege)
+    public SecurityIdentifier[] LsaEnumerateAccountsWithUserRight(string? userRight = default)
     {
-        if (principal is null)
+        if (!this.connected)
         {
-            throw new ArgumentNullException(nameof(principal));
+            throw new InvalidOperationException("A connection to the policy database is required.");
         }
 
-        if (string.IsNullOrWhiteSpace(privilege))
+        if (string.IsNullOrWhiteSpace(userRight))
         {
-            throw new ArgumentException("Value cannot be null or whitespace.", nameof(privilege));
+            return this.database.Values.SelectMany(p => p).Distinct().ToArray();
+        }
+
+        if (this.database.TryGetValue(userRight, out var accountSids))
+        {
+            return accountSids.ToArray();
+        }
+
+        return Array.Empty<SecurityIdentifier>();
+    }
+
+    /// <inheritdoc />
+    public void LsaRemoveAccountRights(SecurityIdentifier accountSid, params string[] userRights)
+    {
+        ArgumentNullException.ThrowIfNull(accountSid);
+        ArgumentNullException.ThrowIfNull(userRights);
+
+        if (userRights.Length == 0)
+        {
+            throw new ArgumentException("Value cannot be an empty collection.", nameof(userRights));
         }
 
         if (!this.connected)
@@ -106,21 +130,12 @@ public class MockLsaUserRights : ILsaUserRights
             throw new InvalidOperationException("A connection to the policy database is required.");
         }
 
-        if (this.database.TryGetValue(privilege, out var principals))
+        foreach (var userRight in userRights)
         {
-            if (!principals.Contains(principal))
+            if (this.database.TryGetValue(userRight, out var principals) && principals.Contains(accountSid))
             {
-                principals.Add(principal);
+                principals.Remove(accountSid);
             }
-        }
-        else
-        {
-            principals = new HashSet<SecurityIdentifier>
-            {
-                principal
-            };
-
-            this.database.Add(privilege, principals);
         }
     }
 
@@ -128,28 +143,4 @@ public class MockLsaUserRights : ILsaUserRights
     /// Allow a test to assert the policy database before manipulating it.
     /// </summary>
     public void ResetConnection() => this.connected = false;
-
-    /// <inheritdoc />
-    public void RevokePrivilege(SecurityIdentifier principal, string privilege)
-    {
-        if (principal is null)
-        {
-            throw new ArgumentNullException(nameof(principal));
-        }
-
-        if (string.IsNullOrWhiteSpace(privilege))
-        {
-            throw new ArgumentException("Value cannot be null or whitespace.", nameof(privilege));
-        }
-
-        if (!this.connected)
-        {
-            throw new InvalidOperationException("A connection to the policy database is required.");
-        }
-
-        if (this.database.TryGetValue(privilege, out var principals) && principals.Contains(principal))
-        {
-            principals.Remove(principal);
-        }
-    }
 }

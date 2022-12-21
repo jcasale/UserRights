@@ -8,36 +8,30 @@ using System.Security.Principal;
 public interface IUserRights
 {
     /// <summary>
-    /// Gets all principals with privileges in the policy database.
+    /// Assigns one or more privileges to an account.
     /// </summary>
-    /// <returns>All principals with privileges.</returns>
-    SecurityIdentifier[] GetPrincipals();
+    /// <param name="accountSid">The security identifier (SID) of the account to add the privileges to.</param>
+    /// <param name="userRights">The names of the privileges to add to the account.</param>
+    void LsaAddAccountRights(SecurityIdentifier accountSid, params string[] userRights);
 
     /// <summary>
-    /// Gets all principals with the specified privilege in the policy database.
+    /// Gets the privileges assigned to an account.
     /// </summary>
-    /// <param name="privilege">The privilege to filter the result set with.</param>
-    /// <returns>All principals with specified privilege.</returns>
-    SecurityIdentifier[] GetPrincipals(string privilege);
+    /// <param name="accountSid">The SID of the account for which to enumerate privileges.</param>
+    /// <returns>The names of the assigned privileges.</returns>
+    string[] LsaEnumerateAccountRights(SecurityIdentifier accountSid);
 
     /// <summary>
-    /// Gets the privileges for the specified principal in the policy database.
+    /// Gets the accounts in the database of a Local Security Authority (LSA) Policy object that hold a specified privilege.
     /// </summary>
-    /// <param name="principal">The security identifier of the principal.</param>
-    /// <returns>All privileges for the specified principal.</returns>
-    string[] GetPrivileges(SecurityIdentifier principal);
+    /// <param name="userRight">The name of a privilege.</param>
+    /// <returns>The security identifier (SID) of each account that holds the specified privilege.</returns>
+    SecurityIdentifier[] LsaEnumerateAccountsWithUserRight(string? userRight = default);
 
     /// <summary>
-    /// Grants a privilege to a principal.
+    /// Removes one or more privileges from an account.
     /// </summary>
-    /// <param name="principal">The principal to grant the privilege to.</param>
-    /// <param name="privilege">The privilege to grant.</param>
-    void GrantPrivilege(SecurityIdentifier principal, string privilege);
-
-    /// <summary>
-    /// Revokes a privilege from a principal.
-    /// </summary>
-    /// <param name="principal">The principal to revoke the privilege from.</param>
-    /// <param name="privilege">The privilege to revoke.</param>
-    void RevokePrivilege(SecurityIdentifier principal, string privilege);
+    /// <param name="accountSid">The security identifier (SID) of the account to remove the privileges from.</param>
+    /// <param name="userRights">The names of the privileges to remove from the account.</param>
+    void LsaRemoveAccountRights(SecurityIdentifier accountSid, params string[] userRights);
 }

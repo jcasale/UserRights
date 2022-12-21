@@ -65,9 +65,9 @@ public sealed class UserRightsManagerListTests : UserRightsManagerTestBase
         var policy = new MockLsaUserRights(database);
         policy.Connect("SystemName");
 
-        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }, policy.GetPrincipals().OrderBy(p => p));
-        Assert.Equal(new[] { Privilege1, Privilege2 }, policy.GetPrivileges(PrincipalSid1));
-        Assert.Equal(new[] { Privilege1, Privilege2 }, policy.GetPrivileges(PrincipalSid2));
+        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }, policy.LsaEnumerateAccountsWithUserRight().OrderBy(p => p));
+        Assert.Equal(new[] { Privilege1, Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
+        Assert.Equal(new[] { Privilege1, Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid2));
 
         var manager = this.ServiceProvider.GetRequiredService<IUserRightsManager>();
         var userRights = manager.GetUserRights(policy).ToArray();
@@ -125,9 +125,9 @@ public sealed class UserRightsManagerListTests : UserRightsManagerTestBase
         var policy = new MockLsaUserRights(database);
         policy.Connect("SystemName");
 
-        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }, policy.GetPrincipals().OrderBy(p => p));
-        Assert.Equal(new[] { Privilege1, Privilege2 }, policy.GetPrivileges(PrincipalSid1));
-        Assert.Equal(new[] { Privilege1, Privilege2 }, policy.GetPrivileges(PrincipalSid2));
+        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }, policy.LsaEnumerateAccountsWithUserRight().OrderBy(p => p));
+        Assert.Equal(new[] { Privilege1, Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
+        Assert.Equal(new[] { Privilege1, Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid2));
 
         var manager = this.ServiceProvider.GetRequiredService<IUserRightsManager>();
         var userRights = manager.GetUserRights(policy).ToArray();

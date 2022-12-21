@@ -31,7 +31,7 @@ public sealed class LsaUserRightsGrantPrivilegeTests : LsaUserRightsTestBase
 
         using var policy = new LsaUserRights();
         policy.Connect();
-        policy.GrantPrivilege(securityIdentifier, SeMachineAccountPrivilege);
+        policy.LsaAddAccountRights(securityIdentifier, SeMachineAccountPrivilege);
 
         var current = this.GetCurrentState();
 
@@ -51,6 +51,6 @@ public sealed class LsaUserRightsGrantPrivilegeTests : LsaUserRightsTestBase
 
         using var policy = new LsaUserRights();
 
-        Assert.Throws<InvalidOperationException>(() => policy.GrantPrivilege(securityIdentifier, SeMachineAccountPrivilege));
+        Assert.Throws<InvalidOperationException>(() => policy.LsaAddAccountRights(securityIdentifier, SeMachineAccountPrivilege));
     }
 }

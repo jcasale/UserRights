@@ -30,7 +30,7 @@ public class UserRightsManager : IUserRightsManager
         }
 
         // Enumerate the principals with privileges.
-        var principals = policy.GetPrincipals();
+        var principals = policy.LsaEnumerateAccountsWithUserRight();
 
         // Enumerate the privileges for each principal.
         var entries = new List<UserRightEntry>();
@@ -46,7 +46,7 @@ public class UserRightsManager : IUserRightsManager
                 // Account may be unknown locally if querying a remote host, or it may have been deleted.
             }
 
-            var privileges = policy.GetPrivileges(principal);
+            var privileges = policy.LsaEnumerateAccountRights(principal);
             foreach (var privilege in privileges)
             {
                 var record = new UserRightEntry(privilege, principal.Value, accountName);
@@ -126,7 +126,7 @@ public class UserRightsManager : IUserRightsManager
         var securityIdentifier = principal.ToSecurityIdentifier();
 
         // Get the privileges currently assigned to the principal.
-        var privileges = policy.GetPrivileges(securityIdentifier).ToHashSet(StringComparer.InvariantCultureIgnoreCase);
+        var privileges = policy.LsaEnumerateAccountRights(securityIdentifier).ToHashSet(StringComparer.InvariantCultureIgnoreCase);
 
         // Perform a full revocation of all privileges if required.
         if (revokeAll)
@@ -234,7 +234,7 @@ public class UserRightsManager : IUserRightsManager
         }
 
         // Get the principals with the privilege currently assigned.
-        var principals = policy.GetPrincipals(privilege).ToHashSet();
+        var principals = policy.LsaEnumerateAccountsWithUserRight(privilege).ToHashSet();
 
         // Perform a full revocation of the privilege from each principal if required.
         if (revokeAll)
@@ -315,7 +315,7 @@ public class UserRightsManager : IUserRightsManager
 
         try
         {
-            policy.GrantPrivilege(principal, privilege);
+            policy.LsaAddAccountRights(principal, privilege);
         }
         catch
         {
@@ -355,7 +355,7 @@ public class UserRightsManager : IUserRightsManager
 
         try
         {
-            policy.RevokePrivilege(principal, privilege);
+            policy.LsaRemoveAccountRights(principal, privilege);
         }
         catch
         {

@@ -47,143 +47,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
             PInvoke.POLICY_SERVER_ADMIN |
             PInvoke.POLICY_LOOKUP_NAMES;
 
-        try
-        {
-            this.handle = this.LsaOpenPolicy(ref objectAttributes, desiredAccess, systemName);
-        }
-        catch (Exception e)
-        {
-            throw new LsaUserRightsException("Error opening policy database.", e);
-        }
-    }
-
-    /// <inheritdoc />
-    public SecurityIdentifier[] GetPrincipals()
-    {
-        if (this.disposed)
-        {
-            throw new ObjectDisposedException(this.GetType().FullName);
-        }
-
-        if (this.handle is null)
-        {
-            throw new InvalidOperationException("A connection to the policy database is required.");
-        }
-
-        try
-        {
-            return this.LsaEnumerateAccountsWithUserRight();
-        }
-        catch (Exception e)
-        {
-            throw new LsaUserRightsException("Error enumerating accounts.", e);
-        }
-    }
-
-    /// <inheritdoc />
-    public SecurityIdentifier[] GetPrincipals(string privilege)
-    {
-        if (this.disposed)
-        {
-            throw new ObjectDisposedException(this.GetType().FullName);
-        }
-
-        if (this.handle is null)
-        {
-            throw new InvalidOperationException("A connection to the policy database is required.");
-        }
-
-        ArgumentException.ThrowIfNullOrEmpty(privilege);
-
-        try
-        {
-            return this.LsaEnumerateAccountsWithUserRight(privilege);
-        }
-        catch (Exception e)
-        {
-            throw new LsaUserRightsException($"Error enumerating accounts with privilege \"{privilege}\".", e);
-        }
-    }
-
-    /// <inheritdoc />
-    public string[] GetPrivileges(SecurityIdentifier principal)
-    {
-        if (this.disposed)
-        {
-            throw new ObjectDisposedException(this.GetType().FullName);
-        }
-
-        if (this.handle is null)
-        {
-            throw new InvalidOperationException("A connection to the policy database is required.");
-        }
-
-        ArgumentNullException.ThrowIfNull(principal);
-
-        try
-        {
-            return this.LsaEnumerateAccountRights(principal);
-        }
-        catch (Exception e)
-        {
-            throw new LsaUserRightsException($"Error enumerating privileges for {principal.Value}.", e);
-        }
-    }
-
-    /// <inheritdoc />
-    public void GrantPrivilege(SecurityIdentifier principal, string privilege)
-    {
-        if (this.disposed)
-        {
-            throw new ObjectDisposedException(this.GetType().FullName);
-        }
-
-        if (this.handle is null)
-        {
-            throw new InvalidOperationException("A connection to the policy database is required.");
-        }
-
-        ArgumentNullException.ThrowIfNull(principal);
-        ArgumentException.ThrowIfNullOrEmpty(privilege);
-
-        var privileges = new[] { privilege };
-
-        try
-        {
-            this.LsaAddAccountRights(principal, privileges);
-        }
-        catch (Exception e)
-        {
-            throw new LsaUserRightsException($"Error granting privileges to {principal.Value}.", e);
-        }
-    }
-
-    /// <inheritdoc />
-    public void RevokePrivilege(SecurityIdentifier principal, string privilege)
-    {
-        if (this.disposed)
-        {
-            throw new ObjectDisposedException(this.GetType().FullName);
-        }
-
-        if (this.handle is null)
-        {
-            throw new InvalidOperationException("A connection to the policy database is required.");
-        }
-
-        ArgumentNullException.ThrowIfNull(principal);
-        ArgumentException.ThrowIfNullOrEmpty(privilege);
-
-        var privileges = new[] { privilege };
-
-        try
-        {
-            this.LsaRemoveAccountRights(principal, privileges);
-        }
-        catch (Exception e)
-        {
-            throw new LsaUserRightsException($"Error revoking privilege from {principal.Value}.", e);
-        }
+        this.handle = this.LsaOpenPolicy(ref objectAttributes, desiredAccess, systemName);
     }
 
     /// <inheritdoc />
@@ -193,30 +57,8 @@ public class LsaUserRights : ILsaUserRights, IDisposable
         GC.SuppressFinalize(this);
     }
 
-    /// <summary>
-    /// Releases resources when they are no longer required.
-    /// </summary>
-    /// <param name="disposing">A value indicating whether the method call comes from a dispose method (its value is <c>true</c>) or from a finalizer (its value is <c>false</c>).</param>
-    protected virtual void Dispose(bool disposing)
-    {
-        if (this.disposed)
-        {
-            return;
-        }
-
-        if (disposing)
-        {
-            this.handle?.Dispose();
-            this.disposed = true;
-        }
-    }
-
-    /// <summary>
-    /// Assigns one or more privileges to an account.
-    /// </summary>
-    /// <param name="securityIdentifier">The SID of the account to which the function assigns privileges.</param>
-    /// <param name="privileges">The names of the privileges to be added to the account.</param>
-    private unsafe void LsaAddAccountRights(SecurityIdentifier securityIdentifier, string[] privileges)
+    /// <inheritdoc />
+    public unsafe void LsaAddAccountRights(SecurityIdentifier accountSid, params string[] userRights)
     {
         if (this.disposed)
         {
@@ -228,32 +70,32 @@ public class LsaUserRights : ILsaUserRights, IDisposable
             throw new InvalidOperationException("A connection to the policy database is required.");
         }
 
-        ArgumentNullException.ThrowIfNull(securityIdentifier);
-        ArgumentNullException.ThrowIfNull(privileges);
+        ArgumentNullException.ThrowIfNull(accountSid);
+        ArgumentNullException.ThrowIfNull(userRights);
 
-        if (privileges.Length == 0)
+        if (userRights.Length == 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(privileges), "Value cannot be an empty collection.");
+            throw new ArgumentOutOfRangeException(nameof(userRights), "Value cannot be an empty collection.");
         }
 
-        var bytes = new byte[securityIdentifier.BinaryLength];
-        securityIdentifier.GetBinaryForm(bytes, 0);
-        PSID accountSid;
+        var bytes = new byte[accountSid.BinaryLength];
+        accountSid.GetBinaryForm(bytes, 0);
+        PSID psid;
         fixed (byte* b = bytes)
         {
-            accountSid = new PSID(b);
+            psid = new PSID(b);
         }
 
-        Span<UNICODE_STRING> userRights = stackalloc UNICODE_STRING[privileges.Length];
-        for (var i = 0; i < privileges.Length; i++)
+        Span<UNICODE_STRING> rights = stackalloc UNICODE_STRING[userRights.Length];
+        for (var i = 0; i < userRights.Length; i++)
         {
-            var privilege = privileges[i];
+            var privilege = userRights[i];
 
             fixed (char* p = privilege)
             {
                 var length = checked((ushort)(privilege.Length * sizeof(char)));
 
-                userRights[i] = new UNICODE_STRING
+                rights[i] = new UNICODE_STRING
                 {
                     Length = length,
                     MaximumLength = length,
@@ -262,7 +104,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
             }
         }
 
-        var status = PInvoke.LsaAddAccountRights(this.handle, accountSid, userRights);
+        var status = PInvoke.LsaAddAccountRights(this.handle, psid, rights);
         var error = PInvoke.LsaNtStatusToWinError(status);
 
         if ((WIN32_ERROR)error != WIN32_ERROR.ERROR_SUCCESS)
@@ -271,12 +113,8 @@ public class LsaUserRights : ILsaUserRights, IDisposable
         }
     }
 
-    /// <summary>
-    /// Gets the privileges assigned to an account.
-    /// </summary>
-    /// <param name="securityIdentifier">The SID of the account for which to enumerate privileges.</param>
-    /// <returns>The names of the assigned privileges.</returns>
-    private unsafe string[] LsaEnumerateAccountRights(SecurityIdentifier securityIdentifier)
+    /// <inheritdoc />
+    public unsafe string[] LsaEnumerateAccountRights(SecurityIdentifier accountSid)
     {
         if (this.disposed)
         {
@@ -288,20 +126,20 @@ public class LsaUserRights : ILsaUserRights, IDisposable
             throw new InvalidOperationException("A connection to the policy database is required.");
         }
 
-        ArgumentNullException.ThrowIfNull(securityIdentifier);
+        ArgumentNullException.ThrowIfNull(accountSid);
 
-        var bytes = new byte[securityIdentifier.BinaryLength];
-        securityIdentifier.GetBinaryForm(bytes, 0);
-        PSID accountSid;
+        var bytes = new byte[accountSid.BinaryLength];
+        accountSid.GetBinaryForm(bytes, 0);
+        PSID psid;
         fixed (byte* b = bytes)
         {
-            accountSid = new PSID(b);
+            psid = new PSID(b);
         }
 
         UNICODE_STRING* userRights = default;
         try
         {
-            var status = PInvoke.LsaEnumerateAccountRights(this.handle, accountSid, out userRights, out var count);
+            var status = PInvoke.LsaEnumerateAccountRights(this.handle, psid, out userRights, out var count);
             var error = (WIN32_ERROR)PInvoke.LsaNtStatusToWinError(status);
 
             if (error != WIN32_ERROR.ERROR_SUCCESS)
@@ -332,12 +170,8 @@ public class LsaUserRights : ILsaUserRights, IDisposable
         }
     }
 
-    /// <summary>
-    /// Gets the accounts in the database of a Local Security Authority (LSA) Policy object that hold a specified privilege.
-    /// </summary>
-    /// <param name="userRight">The name of a privilege.</param>
-    /// <returns>A collection of security identifiers.</returns>
-    private unsafe SecurityIdentifier[] LsaEnumerateAccountsWithUserRight(string? userRight = default)
+    /// <inheritdoc />
+    public unsafe SecurityIdentifier[] LsaEnumerateAccountsWithUserRight(string? userRight = default)
     {
         if (this.disposed)
         {
@@ -400,12 +234,8 @@ public class LsaUserRights : ILsaUserRights, IDisposable
         }
     }
 
-    /// <summary>
-    /// Removes one or more privileges from an account.
-    /// </summary>
-    /// <param name="securityIdentifier">The security identifier (SID) of the account from which the privileges are removed.</param>
-    /// <param name="privileges">The names of the privileges to be removed from the account.</param>
-    private unsafe void LsaRemoveAccountRights(SecurityIdentifier securityIdentifier, params string[] privileges)
+    /// <inheritdoc />
+    public unsafe void LsaRemoveAccountRights(SecurityIdentifier accountSid, params string[] userRights)
     {
         if (this.disposed)
         {
@@ -417,32 +247,32 @@ public class LsaUserRights : ILsaUserRights, IDisposable
             throw new InvalidOperationException("A connection to the policy database is required.");
         }
 
-        ArgumentNullException.ThrowIfNull(securityIdentifier);
-        ArgumentNullException.ThrowIfNull(privileges);
+        ArgumentNullException.ThrowIfNull(accountSid);
+        ArgumentNullException.ThrowIfNull(userRights);
 
-        if (privileges.Length == 0)
+        if (userRights.Length == 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(privileges), "Value cannot be an empty collection.");
+            throw new ArgumentOutOfRangeException(nameof(userRights), "Value cannot be an empty collection.");
         }
 
-        var bytes = new byte[securityIdentifier.BinaryLength];
-        securityIdentifier.GetBinaryForm(bytes, 0);
-        PSID accountSid;
+        var bytes = new byte[accountSid.BinaryLength];
+        accountSid.GetBinaryForm(bytes, 0);
+        PSID psid;
         fixed (byte* b = bytes)
         {
-            accountSid = new PSID(b);
+            psid = new PSID(b);
         }
 
-        Span<UNICODE_STRING> userRights = stackalloc UNICODE_STRING[privileges.Length];
-        for (var i = 0; i < privileges.Length; i++)
+        Span<UNICODE_STRING> rights = stackalloc UNICODE_STRING[userRights.Length];
+        for (var i = 0; i < userRights.Length; i++)
         {
-            var privilege = privileges[i];
+            var privilege = userRights[i];
 
             fixed (char* p = privilege)
             {
                 var length = checked((ushort)(privilege.Length * sizeof(char)));
 
-                userRights[i] = new UNICODE_STRING
+                rights[i] = new UNICODE_STRING
                 {
                     Length = length,
                     MaximumLength = length,
@@ -451,12 +281,30 @@ public class LsaUserRights : ILsaUserRights, IDisposable
             }
         }
 
-        var status = PInvoke.LsaRemoveAccountRights(this.handle, accountSid, false, userRights);
+        var status = PInvoke.LsaRemoveAccountRights(this.handle, psid, false, rights);
         var error = PInvoke.LsaNtStatusToWinError(status);
 
         if ((WIN32_ERROR)error != WIN32_ERROR.ERROR_SUCCESS)
         {
             throw new Win32Exception((int)error);
+        }
+    }
+
+    /// <summary>
+    /// Releases resources when they are no longer required.
+    /// </summary>
+    /// <param name="disposing">A value indicating whether the method call comes from a dispose method (its value is <c>true</c>) or from a finalizer (its value is <c>false</c>).</param>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (this.disposed)
+        {
+            return;
+        }
+
+        if (disposing)
+        {
+            this.handle?.Dispose();
+            this.disposed = true;
         }
     }
 

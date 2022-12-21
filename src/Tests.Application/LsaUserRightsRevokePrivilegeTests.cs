@@ -31,7 +31,7 @@ public sealed class LsaUserRightsRevokePrivilegeTests : LsaUserRightsTestBase
 
         using var policy = new LsaUserRights();
         policy.Connect();
-        policy.RevokePrivilege(securityIdentifier, SeBackupPrivilege);
+        policy.LsaRemoveAccountRights(securityIdentifier, SeBackupPrivilege);
 
         var current = this.GetCurrentState();
 
@@ -51,6 +51,6 @@ public sealed class LsaUserRightsRevokePrivilegeTests : LsaUserRightsTestBase
 
         using var policy = new LsaUserRights();
 
-        Assert.Throws<InvalidOperationException>(() => policy.RevokePrivilege(securityIdentifier, SeBackupPrivilege));
+        Assert.Throws<InvalidOperationException>(() => policy.LsaRemoveAccountRights(securityIdentifier, SeBackupPrivilege));
     }
 }

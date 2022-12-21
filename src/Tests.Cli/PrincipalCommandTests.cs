@@ -41,9 +41,9 @@ public sealed class PrincipalCommandTests : CliTestBase
         var policy = new MockLsaUserRights(database);
         policy.Connect("SystemName");
 
-        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }, policy.GetPrincipals().OrderBy(p => p));
-        Assert.Equal(new[] { Privilege1 }, policy.GetPrivileges(PrincipalSid1));
-        Assert.Equal(new[] { Privilege2 }, policy.GetPrivileges(PrincipalSid2));
+        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }, policy.LsaEnumerateAccountsWithUserRight().OrderBy(p => p));
+        Assert.Equal(new[] { Privilege1 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
+        Assert.Equal(new[] { Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid2));
 
         policy.ResetConnection();
 
@@ -68,9 +68,9 @@ public sealed class PrincipalCommandTests : CliTestBase
         var rc = parser.Invoke(args);
 
         Assert.Equal(0, rc);
-        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }, policy.GetPrincipals().OrderBy(p => p));
-        Assert.Equal(new[] { Privilege2 }, policy.GetPrivileges(PrincipalSid1));
-        Assert.Equal(new[] { Privilege2 }, policy.GetPrivileges(PrincipalSid2));
+        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }, policy.LsaEnumerateAccountsWithUserRight().OrderBy(p => p));
+        Assert.Equal(new[] { Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
+        Assert.Equal(new[] { Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid2));
     }
 
     /// <summary>
@@ -99,9 +99,9 @@ public sealed class PrincipalCommandTests : CliTestBase
         var policy = new MockLsaUserRights(database);
         policy.Connect("SystemName");
 
-        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.OrderBy(p => p), policy.GetPrincipals().OrderBy(p => p));
-        Assert.Equal(new[] { Privilege1 }, policy.GetPrivileges(PrincipalSid1));
-        Assert.Equal(new[] { Privilege1, Privilege2 }.OrderBy(p => p), policy.GetPrivileges(PrincipalSid2).OrderBy(p => p));
+        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.OrderBy(p => p), policy.LsaEnumerateAccountsWithUserRight().OrderBy(p => p));
+        Assert.Equal(new[] { Privilege1 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
+        Assert.Equal(new[] { Privilege1, Privilege2 }.OrderBy(p => p), policy.LsaEnumerateAccountRights(PrincipalSid2).OrderBy(p => p));
 
         policy.ResetConnection();
 
@@ -127,9 +127,9 @@ public sealed class PrincipalCommandTests : CliTestBase
         var rc = parser.Invoke(args);
 
         Assert.Equal(0, rc);
-        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.OrderBy(p => p), policy.GetPrincipals().OrderBy(p => p));
-        Assert.Equal(new[] { Privilege2 }, policy.GetPrivileges(PrincipalSid1));
-        Assert.Equal(new[] { Privilege1, Privilege2 }.OrderBy(p => p), policy.GetPrivileges(PrincipalSid2).OrderBy(p => p));
+        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.OrderBy(p => p), policy.LsaEnumerateAccountsWithUserRight().OrderBy(p => p));
+        Assert.Equal(new[] { Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
+        Assert.Equal(new[] { Privilege1, Privilege2 }.OrderBy(p => p), policy.LsaEnumerateAccountRights(PrincipalSid2).OrderBy(p => p));
     }
 
     /// <summary>
@@ -158,9 +158,9 @@ public sealed class PrincipalCommandTests : CliTestBase
         var policy = new MockLsaUserRights(database);
         policy.Connect("SystemName");
 
-        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.OrderBy(p => p), policy.GetPrincipals().OrderBy(p => p));
-        Assert.Equal(new[] { Privilege1 }, policy.GetPrivileges(PrincipalSid1));
-        Assert.Equal(new[] { Privilege1, Privilege2 }.OrderBy(p => p), policy.GetPrivileges(PrincipalSid2).OrderBy(p => p));
+        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.OrderBy(p => p), policy.LsaEnumerateAccountsWithUserRight().OrderBy(p => p));
+        Assert.Equal(new[] { Privilege1 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
+        Assert.Equal(new[] { Privilege1, Privilege2 }.OrderBy(p => p), policy.LsaEnumerateAccountRights(PrincipalSid2).OrderBy(p => p));
 
         policy.ResetConnection();
 
@@ -184,9 +184,9 @@ public sealed class PrincipalCommandTests : CliTestBase
         var rc = parser.Invoke(args);
 
         Assert.Equal(0, rc);
-        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.OrderBy(p => p), policy.GetPrincipals().OrderBy(p => p));
-        Assert.Equal(new[] { Privilege1, Privilege2 }.OrderBy(p => p), policy.GetPrivileges(PrincipalSid1).OrderBy(p => p));
-        Assert.Equal(new[] { Privilege1, Privilege2 }.OrderBy(p => p), policy.GetPrivileges(PrincipalSid2).OrderBy(p => p));
+        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.OrderBy(p => p), policy.LsaEnumerateAccountsWithUserRight().OrderBy(p => p));
+        Assert.Equal(new[] { Privilege1, Privilege2 }.OrderBy(p => p), policy.LsaEnumerateAccountRights(PrincipalSid1).OrderBy(p => p));
+        Assert.Equal(new[] { Privilege1, Privilege2 }.OrderBy(p => p), policy.LsaEnumerateAccountRights(PrincipalSid2).OrderBy(p => p));
     }
 
     /// <summary>
@@ -216,9 +216,9 @@ public sealed class PrincipalCommandTests : CliTestBase
         var policy = new MockLsaUserRights(database);
         policy.Connect("SystemName");
 
-        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.OrderBy(p => p), policy.GetPrincipals().OrderBy(p => p));
-        Assert.Equal(new[] { Privilege1, Privilege2 }.OrderBy(p => p), policy.GetPrivileges(PrincipalSid1).OrderBy(p => p));
-        Assert.Equal(new[] { Privilege1, Privilege2 }.OrderBy(p => p), policy.GetPrivileges(PrincipalSid2).OrderBy(p => p));
+        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.OrderBy(p => p), policy.LsaEnumerateAccountsWithUserRight().OrderBy(p => p));
+        Assert.Equal(new[] { Privilege1, Privilege2 }.OrderBy(p => p), policy.LsaEnumerateAccountRights(PrincipalSid1).OrderBy(p => p));
+        Assert.Equal(new[] { Privilege1, Privilege2 }.OrderBy(p => p), policy.LsaEnumerateAccountRights(PrincipalSid2).OrderBy(p => p));
 
         policy.ResetConnection();
 
@@ -241,9 +241,9 @@ public sealed class PrincipalCommandTests : CliTestBase
         var rc = parser.Invoke(args);
 
         Assert.Equal(0, rc);
-        Assert.Empty(policy.GetPrivileges(PrincipalSid1));
-        Assert.Equal(new[] { PrincipalSid2 }, policy.GetPrincipals());
-        Assert.Equal(new[] { Privilege1, Privilege2 }.OrderBy(p => p), policy.GetPrivileges(PrincipalSid2).OrderBy(p => p));
+        Assert.Empty(policy.LsaEnumerateAccountRights(PrincipalSid1));
+        Assert.Equal(new[] { PrincipalSid2 }, policy.LsaEnumerateAccountsWithUserRight());
+        Assert.Equal(new[] { Privilege1, Privilege2 }.OrderBy(p => p), policy.LsaEnumerateAccountRights(PrincipalSid2).OrderBy(p => p));
     }
 
     /// <summary>
@@ -272,9 +272,9 @@ public sealed class PrincipalCommandTests : CliTestBase
         var policy = new MockLsaUserRights(database);
         policy.Connect("SystemName");
 
-        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.OrderBy(p => p), policy.GetPrincipals().OrderBy(p => p));
-        Assert.Equal(new[] { Privilege1 }, policy.GetPrivileges(PrincipalSid1));
-        Assert.Equal(new[] { Privilege1, Privilege2 }.OrderBy(p => p), policy.GetPrivileges(PrincipalSid2).OrderBy(p => p));
+        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.OrderBy(p => p), policy.LsaEnumerateAccountsWithUserRight().OrderBy(p => p));
+        Assert.Equal(new[] { Privilege1 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
+        Assert.Equal(new[] { Privilege1, Privilege2 }.OrderBy(p => p), policy.LsaEnumerateAccountRights(PrincipalSid2).OrderBy(p => p));
 
         policy.ResetConnection();
 
@@ -298,8 +298,8 @@ public sealed class PrincipalCommandTests : CliTestBase
         var rc = parser.Invoke(args);
 
         Assert.Equal(0, rc);
-        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.OrderBy(p => p), policy.GetPrincipals().OrderBy(p => p));
-        Assert.Equal(new[] { Privilege1 }, policy.GetPrivileges(PrincipalSid1));
-        Assert.Equal(new[] { Privilege1 }, policy.GetPrivileges(PrincipalSid2));
+        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.OrderBy(p => p), policy.LsaEnumerateAccountsWithUserRight().OrderBy(p => p));
+        Assert.Equal(new[] { Privilege1 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
+        Assert.Equal(new[] { Privilege1 }, policy.LsaEnumerateAccountRights(PrincipalSid2));
     }
 }

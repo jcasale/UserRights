@@ -25,28 +25,28 @@ public sealed class UserRightsManagerPrivilegeTests : UserRightsManagerTestBase
         var pattern = new Regex(".*", RegexOptions.None, TimeSpan.FromSeconds(1));
 
         // Verify null policy instance.
-        yield return new object[] { null, Privilege1, new[] { PrincipalName1 }, Array.Empty<string>(), false, false, null, false };
+        yield return new object[] { null!, Privilege1, new[] { PrincipalName1 }, Array.Empty<string>(), false, false, null!, false };
 
         // Verify null or empty privilege.
-        yield return new object[] { policy, null, new[] { PrincipalName1 }, Array.Empty<string>(), false, false, null, false };
-        yield return new object[] { policy, string.Empty, new[] { PrincipalName1 }, Array.Empty<string>(), false, false, null, false };
+        yield return new object[] { policy, null!, new[] { PrincipalName1 }, Array.Empty<string>(), false, false, null!, false };
+        yield return new object[] { policy, string.Empty, new[] { PrincipalName1 }, Array.Empty<string>(), false, false, null!, false };
 
         // Verify null grant collection.
-        yield return new object[] { policy, Privilege1, null, new[] { PrincipalName1 }, false, false, null, false };
+        yield return new object[] { policy, Privilege1, null!, new[] { PrincipalName1 }, false, false, null!, false };
 
         // Verify null revocation collection.
-        yield return new object[] { policy, Privilege1, new[] { PrincipalName1 }, null, false, false, null, false };
+        yield return new object[] { policy, Privilege1, new[] { PrincipalName1 }, null!, false, false, null!, false };
 
         // Verify RevokeAll requirements.
-        yield return new object[] { policy, Privilege1, new[] { PrincipalName1 }, Array.Empty<string>(), true, false, null, false };
-        yield return new object[] { policy, Privilege1, Array.Empty<string>(), new[] { PrincipalName1 }, true, false, null, false };
-        yield return new object[] { policy, Privilege1, Array.Empty<string>(), Array.Empty<string>(), true, true, null, false };
+        yield return new object[] { policy, Privilege1, new[] { PrincipalName1 }, Array.Empty<string>(), true, false, null!, false };
+        yield return new object[] { policy, Privilege1, Array.Empty<string>(), new[] { PrincipalName1 }, true, false, null!, false };
+        yield return new object[] { policy, Privilege1, Array.Empty<string>(), Array.Empty<string>(), true, true, null!, false };
         yield return new object[] { policy, Privilege1, Array.Empty<string>(), Array.Empty<string>(), true, false, pattern, false };
 
         // Verify RevokeOthers requirements.
-        yield return new object[] { policy, Privilege1, Array.Empty<string>(), Array.Empty<string>(), false, true, null, false };
-        yield return new object[] { policy, Privilege1, new[] { PrincipalName1 }, new[] { PrincipalName2 }, false, true, null, false };
-        yield return new object[] { policy, Privilege1, Array.Empty<string>(), Array.Empty<string>(), true, true, null, false };
+        yield return new object[] { policy, Privilege1, Array.Empty<string>(), Array.Empty<string>(), false, true, null!, false };
+        yield return new object[] { policy, Privilege1, new[] { PrincipalName1 }, new[] { PrincipalName2 }, false, true, null!, false };
+        yield return new object[] { policy, Privilege1, Array.Empty<string>(), Array.Empty<string>(), true, true, null!, false };
         yield return new object[] { policy, Privilege1, Array.Empty<string>(), Array.Empty<string>(), false, true, pattern, false };
 
         // Verify RevokePattern requirements.
@@ -55,12 +55,12 @@ public sealed class UserRightsManagerPrivilegeTests : UserRightsManagerTestBase
         yield return new object[] { policy, Privilege1, Array.Empty<string>(), Array.Empty<string>(), false, true, pattern, false };
 
         // Verify remaining requirements.
-        yield return new object[] { policy, Privilege1, Array.Empty<string>(), Array.Empty<string>(), false, false, null, false };
+        yield return new object[] { policy, Privilege1, Array.Empty<string>(), Array.Empty<string>(), false, false, null!, false };
 
         // Verify grant and revocation set restrictions.
-        yield return new object[] { policy, Privilege1, new[] { PrincipalName1 }, new[] { PrincipalName1 }, false, false, null, false };
-        yield return new object[] { policy, Privilege1, new[] { PrincipalName1, PrincipalName1 }, Array.Empty<string>(), false, false, null, false };
-        yield return new object[] { policy, Privilege1, Array.Empty<string>(), new[] { PrincipalName1, PrincipalName1 }, false, false, null, false };
+        yield return new object[] { policy, Privilege1, new[] { PrincipalName1 }, new[] { PrincipalName1 }, false, false, null!, false };
+        yield return new object[] { policy, Privilege1, new[] { PrincipalName1, PrincipalName1 }, Array.Empty<string>(), false, false, null!, false };
+        yield return new object[] { policy, Privilege1, Array.Empty<string>(), new[] { PrincipalName1, PrincipalName1 }, false, false, null!, false };
     }
 
     /// <summary>
@@ -96,7 +96,7 @@ public sealed class UserRightsManagerPrivilegeTests : UserRightsManagerTestBase
         Assert.Equal(new[] { PrincipalSid2 }, policy.LsaEnumerateAccountsWithUserRight(Privilege2));
 
         var manager = this.ServiceProvider.GetRequiredService<IUserRightsManager>();
-        manager.ModifyPrivilege(policy, Privilege2, new[] { PrincipalName1 }, Array.Empty<string>(), false, true, null, false);
+        manager.ModifyPrivilege(policy, Privilege2, new[] { PrincipalName1 }, Array.Empty<string>(), false, true, null!, false);
 
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.OrderBy(p => p), policy.LsaEnumerateAccountsWithUserRight().OrderBy(p => p));
         Assert.Equal(new[] { Privilege1, Privilege2 }.OrderBy(p => p), policy.LsaEnumerateAccountRights(PrincipalSid1).OrderBy(p => p));
@@ -136,7 +136,7 @@ public sealed class UserRightsManagerPrivilegeTests : UserRightsManagerTestBase
         Assert.Equal(new[] { Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid2));
 
         var manager = this.ServiceProvider.GetRequiredService<IUserRightsManager>();
-        manager.ModifyPrivilege(policy, Privilege1, new[] { PrincipalName2 }, new[] { PrincipalName1 }, false, false, null, false);
+        manager.ModifyPrivilege(policy, Privilege1, new[] { PrincipalName2 }, new[] { PrincipalName1 }, false, false, null!, false);
 
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.OrderBy(p => p), policy.LsaEnumerateAccountsWithUserRight().OrderBy(p => p));
         Assert.Equal(new[] { Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
@@ -218,7 +218,7 @@ public sealed class UserRightsManagerPrivilegeTests : UserRightsManagerTestBase
         Assert.Equal(new[] { Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid2));
 
         var manager = this.ServiceProvider.GetRequiredService<IUserRightsManager>();
-        manager.ModifyPrivilege(policy, Privilege2, new[] { PrincipalName1 }, Array.Empty<string>(), false, false, null, false);
+        manager.ModifyPrivilege(policy, Privilege2, new[] { PrincipalName1 }, Array.Empty<string>(), false, false, null!, false);
 
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.OrderBy(p => p), policy.LsaEnumerateAccountsWithUserRight().OrderBy(p => p));
         Assert.Equal(new[] { Privilege1, Privilege2 }.OrderBy(p => p), policy.LsaEnumerateAccountRights(PrincipalSid1).OrderBy(p => p));
@@ -279,7 +279,7 @@ public sealed class UserRightsManagerPrivilegeTests : UserRightsManagerTestBase
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.OrderBy(p => p), policy.LsaEnumerateAccountsWithUserRight(Privilege2).OrderBy(p => p));
 
         var manager = this.ServiceProvider.GetRequiredService<IUserRightsManager>();
-        manager.ModifyPrivilege(policy, Privilege1, Array.Empty<string>(), Array.Empty<string>(), true, false, null, false);
+        manager.ModifyPrivilege(policy, Privilege1, Array.Empty<string>(), Array.Empty<string>(), true, false, null!, false);
 
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.OrderBy(p => p), policy.LsaEnumerateAccountsWithUserRight().OrderBy(p => p));
         Assert.Equal(new[] { Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
@@ -319,7 +319,7 @@ public sealed class UserRightsManagerPrivilegeTests : UserRightsManagerTestBase
         Assert.Equal(new[] { Privilege1, Privilege2 }.OrderBy(p => p), policy.LsaEnumerateAccountRights(PrincipalSid2).OrderBy(p => p));
 
         var manager = this.ServiceProvider.GetRequiredService<IUserRightsManager>();
-        manager.ModifyPrivilege(policy, Privilege1, Array.Empty<string>(), new[] { PrincipalName2 }, false, false, null, false);
+        manager.ModifyPrivilege(policy, Privilege1, Array.Empty<string>(), new[] { PrincipalName2 }, false, false, null!, false);
 
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.OrderBy(p => p), policy.LsaEnumerateAccountsWithUserRight().OrderBy(p => p));
         Assert.Equal(new[] { Privilege1 }, policy.LsaEnumerateAccountRights(PrincipalSid1));

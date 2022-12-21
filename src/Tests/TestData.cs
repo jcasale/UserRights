@@ -1,5 +1,6 @@
 namespace Tests;
 
+using System;
 using System.Security.Principal;
 
 /// <summary>
@@ -20,7 +21,7 @@ public static class TestData
     /// <summary>
     /// Represents the security identity for the currently logged on user.
     /// </summary>
-    public static readonly SecurityIdentifier PrincipalSidCurrent = WindowsIdentity.GetCurrent().User;
+    public static readonly SecurityIdentifier PrincipalSidCurrent = WindowsIdentity.GetCurrent().User ?? throw new ArgumentNullException();
 
     /// <summary>
     /// Represents the default local Administrator account.

@@ -25,7 +25,7 @@ public abstract class LsaUserRightsTestBase : IDisposable
     private const string RestoreSecurityTemplateName = "restore.ini";
     private const string RestoreSecurityLogName = "restore.log";
 
-    private readonly DirectoryInfo directory = CreateTempDirectory();
+    private readonly DirectoryInfo? directory = CreateTempDirectory();
     private readonly IReadOnlyDictionary<string, IReadOnlyCollection<SecurityIdentifier>> initialState;
 
     private bool disposed;

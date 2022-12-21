@@ -83,7 +83,7 @@ public abstract class UserRightsManagerTestBase : IDisposable
 
         if (disposing)
         {
-            if (this.serviceProvider?.IsValueCreated is true)
+            if (this.serviceProvider.IsValueCreated)
             {
                 this.serviceProvider.Value.Dispose();
             }

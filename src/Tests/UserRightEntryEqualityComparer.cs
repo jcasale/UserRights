@@ -10,7 +10,7 @@ using UserRights.Application;
 public sealed class UserRightEntryEqualityComparer : IEqualityComparer<IUserRightEntry>
 {
     /// <inheritdoc />
-    public bool Equals(IUserRightEntry x, IUserRightEntry y)
+    public bool Equals(IUserRightEntry? x, IUserRightEntry? y)
     {
         if (ReferenceEquals(x, y))
         {
@@ -49,7 +49,11 @@ public sealed class UserRightEntryEqualityComparer : IEqualityComparer<IUserRigh
         {
             var hashCode = StringComparer.Ordinal.GetHashCode(obj.Privilege);
             hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(obj.SecurityId);
-            hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(obj.AccountName);
+
+            if (obj.AccountName is not null)
+            {
+                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(obj.AccountName);
+            }
 
             return hashCode;
         }

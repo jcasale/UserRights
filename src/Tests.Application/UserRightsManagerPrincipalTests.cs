@@ -23,17 +23,17 @@ public sealed class UserRightsManagerPrincipalTests : UserRightsManagerTestBase
         var policy = new MockLsaUserRights();
 
         // Verify null policy instance.
-        yield return new object[] { null, PrincipalName1, new[] { Privilege1 }, Array.Empty<string>(), false, false, false };
+        yield return new object[] { null!, PrincipalName1, new[] { Privilege1 }, Array.Empty<string>(), false, false, false };
 
         // Verify null or empty principal.
-        yield return new object[] { policy, null, new[] { Privilege1 }, Array.Empty<string>(), false, false, false };
+        yield return new object[] { policy, null!, new[] { Privilege1 }, Array.Empty<string>(), false, false, false };
         yield return new object[] { policy, string.Empty, new[] { Privilege1 }, Array.Empty<string>(), false, false, false };
 
         // Verify null grant collection.
-        yield return new object[] { policy, PrincipalName1, null, new[] { Privilege1 }, false, false, false };
+        yield return new object[] { policy, PrincipalName1, null!, new[] { Privilege1 }, false, false, false };
 
         // Verify null revocation collection.
-        yield return new object[] { policy, PrincipalName1, new[] { Privilege1 }, null, false, false, false };
+        yield return new object[] { policy, PrincipalName1, new[] { Privilege1 }, null!, false, false, false };
 
         // Verify RevokeAll requirements.
         yield return new object[] { policy, PrincipalName1, new[] { Privilege1 }, Array.Empty<string>(), true, false, false };

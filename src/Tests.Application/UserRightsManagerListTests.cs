@@ -29,7 +29,7 @@ public sealed class UserRightsManagerListTests : UserRightsManagerTestBase
     {
         var manager = this.ServiceProvider.GetRequiredService<IUserRightsManager>();
 
-        Assert.ThrowsAny<ArgumentException>(() => manager.GetUserRights(null));
+        Assert.ThrowsAny<ArgumentException>(() => manager.GetUserRights(null!));
     }
 
     /// <summary>
@@ -139,7 +139,7 @@ public sealed class UserRightsManagerListTests : UserRightsManagerTestBase
         var actual = JsonSerializer.Deserialize<UserRightEntry[]>(serialized)
             ?.OrderBy(p => p.Privilege)
             .ThenBy(p => p.SecurityId)
-            .ToArray();
+            .ToArray() ?? Array.Empty<UserRightEntry>();
 
         Assert.Equal(expected, actual, new UserRightEntryEqualityComparer());
     }

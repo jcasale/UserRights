@@ -49,8 +49,8 @@ public sealed class ListCommandTests : CliTestBase
 
         var expected = database
             .SelectMany(kvp => kvp.Value.Select(p => new UserRightEntry(kvp.Key, p.Value, p.ToAccountName())))
-            .OrderBy(p => p.Privilege)
-            .ThenBy(p => p.SecurityId)
+            .OrderBy(p => p.Privilege, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(p => p.SecurityId, StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
         var policy = new MockLsaUserRights(database);
@@ -82,8 +82,8 @@ public sealed class ListCommandTests : CliTestBase
             var json = File.ReadAllText(file, Encoding.UTF8);
 
             actual = JsonSerializer.Deserialize<UserRightEntry[]>(json)
-                ?.OrderBy(p => p.Privilege)
-                .ThenBy(p => p.SecurityId)
+                ?.OrderBy(p => p.Privilege, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(p => p.SecurityId, StringComparer.OrdinalIgnoreCase)
                 .ToArray() ?? Array.Empty<UserRightEntry>();
         }
         finally
@@ -122,8 +122,8 @@ public sealed class ListCommandTests : CliTestBase
 
         var expected = database
             .SelectMany(kvp => kvp.Value.Select(p => new UserRightEntry(kvp.Key, p.Value, p.ToAccountName())))
-            .OrderBy(p => p.Privilege)
-            .ThenBy(p => p.SecurityId)
+            .OrderBy(p => p.Privilege, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(p => p.SecurityId, StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
         this.ServiceCollection.AddSingleton<ILsaUserRights>(policy);
@@ -158,8 +158,8 @@ public sealed class ListCommandTests : CliTestBase
             using var csvReader = new CsvReader(streamReader, configuration);
 
             actual = csvReader.GetRecords<UserRightEntry>()
-                .OrderBy(p => p.Privilege)
-                .ThenBy(p => p.SecurityId)
+                .OrderBy(p => p.Privilege, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(p => p.SecurityId, StringComparer.OrdinalIgnoreCase)
                 .ToArray();
         }
         finally

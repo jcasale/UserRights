@@ -58,8 +58,8 @@ public sealed class UserRightsManagerListTests : UserRightsManagerTestBase
 
         var expected = database
             .SelectMany(kvp => kvp.Value.Select(p => new UserRightEntry(kvp.Key, p.Value, p.ToAccountName())))
-            .OrderBy(p => p.Privilege)
-            .ThenBy(p => p.SecurityId)
+            .OrderBy(p => p.Privilege, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(p => p.SecurityId, StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
         var policy = new MockLsaUserRights(database);
@@ -85,8 +85,8 @@ public sealed class UserRightsManagerListTests : UserRightsManagerTestBase
         using var csvReader = new CsvReader(stringReader, configuration);
 
         var actual = csvReader.GetRecords<UserRightEntry>()
-            .OrderBy(p => p.Privilege)
-            .ThenBy(p => p.SecurityId)
+            .OrderBy(p => p.Privilege, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(p => p.SecurityId, StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
         Assert.Equal(expected, actual, new UserRightEntryEqualityComparer());
@@ -118,8 +118,8 @@ public sealed class UserRightsManagerListTests : UserRightsManagerTestBase
 
         var expected = database
             .SelectMany(kvp => kvp.Value.Select(p => new UserRightEntry(kvp.Key, p.Value, p.ToAccountName())))
-            .OrderBy(p => p.Privilege)
-            .ThenBy(p => p.SecurityId)
+            .OrderBy(p => p.Privilege, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(p => p.SecurityId, StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
         var policy = new MockLsaUserRights(database);
@@ -137,8 +137,8 @@ public sealed class UserRightsManagerListTests : UserRightsManagerTestBase
         var serialized = userRights.ToJson();
 
         var actual = JsonSerializer.Deserialize<UserRightEntry[]>(serialized)
-            ?.OrderBy(p => p.Privilege)
-            .ThenBy(p => p.SecurityId)
+            ?.OrderBy(p => p.Privilege, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(p => p.SecurityId, StringComparer.OrdinalIgnoreCase)
             .ToArray() ?? Array.Empty<UserRightEntry>();
 
         Assert.Equal(expected, actual, new UserRightEntryEqualityComparer());

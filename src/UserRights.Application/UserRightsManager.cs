@@ -56,8 +56,8 @@ public class UserRightsManager : IUserRightsManager
 
         // Sort the data.
         var sorted = entries
-            .OrderBy(p => p.Privilege)
-            .ThenBy(p => p.SecurityId)
+            .OrderBy(p => p.Privilege, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(p => p.SecurityId, StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
         return sorted;

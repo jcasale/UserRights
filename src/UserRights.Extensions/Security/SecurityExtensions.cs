@@ -39,10 +39,7 @@ public static class SecurityExtensions
     /// <returns>The account name.</returns>
     public static string ToAccountName(this SecurityIdentifier securityIdentifier)
     {
-        if (securityIdentifier is null)
-        {
-            throw new ArgumentNullException(nameof(securityIdentifier));
-        }
+        ArgumentNullException.ThrowIfNull(securityIdentifier);
 
         try
         {

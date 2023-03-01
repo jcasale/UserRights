@@ -77,10 +77,7 @@ public class MockLsaUserRights : ILsaUserRights
     /// <inheritdoc />
     public string[] LsaEnumerateAccountRights(SecurityIdentifier accountSid)
     {
-        if (accountSid is null)
-        {
-            throw new ArgumentNullException(nameof(accountSid));
-        }
+        ArgumentNullException.ThrowIfNull(accountSid);
 
         if (!this.connected)
         {

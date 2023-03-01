@@ -40,10 +40,7 @@ public sealed class UserRightEntryEqualityComparer : IEqualityComparer<IUserRigh
     /// <inheritdoc />
     public int GetHashCode(IUserRightEntry obj)
     {
-        if (obj is null)
-        {
-            throw new ArgumentNullException(nameof(obj));
-        }
+        ArgumentNullException.ThrowIfNull(obj);
 
         unchecked
         {

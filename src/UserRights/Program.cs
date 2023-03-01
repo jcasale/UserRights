@@ -70,10 +70,7 @@ internal static class Program
     /// <returns>A formatted string representation of the arguments.</returns>
     private static string FormatArguments(string[] args)
     {
-        if (args is null)
-        {
-            throw new ArgumentNullException(nameof(args));
-        }
+        ArgumentNullException.ThrowIfNull(args);
 
         var stringBuilder = new StringBuilder();
 
@@ -95,10 +92,7 @@ internal static class Program
     /// <param name="args">The command line arguments.</param>
     private static async Task<int> Run(string[] args)
     {
-        if (args is null)
-        {
-            throw new ArgumentNullException(nameof(args));
-        }
+        ArgumentNullException.ThrowIfNull(args);
 
         // Use Coalesce to accomodate EventIds from Microsoft.Extensions.Logging and Serilog.
         const string consoleTemplate =

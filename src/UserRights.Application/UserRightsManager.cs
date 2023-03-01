@@ -24,10 +24,7 @@ public class UserRightsManager : IUserRightsManager
     /// <inheritdoc />
     public IEnumerable<IUserRightEntry> GetUserRights(IUserRights policy)
     {
-        if (policy is null)
-        {
-            throw new ArgumentNullException(nameof(policy));
-        }
+        ArgumentNullException.ThrowIfNull(policy);
 
         // Enumerate the principals with privileges.
         var principals = policy.LsaEnumerateAccountsWithUserRight();
@@ -66,25 +63,16 @@ public class UserRightsManager : IUserRightsManager
     /// <inheritdoc />
     public void ModifyPrincipal(IUserRights policy, string principal, string[] grants, string[] revocations, bool revokeAll, bool revokeOthers, bool dryRun)
     {
-        if (policy is null)
-        {
-            throw new ArgumentNullException(nameof(policy));
-        }
+        ArgumentNullException.ThrowIfNull(policy);
 
         if (string.IsNullOrWhiteSpace(principal))
         {
             throw new ArgumentException("Value cannot be null or whitespace.", nameof(principal));
         }
 
-        if (grants is null)
-        {
-            throw new ArgumentNullException(nameof(grants));
-        }
+        ArgumentNullException.ThrowIfNull(grants);
 
-        if (revocations is null)
-        {
-            throw new ArgumentNullException(nameof(revocations));
-        }
+        ArgumentNullException.ThrowIfNull(revocations);
 
         if (revokeAll && (revokeOthers || grants.Length > 0 || revocations.Length > 0))
         {
@@ -172,25 +160,16 @@ public class UserRightsManager : IUserRightsManager
     /// <inheritdoc />
     public void ModifyPrivilege(IUserRights policy, string privilege, string[] grants, string[] revocations, bool revokeAll, bool revokeOthers, Regex? revokePattern, bool dryRun)
     {
-        if (policy is null)
-        {
-            throw new ArgumentNullException(nameof(policy));
-        }
-
-        if (grants is null)
-        {
-            throw new ArgumentNullException(nameof(grants));
-        }
-
-        if (revocations is null)
-        {
-            throw new ArgumentNullException(nameof(revocations));
-        }
+        ArgumentNullException.ThrowIfNull(policy);
 
         if (string.IsNullOrWhiteSpace(privilege))
         {
             throw new ArgumentException("Value cannot be null or whitespace.", nameof(privilege));
         }
+
+        ArgumentNullException.ThrowIfNull(grants);
+
+        ArgumentNullException.ThrowIfNull(revocations);
 
         if (revokeAll && (grants.Length > 0 || revocations.Length > 0 || revokeOthers || revokePattern != null))
         {
@@ -296,10 +275,9 @@ public class UserRightsManager : IUserRightsManager
     /// <param name="dryRun">A value indicating whether to process the action or just instrument it.</param>
     private void GrantPrivilege(IUserRights policy, SecurityIdentifier principal, string privilege, bool dryRun)
     {
-        if (principal is null)
-        {
-            throw new ArgumentNullException(nameof(principal));
-        }
+        ArgumentNullException.ThrowIfNull(policy);
+
+        ArgumentNullException.ThrowIfNull(principal);
 
         if (string.IsNullOrWhiteSpace(privilege))
         {
@@ -336,10 +314,9 @@ public class UserRightsManager : IUserRightsManager
     /// <param name="dryRun">A value indicating whether to process the action or just instrument it.</param>
     private void RevokePrivilege(IUserRights policy, SecurityIdentifier principal, string privilege, bool dryRun)
     {
-        if (principal is null)
-        {
-            throw new ArgumentNullException(nameof(principal));
-        }
+        ArgumentNullException.ThrowIfNull(policy);
+
+        ArgumentNullException.ThrowIfNull(principal);
 
         if (string.IsNullOrWhiteSpace(privilege))
         {

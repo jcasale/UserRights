@@ -61,10 +61,7 @@ public abstract class LsaUserRightsTestBase : IDisposable
     {
         get
         {
-            if (this.disposed)
-            {
-                throw new ObjectDisposedException(this.GetType().FullName);
-            }
+            ObjectDisposedException.ThrowIf(this.disposed, this);
 
             return this.initialState;
         }
@@ -107,10 +104,7 @@ public abstract class LsaUserRightsTestBase : IDisposable
     /// <returns>A map of privilege to security identifiers.</returns>
     protected IReadOnlyDictionary<string, IReadOnlyCollection<SecurityIdentifier>> GetCurrentState()
     {
-        if (this.disposed)
-        {
-            throw new ObjectDisposedException(this.GetType().FullName);
-        }
+        ObjectDisposedException.ThrowIf(this.disposed, this);
 
         var directoryInfo = CreateTempDirectory();
 
@@ -135,10 +129,7 @@ public abstract class LsaUserRightsTestBase : IDisposable
             throw new ArgumentException("Value cannot be null or whitespace.", nameof(workingDirectory));
         }
 
-        if (stateBackup is null)
-        {
-            throw new ArgumentNullException(nameof(stateBackup));
-        }
+        ArgumentNullException.ThrowIfNull(stateBackup);
 
         // Load existing assignments.
         var pathBackup = Path.Combine(workingDirectory, ExportSecurityTemplateName);

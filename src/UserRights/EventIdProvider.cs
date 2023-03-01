@@ -14,10 +14,7 @@ public class EventIdProvider : IEventIdProvider
     /// <inheritdoc/>
     public ushort ComputeEventId(LogEvent logEvent)
     {
-        if (logEvent is null)
-        {
-            throw new ArgumentNullException(nameof(logEvent));
-        }
+        ArgumentNullException.ThrowIfNull(logEvent);
 
         if (!logEvent.Properties.TryGetValue("EventId", out var property))
         {

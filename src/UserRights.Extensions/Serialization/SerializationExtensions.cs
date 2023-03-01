@@ -21,10 +21,7 @@ public static class SerializationExtensions
     /// <returns>The serialized data.</returns>
     public static string ToCsv<T>(this IEnumerable<T> data)
     {
-        if (data is null)
-        {
-            throw new ArgumentNullException(nameof(data));
-        }
+        ArgumentNullException.ThrowIfNull(data);
 
         var csvConfiguration = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
@@ -53,10 +50,7 @@ public static class SerializationExtensions
     /// <returns>The serialized data.</returns>
     public static string ToJson<T>(this T data)
     {
-        if (data is null)
-        {
-            throw new ArgumentNullException(nameof(data));
-        }
+        ArgumentNullException.ThrowIfNull(data);
 
         var options = new JsonSerializerOptions
         {

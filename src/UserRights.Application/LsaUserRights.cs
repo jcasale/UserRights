@@ -20,10 +20,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
     /// <inheritdoc />
     public void Connect(string? systemName = default)
     {
-        if (this.disposed)
-        {
-            throw new ObjectDisposedException(this.GetType().FullName);
-        }
+        ObjectDisposedException.ThrowIf(this.disposed, this);
 
         if (this.handle != null)
         {
@@ -49,10 +46,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
     /// <inheritdoc />
     public unsafe void LsaAddAccountRights(SecurityIdentifier accountSid, params string[] userRights)
     {
-        if (this.disposed)
-        {
-            throw new ObjectDisposedException(this.GetType().FullName);
-        }
+        ObjectDisposedException.ThrowIf(this.disposed, this);
 
         if (this.handle is null)
         {
@@ -105,10 +99,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
     /// <inheritdoc />
     public unsafe string[] LsaEnumerateAccountRights(SecurityIdentifier accountSid)
     {
-        if (this.disposed)
-        {
-            throw new ObjectDisposedException(this.GetType().FullName);
-        }
+        ObjectDisposedException.ThrowIf(this.disposed, this);
 
         if (this.handle is null)
         {
@@ -162,10 +153,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
     /// <inheritdoc />
     public unsafe SecurityIdentifier[] LsaEnumerateAccountsWithUserRight(string? userRight = default)
     {
-        if (this.disposed)
-        {
-            throw new ObjectDisposedException(this.GetType().FullName);
-        }
+        ObjectDisposedException.ThrowIf(this.disposed, this);
 
         if (this.handle is null)
         {
@@ -226,10 +214,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
     /// <inheritdoc />
     public unsafe void LsaRemoveAccountRights(SecurityIdentifier accountSid, params string[] userRights)
     {
-        if (this.disposed)
-        {
-            throw new ObjectDisposedException(this.GetType().FullName);
-        }
+        ObjectDisposedException.ThrowIf(this.disposed, this);
 
         if (this.handle is null)
         {
@@ -306,10 +291,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
     /// <returns>A handle to the Policy object.</returns>
     private unsafe LsaCloseSafeHandle LsaOpenPolicy(ref OBJECT_ATTRIBUTES objectAttributes, uint desiredAccess, string? systemName = default)
     {
-        if (this.disposed)
-        {
-            throw new ObjectDisposedException(this.GetType().FullName);
-        }
+        ObjectDisposedException.ThrowIf(this.disposed, this);
 
         if (this.handle is not null)
         {

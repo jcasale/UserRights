@@ -38,10 +38,7 @@ public abstract class UserRightsManagerTestBase : IDisposable
     {
         get
         {
-            if (this.disposed)
-            {
-                throw new ObjectDisposedException(this.GetType().FullName);
-            }
+            ObjectDisposedException.ThrowIf(this.disposed, this);
 
             return this.serviceCollection;
         }
@@ -54,10 +51,7 @@ public abstract class UserRightsManagerTestBase : IDisposable
     {
         get
         {
-            if (this.disposed)
-            {
-                throw new ObjectDisposedException(this.GetType().FullName);
-            }
+            ObjectDisposedException.ThrowIf(this.disposed, this);
 
             return this.serviceProvider.Value;
         }

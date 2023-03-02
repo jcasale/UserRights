@@ -22,7 +22,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
     {
         ObjectDisposedException.ThrowIf(this.disposed, this);
 
-        if (this.handle != null)
+        if (this.handle is not null)
         {
             throw new InvalidOperationException("A connection to the policy database already exists.");
         }

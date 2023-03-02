@@ -171,22 +171,22 @@ public class UserRightsManager : IUserRightsManager
 
         ArgumentNullException.ThrowIfNull(revocations);
 
-        if (revokeAll && (grants.Length > 0 || revocations.Length > 0 || revokeOthers || revokePattern != null))
+        if (revokeAll && (grants.Length > 0 || revocations.Length > 0 || revokeOthers || revokePattern is not null))
         {
             throw new ArgumentException($"The {nameof(revokeAll)} parameter cannot be used with any other option.", nameof(revokeAll));
         }
 
-        if (revokeOthers && (grants.Length == 0 || revocations.Length > 0 || revokeAll || revokePattern != null))
+        if (revokeOthers && (grants.Length == 0 || revocations.Length > 0 || revokeAll || revokePattern is not null))
         {
             throw new ArgumentException($"The {nameof(revokeOthers)} parameter is only valid with {nameof(grants)}.", nameof(revokeOthers));
         }
 
-        if (revokePattern != null && (revocations.Length > 0 || revokeAll || revokeOthers))
+        if (revokePattern is not null && (revocations.Length > 0 || revokeAll || revokeOthers))
         {
             throw new ArgumentException($"The {nameof(revokePattern)} parameter cannot be used with {nameof(revocations)}, {nameof(revokeAll)}, or {nameof(revokeOthers)}.", nameof(revokePattern));
         }
 
-        if (grants.Length == 0 && revocations.Length == 0 && !revokeAll && revokePattern == null)
+        if (grants.Length == 0 && revocations.Length == 0 && !revokeAll && revokePattern is null)
         {
             throw new ArgumentException("The parameter combination is invalid.");
         }
@@ -244,7 +244,7 @@ public class UserRightsManager : IUserRightsManager
         }
 
         // Perform a revocation of the privilege from each principal matching the regex pattern if required.
-        if (revokePattern != null)
+        if (revokePattern is not null)
         {
             var matches = principals.Where(p => !grantSet.Contains(p) && revokePattern.IsMatch(p.Value));
             foreach (var principal in matches)

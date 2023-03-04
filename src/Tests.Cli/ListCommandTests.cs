@@ -48,7 +48,7 @@ public sealed class ListCommandTests : CliTestBase
         };
 
         var expected = database
-            .SelectMany(kvp => kvp.Value.Select(p => new UserRightEntry(kvp.Key, p.Value, p.ToAccountName())))
+            .SelectMany(kvp => kvp.Value.Select(p => new UserRightEntry(kvp.Key, p.Value, p.ToAccount().Value)))
             .OrderBy(p => p.Privilege, StringComparer.OrdinalIgnoreCase)
             .ThenBy(p => p.SecurityId, StringComparer.OrdinalIgnoreCase)
             .ToArray();
@@ -121,7 +121,7 @@ public sealed class ListCommandTests : CliTestBase
         var policy = new MockLsaUserRights(database);
 
         var expected = database
-            .SelectMany(kvp => kvp.Value.Select(p => new UserRightEntry(kvp.Key, p.Value, p.ToAccountName())))
+            .SelectMany(kvp => kvp.Value.Select(p => new UserRightEntry(kvp.Key, p.Value, p.ToAccount().Value)))
             .OrderBy(p => p.Privilege, StringComparer.OrdinalIgnoreCase)
             .ThenBy(p => p.SecurityId, StringComparer.OrdinalIgnoreCase)
             .ToArray();

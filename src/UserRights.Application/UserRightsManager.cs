@@ -36,7 +36,7 @@ public class UserRightsManager : IUserRightsManager
             string? accountName = default;
             try
             {
-                accountName = principal.ToAccountName();
+                accountName = principal.ToAccount().Value;
             }
             catch (SecurityTranslationException)
             {

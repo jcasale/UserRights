@@ -33,17 +33,17 @@ public static class SecurityExtensions
     }
 
     /// <summary>
-    /// Gets the account name for the specified security identifier (SID).
+    /// Gets the account for the specified security identifier (SID).
     /// </summary>
     /// <param name="securityIdentifier">The security identifier (SID) to translate.</param>
-    /// <returns>The account name.</returns>
-    public static string ToAccountName(this SecurityIdentifier securityIdentifier)
+    /// <returns>The account.</returns>
+    public static NTAccount ToAccount(this SecurityIdentifier securityIdentifier)
     {
         ArgumentNullException.ThrowIfNull(securityIdentifier);
 
         try
         {
-            return securityIdentifier.Translate(typeof(NTAccount)).Value;
+            return (NTAccount)securityIdentifier.Translate(typeof(NTAccount));
         }
         catch (Exception e)
         {

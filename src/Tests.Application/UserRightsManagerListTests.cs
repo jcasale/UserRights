@@ -6,7 +6,9 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security.Principal;
+using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 using CsvHelper;
 using CsvHelper.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,8 +37,9 @@ public sealed class UserRightsManagerListTests : UserRightsManagerTestBase
     /// <summary>
     /// Verifies listing user rights and serializing the output to a CSV.
     /// </summary>
+    /// <returns>A task that represents the asynchronous write operation.</returns>
     [Fact]
-    public void SerializingToCsvShouldWork()
+    public async Task SerializingToCsvShouldWork()
     {
         var principals1 = new HashSet<SecurityIdentifier>
         {
@@ -74,7 +77,11 @@ public sealed class UserRightsManagerListTests : UserRightsManagerTestBase
 
         Assert.Equal(expected, userRights, new UserRightEntryEqualityComparer());
 
-        var serialized = userRights.ToCsv();
+        using var stream = new MemoryStream();
+        await userRights.ToCsv(stream).ConfigureAwait(false);
+        stream.Position = 0;
+        using var reader = new StreamReader(stream, Encoding.UTF8);
+        var serialized = await reader.ReadToEndAsync().ConfigureAwait(false);
 
         var configuration = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
@@ -95,8 +102,9 @@ public sealed class UserRightsManagerListTests : UserRightsManagerTestBase
     /// <summary>
     /// Verifies listing user rights and serializing the output to a JSON.
     /// </summary>
+    /// <returns>A task that represents the asynchronous write operation.</returns>
     [Fact]
-    public void SerializingToJsonShouldWork()
+    public async Task SerializingToJsonShouldWork()
     {
         var principals1 = new HashSet<SecurityIdentifier>
         {
@@ -134,7 +142,11 @@ public sealed class UserRightsManagerListTests : UserRightsManagerTestBase
 
         Assert.Equal(expected, userRights, new UserRightEntryEqualityComparer());
 
-        var serialized = userRights.ToJson();
+        using var stream = new MemoryStream();
+        await userRights.ToJson(stream).ConfigureAwait(false);
+        stream.Position = 0;
+        using var reader = new StreamReader(stream, Encoding.UTF8);
+        var serialized = await reader.ReadToEndAsync().ConfigureAwait(false);
 
         var actual = JsonSerializer.Deserialize<UserRightEntry[]>(serialized)
             ?.OrderBy(p => p.Privilege, StringComparer.OrdinalIgnoreCase)

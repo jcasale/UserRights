@@ -184,32 +184,56 @@ public class CliBuilder
         command.AddOption(systemNameOption);
 
         command.SetHandler(
-            (json, path, systemName) =>
+            async context =>
             {
                 this.logger.LogInformation(OperationId.ListMode, "{Program:l} v{Version} executing in {Mode:l} mode.", this.program, this.version, command.Name);
+
+                var json = context.ParseResult.GetValueForOption(jsonOption);
+                var path = context.ParseResult.GetValueForOption(pathOption);
+                var systemName = context.ParseResult.GetValueForOption(systemNameOption);
+                var cancellationToken = context.GetCancellationToken();
 
                 this.policy.Connect(systemName);
 
                 var results = this.manager.GetUserRights(this.policy);
 
-                var serialized = json
-                    ? results.ToJson()
-                    : results.ToCsv();
-
                 if (string.IsNullOrWhiteSpace(path))
                 {
-                    using var streamWriter = new StreamWriter(Console.OpenStandardOutput());
-                    streamWriter.Write(serialized);
+                    var stream = Console.OpenStandardOutput();
+                    var encoding = Console.OutputEncoding;
+
+                    try
+                    {
+                        Console.OutputEncoding = Encoding.UTF8;
+
+                        if (json)
+                        {
+                            await results.ToJson(stream, cancellationToken).ConfigureAwait(false);
+                        }
+                        else
+                        {
+                            await results.ToCsv(stream, cancellationToken).ConfigureAwait(false);
+                        }
+                    }
+                    finally
+                    {
+                        Console.OutputEncoding = encoding;
+                    }
                 }
                 else
                 {
-                    using var streamWriter = new StreamWriter(path, false, Encoding.UTF8);
-                    streamWriter.Write(serialized);
+                    using var stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: true);
+
+                    if (json)
+                    {
+                        await results.ToJson(stream, cancellationToken).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        await results.ToCsv(stream, cancellationToken).ConfigureAwait(false);
+                    }
                 }
-            },
-            jsonOption,
-            pathOption,
-            systemNameOption);
+            });
 
         return command;
     }

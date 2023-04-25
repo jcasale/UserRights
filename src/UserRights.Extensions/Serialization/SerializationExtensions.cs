@@ -4,7 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Text;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 using CsvHelper;
 using CsvHelper.Configuration;
 
@@ -18,10 +21,13 @@ public static class SerializationExtensions
     /// </summary>
     /// <typeparam name="T">The type of data.</typeparam>
     /// <param name="data">The data to serialize.</param>
-    /// <returns>The serialized data.</returns>
-    public static string ToCsv<T>(this IEnumerable<T> data)
+    /// <param name="stream">The UTF-8 stream to write to.</param>
+    /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the write operation.</param>
+    /// <returns>A task that represents the asynchronous write operation.</returns>
+    public static async Task ToCsv<T>(this IEnumerable<T> data, Stream stream, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(data);
+        ArgumentNullException.ThrowIfNull(stream);
 
         var csvConfiguration = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
@@ -30,11 +36,9 @@ public static class SerializationExtensions
 
         try
         {
-            using var stringWriter = new StringWriter(CultureInfo.InvariantCulture);
-            using var csvWriter = new CsvWriter(stringWriter, csvConfiguration);
-            csvWriter.WriteRecords(data);
-
-            return stringWriter.ToString();
+            using var writer = new StreamWriter(stream, new UTF8Encoding(false), leaveOpen: true);
+            using var csv = new CsvWriter(writer, csvConfiguration, leaveOpen: true);
+            await csv.WriteRecordsAsync(data, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception e)
         {
@@ -47,10 +51,13 @@ public static class SerializationExtensions
     /// </summary>
     /// <typeparam name="T">The type of data.</typeparam>
     /// <param name="data">The data to serialize.</param>
-    /// <returns>The serialized data.</returns>
-    public static string ToJson<T>(this T data)
+    /// <param name="stream">The UTF-8 stream to write to.</param>
+    /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the write operation.</param>
+    /// <returns>A task that represents the asynchronous write operation.</returns>
+    public static async Task ToJson<T>(this T data, Stream stream, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(data);
+        ArgumentNullException.ThrowIfNull(stream);
 
         var options = new JsonSerializerOptions
         {
@@ -59,7 +66,7 @@ public static class SerializationExtensions
 
         try
         {
-            return JsonSerializer.Serialize(data, options);
+            await JsonSerializer.SerializeAsync(stream, data, options, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception e)
         {

@@ -8,12 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Meziantou.Analyzer" Version="2.0.14">
+    <PackageReference Include="Meziantou.Analyzer" Version="2.0.54">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
-    <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.2.188-beta">
+    <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.2-beta">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="StyleCop.Analyzers.Unstable" Version="1.2.0.435">

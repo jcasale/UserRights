@@ -7,7 +7,6 @@ using System.Security.Principal;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.Security.Authentication.Identity;
-using Windows.Win32.System.WindowsProgramming;
 
 /// <summary>
 /// Represents a managed wrapper around the local security authority user right functions.
@@ -27,7 +26,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
             throw new InvalidOperationException("A connection to the policy database already exists.");
         }
 
-        OBJECT_ATTRIBUTES objectAttributes = default;
+        LSA_OBJECT_ATTRIBUTES objectAttributes = default;
 
         const uint desiredAccess = PInvoke.POLICY_CREATE_ACCOUNT |
             PInvoke.POLICY_LOOKUP_NAMES |
@@ -69,7 +68,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
             psid = new PSID(b);
         }
 
-        Span<UNICODE_STRING> rights = stackalloc UNICODE_STRING[userRights.Length];
+        Span<LSA_UNICODE_STRING> rights = stackalloc LSA_UNICODE_STRING[userRights.Length];
         for (var i = 0; i < userRights.Length; i++)
         {
             var privilege = userRights[i];
@@ -78,7 +77,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
             {
                 var length = checked((ushort)(privilege.Length * sizeof(char)));
 
-                rights[i] = new UNICODE_STRING
+                rights[i] = new LSA_UNICODE_STRING
                 {
                     Length = length,
                     MaximumLength = length,
@@ -116,7 +115,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
             psid = new PSID(b);
         }
 
-        UNICODE_STRING* userRights = default;
+        LSA_UNICODE_STRING* userRights = default;
         try
         {
             var status = PInvoke.LsaEnumerateAccountRights(this.handle, psid, out userRights, out var count);
@@ -131,10 +130,10 @@ public class LsaUserRights : ILsaUserRights, IDisposable
 
             for (var i = 0; i < count; i++)
             {
-                var offset = Marshal.SizeOf(typeof(UNICODE_STRING)) * i;
+                var offset = Marshal.SizeOf(typeof(LSA_UNICODE_STRING)) * i;
                 var ptr = nint.Add((nint)userRights, offset);
-                var result = Marshal.PtrToStructure(ptr, typeof(UNICODE_STRING)) ?? throw new InvalidOperationException();
-                var unicodeString = (UNICODE_STRING)result;
+                var result = Marshal.PtrToStructure(ptr, typeof(LSA_UNICODE_STRING)) ?? throw new InvalidOperationException();
+                var unicodeString = (LSA_UNICODE_STRING)result;
 
                 results[i] = new string(unicodeString.Buffer.Value);
             }
@@ -160,7 +159,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
             throw new InvalidOperationException("A connection to the policy database is required.");
         }
 
-        UNICODE_STRING userRightUnicode = default;
+        LSA_UNICODE_STRING userRightUnicode = default;
         if (userRight is not null)
         {
             fixed (char* c = userRight)
@@ -237,7 +236,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
             psid = new PSID(b);
         }
 
-        Span<UNICODE_STRING> rights = stackalloc UNICODE_STRING[userRights.Length];
+        Span<LSA_UNICODE_STRING> rights = stackalloc LSA_UNICODE_STRING[userRights.Length];
         for (var i = 0; i < userRights.Length; i++)
         {
             var privilege = userRights[i];
@@ -246,7 +245,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
             {
                 var length = checked((ushort)(privilege.Length * sizeof(char)));
 
-                rights[i] = new UNICODE_STRING
+                rights[i] = new LSA_UNICODE_STRING
                 {
                     Length = length,
                     MaximumLength = length,
@@ -289,7 +288,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
     /// <param name="desiredAccess">The requested access rights.</param>
     /// <param name="systemName">The name of the target system.</param>
     /// <returns>A handle to the Policy object.</returns>
-    private unsafe LsaCloseSafeHandle LsaOpenPolicy(ref OBJECT_ATTRIBUTES objectAttributes, uint desiredAccess, string? systemName = default)
+    private unsafe LsaCloseSafeHandle LsaOpenPolicy(ref LSA_OBJECT_ATTRIBUTES objectAttributes, uint desiredAccess, string? systemName = default)
     {
         ObjectDisposedException.ThrowIf(this.disposed, this);
 
@@ -298,7 +297,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
             throw new InvalidOperationException("A connection to the policy database already exists.");
         }
 
-        UNICODE_STRING systemNameUnicode = default;
+        LSA_UNICODE_STRING systemNameUnicode = default;
         if (systemName is not null)
         {
             fixed (char* c = systemName)

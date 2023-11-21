@@ -19,9 +19,4 @@
     </PackageReference>
   </ItemGroup>
 
-  <PropertyGroup>
-    <CodeAnalysisRuleSet>..\StyleCop.ruleset</CodeAnalysisRuleSet>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-  </PropertyGroup>
-
 </Project>

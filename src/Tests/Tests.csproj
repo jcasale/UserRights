@@ -22,9 +22,4 @@
     <ProjectReference Include="..\UserRights.Application\UserRights.Application.csproj" />
   </ItemGroup>
 
-  <PropertyGroup>
-    <CodeAnalysisRuleSet>..\StyleCop.ruleset</CodeAnalysisRuleSet>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-  </PropertyGroup>
-
 </Project>

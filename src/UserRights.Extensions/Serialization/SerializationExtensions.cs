@@ -45,9 +45,15 @@ public static class SerializationExtensions
 
         try
         {
-            using var writer = new StreamWriter(stream, new UTF8Encoding(false), leaveOpen: true);
-            using var csv = new CsvWriter(writer, csvConfiguration, leaveOpen: true);
-            await csv.WriteRecordsAsync(data, cancellationToken).ConfigureAwait(false);
+            var writer = new StreamWriter(stream, new UTF8Encoding(false), leaveOpen: true);
+            await using (writer.ConfigureAwait(false))
+            {
+                var csv = new CsvWriter(writer, csvConfiguration, leaveOpen: true);
+                await using (csv.ConfigureAwait(false))
+                {
+                    await csv.WriteRecordsAsync(data, cancellationToken).ConfigureAwait(false);
+                }
+            }
         }
         catch (Exception e)
         {

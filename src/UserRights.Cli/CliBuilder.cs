@@ -11,6 +11,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 using Microsoft.Extensions.Logging;
 using UserRights.Application;
@@ -223,15 +224,17 @@ public class CliBuilder
                 }
                 else
                 {
-                    using var stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: true);
-
-                    if (json)
+                    var stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: true);
+                    await using (stream.ConfigureAwait(false))
                     {
-                        await results.ToJson(stream, cancellationToken).ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        await results.ToCsv(stream, cancellationToken).ConfigureAwait(false);
+                        if (json)
+                        {
+                            await results.ToJson(stream, cancellationToken).ConfigureAwait(false);
+                        }
+                        else
+                        {
+                            await results.ToCsv(stream, cancellationToken).ConfigureAwait(false);
+                        }
                     }
                 }
             });

@@ -17,11 +17,9 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Generate version properties
-        shell: cmd
-        run: src\VersionInfo.cmd
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Restore packages
         run: dotnet.exe restore .\src\UserRights.sln

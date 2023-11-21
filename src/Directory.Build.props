@@ -6,6 +6,20 @@
     <Copyright>Copyright © Joseph L. Casale 2022</Copyright>
   </PropertyGroup>
 
-  <Import Project=".\version.props" Condition="Exists('.\version.props')" />
+  <Target Name="GetVersionFromGit" BeforeTargets="BeforeBuild">
+    <Exec Command="git.exe describe --tags --long" WorkingDirectory="$(MSBuildProjectDirectory)" ConsoleToMSBuild="true" StandardOutputImportance="Low">
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitTag" />
+    </Exec>
+
+    <PropertyGroup>
+      <PatternGitTag>^v((.+)-(\d+)-g(.+))</PatternGitTag>
+      <AssemblyVersion>$([System.Text.RegularExpressions.Regex]::Match($(GitTag), $(PatternGitTag)).Groups[2].Value)</AssemblyVersion>
+      <FileVersion>$([System.Text.RegularExpressions.Regex]::Match($(GitTag), $(PatternGitTag)).Groups[2].Value)</FileVersion>
+      <Version>$([System.Text.RegularExpressions.Regex]::Match($(GitTag), $(PatternGitTag)).Groups[2].Value)</Version>
+      <InformationalVersion>$([System.Text.RegularExpressions.Regex]::Match($(GitTag), $(PatternGitTag)).Groups[1].Value)</InformationalVersion>
+    </PropertyGroup>
+
+    <Message Text="*** InformationalVersion $(InformationalVersion)" Importance="high" />
+  </Target>
 
 </Project>

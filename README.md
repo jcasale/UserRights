@@ -189,7 +189,7 @@ UserRights.exe list --path x:\path\file.csv
 
 ## Additional Info
 
-Releases are provided in two formats that both target .Net Core 7.0:
+Releases are provided in two formats that both target .Net 8.0:
 
   * An archive containing a runtime-dependent executable and all the required libraries.
   * An archive containing a single, self-contained executable to make deployment simple.

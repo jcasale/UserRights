@@ -93,10 +93,12 @@ public sealed class UserRightsManagerListTests : UserRightsManagerTestBase
         using var stringReader = new StringReader(serialized);
         using var csvReader = new CsvReader(stringReader, configuration);
 
-        var actual = csvReader.GetRecords<UserRightEntry>()
+        var records = csvReader.GetRecordsAsync<UserRightEntry>();
+        var actual = await records
             .OrderBy(p => p.Privilege, StringComparer.OrdinalIgnoreCase)
             .ThenBy(p => p.SecurityId, StringComparer.OrdinalIgnoreCase)
-            .ToArray();
+            .ToArrayAsync()
+            .ConfigureAwait(false);
 
         Assert.Equal(expected, actual, new UserRightEntryEqualityComparer());
     }

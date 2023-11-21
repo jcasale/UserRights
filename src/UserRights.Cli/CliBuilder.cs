@@ -11,6 +11,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+
 using Microsoft.Extensions.Logging;
 using UserRights.Application;
 using UserRights.Extensions.Serialization;

@@ -2,8 +2,10 @@ namespace Tests.Application;
 
 using System;
 using System.Security.Principal;
+
 using UserRights.Application;
 using Xunit;
+
 using static Tests.PrivilegeConstants;
 using static Tests.SecurityIdentifierConstants;
 

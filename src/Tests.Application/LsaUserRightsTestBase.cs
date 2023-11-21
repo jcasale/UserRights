@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection;
 using System.Security.Principal;
 using System.Text;
+
 using Microsoft.Extensions.Configuration;
 using UserRights.Application;
 using UserRights.Extensions.Security;

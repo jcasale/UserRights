@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Principal;
 using System.Text.RegularExpressions;
+
 using Microsoft.Extensions.Logging;
 using UserRights.Extensions.Security;
 

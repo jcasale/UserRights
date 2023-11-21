@@ -9,6 +9,7 @@ using System.Security.Principal;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+
 using CsvHelper;
 using CsvHelper.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +17,7 @@ using UserRights.Application;
 using UserRights.Extensions.Security;
 using UserRights.Extensions.Serialization;
 using Xunit;
+
 using static Tests.TestData;
 
 /// <summary>

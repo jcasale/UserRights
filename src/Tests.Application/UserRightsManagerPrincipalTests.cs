@@ -4,9 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Principal;
+
 using Microsoft.Extensions.DependencyInjection;
 using UserRights.Application;
 using Xunit;
+
 using static Tests.TestData;
 
 /// <summary>

@@ -3,6 +3,7 @@ namespace UserRights;
 using System;
 using System.Globalization;
 using System.Text;
+
 using Serilog.Core;
 using Serilog.Events;
 

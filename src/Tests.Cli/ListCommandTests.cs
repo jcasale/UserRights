@@ -159,10 +159,12 @@ public sealed class ListCommandTests : CliTestBase
             using var streamReader = new StreamReader(file);
             using var csvReader = new CsvReader(streamReader, configuration);
 
-            actual = csvReader.GetRecords<UserRightEntry>()
-                .OrderBy(p => p.Privilege, StringComparer.OrdinalIgnoreCase)
-                .ThenBy(p => p.SecurityId, StringComparer.OrdinalIgnoreCase)
-                .ToArray();
+            actual =
+            [
+                .. csvReader.GetRecords<UserRightEntry>()
+                    .OrderBy(p => p.Privilege, StringComparer.OrdinalIgnoreCase)
+                    .ThenBy(p => p.SecurityId, StringComparer.OrdinalIgnoreCase)
+            ];
         }
         finally
         {

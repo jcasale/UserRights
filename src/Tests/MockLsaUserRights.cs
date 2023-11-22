@@ -106,7 +106,7 @@ public class MockLsaUserRights : ILsaUserRights
 
         if (this.database.TryGetValue(userRight, out var accountSids))
         {
-            return accountSids.ToArray();
+            return [.. accountSids];
         }
 
         return [];

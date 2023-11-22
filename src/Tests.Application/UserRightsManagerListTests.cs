@@ -80,10 +80,10 @@ public sealed class UserRightsManagerListTests : UserRightsManagerTestBase
         Assert.Equal(expected, userRights, new UserRightEntryEqualityComparer());
 
         using var stream = new MemoryStream();
-        await userRights.ToCsv(stream).ConfigureAwait(false);
+        await userRights.ToCsv(stream).ConfigureAwait(true);
         stream.Position = 0;
         using var reader = new StreamReader(stream, Encoding.UTF8);
-        var serialized = await reader.ReadToEndAsync().ConfigureAwait(false);
+        var serialized = await reader.ReadToEndAsync().ConfigureAwait(true);
 
         var configuration = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
@@ -98,7 +98,7 @@ public sealed class UserRightsManagerListTests : UserRightsManagerTestBase
             .OrderBy(p => p.Privilege, StringComparer.OrdinalIgnoreCase)
             .ThenBy(p => p.SecurityId, StringComparer.OrdinalIgnoreCase)
             .ToArrayAsync()
-            .ConfigureAwait(false);
+            .ConfigureAwait(true);
 
         Assert.Equal(expected, actual, new UserRightEntryEqualityComparer());
     }
@@ -147,10 +147,10 @@ public sealed class UserRightsManagerListTests : UserRightsManagerTestBase
         Assert.Equal(expected, userRights, new UserRightEntryEqualityComparer());
 
         using var stream = new MemoryStream();
-        await userRights.ToJson(stream).ConfigureAwait(false);
+        await userRights.ToJson(stream).ConfigureAwait(true);
         stream.Position = 0;
         using var reader = new StreamReader(stream, Encoding.UTF8);
-        var serialized = await reader.ReadToEndAsync().ConfigureAwait(false);
+        var serialized = await reader.ReadToEndAsync().ConfigureAwait(true);
 
         var actual = JsonSerializer.Deserialize<UserRightEntry[]>(serialized)
             ?.OrderBy(p => p.Privilege, StringComparer.OrdinalIgnoreCase)

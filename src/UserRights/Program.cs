@@ -79,7 +79,7 @@ internal static class Program
 
         foreach (var arg in args)
         {
-            stringBuilder.AppendFormat(CultureInfo.InvariantCulture, " \"{0}\"", arg);
+            stringBuilder.Append(CultureInfo.InvariantCulture, $" \"{arg}\"");
         }
 
         stringBuilder.Append(" ]");

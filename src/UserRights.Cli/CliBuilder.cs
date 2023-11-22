@@ -109,7 +109,7 @@ public class CliBuilder
                 for (var i = 0; i < examples.Length; i++)
                 {
                     var example = examples[i];
-                    stringBuilder.AppendFormat(CultureInfo.InvariantCulture, "  {0} ", this.program);
+                    stringBuilder.Append(CultureInfo.InvariantCulture, $"  {this.program} ");
                     stringBuilder.Append(example);
 
                     if (i < examples.Length - 1)

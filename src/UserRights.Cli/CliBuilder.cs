@@ -288,8 +288,8 @@ public class CliBuilder
         // Ensure the grants do not overlap with revocations or contain duplicates.
         grantsOption.AddValidator(result =>
         {
-            var grantsCollection = result.GetValueForOption(grantsOption) ?? Array.Empty<string>();
-            var revocationsCollection = result.GetValueForOption(revocationsOption) ?? Array.Empty<string>();
+            var grantsCollection = result.GetValueForOption(grantsOption) ?? [];
+            var revocationsCollection = result.GetValueForOption(revocationsOption) ?? [];
 
             var grantsSet = grantsCollection.ToHashSet(StringComparer.InvariantCultureIgnoreCase);
             var revocationsSet = revocationsCollection.ToHashSet(StringComparer.InvariantCultureIgnoreCase);
@@ -316,8 +316,8 @@ public class CliBuilder
         // Ensure the revocations do not overlap with revocations or contain duplicates.
         revocationsOption.AddValidator(result =>
         {
-            var grantsCollection = result.GetValueForOption(grantsOption) ?? Array.Empty<string>();
-            var revocationsCollection = result.GetValueForOption(revocationsOption) ?? Array.Empty<string>();
+            var grantsCollection = result.GetValueForOption(grantsOption) ?? [];
+            var revocationsCollection = result.GetValueForOption(revocationsOption) ?? [];
 
             var grantsSet = grantsCollection.ToHashSet(StringComparer.InvariantCultureIgnoreCase);
             var revocationsSet = revocationsCollection.ToHashSet(StringComparer.InvariantCultureIgnoreCase);
@@ -451,8 +451,8 @@ public class CliBuilder
         // Ensure the grants do not overlap with revocations or contain duplicates.
         grantsOption.AddValidator(result =>
         {
-            var grantsCollection = result.GetValueForOption(grantsOption) ?? Array.Empty<string>();
-            var revocationsCollection = result.GetValueForOption(revocationsOption) ?? Array.Empty<string>();
+            var grantsCollection = result.GetValueForOption(grantsOption) ?? [];
+            var revocationsCollection = result.GetValueForOption(revocationsOption) ?? [];
 
             var grantsSet = grantsCollection.ToHashSet(StringComparer.InvariantCultureIgnoreCase);
             var revocationsSet = revocationsCollection.ToHashSet(StringComparer.InvariantCultureIgnoreCase);
@@ -479,8 +479,8 @@ public class CliBuilder
         // Ensure the revocations do not overlap with revocations or contain duplicates.
         revocationsOption.AddValidator(result =>
         {
-            var grantsCollection = result.GetValueForOption(grantsOption) ?? Array.Empty<string>();
-            var revocationsCollection = result.GetValueForOption(revocationsOption) ?? Array.Empty<string>();
+            var grantsCollection = result.GetValueForOption(grantsOption) ?? [];
+            var revocationsCollection = result.GetValueForOption(revocationsOption) ?? [];
 
             var grantsSet = grantsCollection.ToHashSet(StringComparer.InvariantCultureIgnoreCase);
             var revocationsSet = revocationsCollection.ToHashSet(StringComparer.InvariantCultureIgnoreCase);

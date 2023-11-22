@@ -86,7 +86,7 @@ public sealed class ListCommandTests : CliTestBase
             actual = JsonSerializer.Deserialize<UserRightEntry[]>(json)
                 ?.OrderBy(p => p.Privilege, StringComparer.OrdinalIgnoreCase)
                 .ThenBy(p => p.SecurityId, StringComparer.OrdinalIgnoreCase)
-                .ToArray() ?? Array.Empty<UserRightEntry>();
+                .ToArray() ?? [];
         }
         finally
         {

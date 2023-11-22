@@ -109,7 +109,7 @@ public class MockLsaUserRights : ILsaUserRights
             return accountSids.ToArray();
         }
 
-        return Array.Empty<SecurityIdentifier>();
+        return [];
     }
 
     /// <inheritdoc />

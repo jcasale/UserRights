@@ -181,7 +181,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
 
             if (error == WIN32_ERROR.ERROR_NO_MORE_ITEMS)
             {
-                return Array.Empty<SecurityIdentifier>();
+                return [];
             }
 
             if (error != WIN32_ERROR.ERROR_SUCCESS)

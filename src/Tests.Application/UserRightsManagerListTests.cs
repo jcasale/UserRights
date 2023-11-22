@@ -155,7 +155,7 @@ public sealed class UserRightsManagerListTests : UserRightsManagerTestBase
         var actual = JsonSerializer.Deserialize<UserRightEntry[]>(serialized)
             ?.OrderBy(p => p.Privilege, StringComparer.OrdinalIgnoreCase)
             .ThenBy(p => p.SecurityId, StringComparer.OrdinalIgnoreCase)
-            .ToArray() ?? Array.Empty<UserRightEntry>();
+            .ToArray() ?? [];
 
         Assert.Equal(expected, actual, new UserRightEntryEqualityComparer());
     }

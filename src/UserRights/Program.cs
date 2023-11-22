@@ -125,11 +125,11 @@ internal static class Program
             .Enrich.WithProperty("CorrelationId", Guid.NewGuid())
             .Enrich.With<ConsoleExceptionEnricher>()
             .WriteTo.Console(
-                new ExpressionTemplate(consoleTemplate, theme: TemplateTheme.Literate),
+                new ExpressionTemplate(consoleTemplate, CultureInfo.InvariantCulture, theme: TemplateTheme.Literate),
                 levelSwitch: levelSwitch,
                 standardErrorFromLevel: LogEventLevel.Verbose)
             .WriteTo.EventLog(
-                new ExpressionTemplate(eventLogTemplate),
+                new ExpressionTemplate(eventLogTemplate, CultureInfo.InvariantCulture),
                 nameof(UserRights),
                 manageEventSource: true,
                 eventIdProvider: new EventIdProvider())

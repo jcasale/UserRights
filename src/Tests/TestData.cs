@@ -21,7 +21,7 @@ public static class TestData
     /// <summary>
     /// Represents the security identity for the currently logged on user.
     /// </summary>
-    public static readonly SecurityIdentifier PrincipalSidCurrent = WindowsIdentity.GetCurrent().User ?? throw new ArgumentNullException();
+    public static readonly SecurityIdentifier PrincipalSidCurrent = WindowsIdentity.GetCurrent().User ?? throw new InvalidOperationException();
 
     /// <summary>
     /// Represents the default local Administrator account.

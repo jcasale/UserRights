@@ -64,37 +64,37 @@ public class CliBuilder
                 {
                     case "list":
 
-                        examples = new[]
-                        {
+                        examples =
+                        [
                             "list",
                             "list --json",
                             "list --path x:\\path\\file.csv"
-                        };
+                        ];
 
                         break;
 
                     case "principal":
 
-                        examples = new[]
-                        {
+                        examples =
+                        [
                             "principal DOMAIN\\UserOrGroup --grant SeDenyServiceLogonRight",
                             "principal DOMAIN\\UserOrGroup --revoke SeDenyServiceLogonRight",
                             "principal DOMAIN\\UserOrGroup --grant SeServiceLogonRight --revoke SeDenyServiceLogonRight",
                             "principal DOMAIN\\UserOrGroup --grant SeServiceLogonRight --grant SeInteractiveLogonRight --revoke-others"
-                        };
+                        ];
 
                         break;
 
                     case "privilege":
 
-                        examples = new[]
-                        {
+                        examples =
+                        [
                             "privilege SeServiceLogonRight --grant DOMAIN\\UserOrGroup --revoke DOMAIN\\Group",
                             "privilege SeServiceLogonRight --revoke DOMAIN\\UserOrGroup",
                             "privilege SeServiceLogonRight --grant DOMAIN\\UserOrGroup --revoke-pattern \"^S-1-5-21-\"",
                             "privilege SeServiceLogonRight --revoke-pattern \"^S-1-5-21-\"",
                             "privilege SeServiceLogonRight --revoke-all"
-                        };
+                        ];
 
                         break;
 
@@ -157,9 +157,9 @@ public class CliBuilder
     /// <returns>The list command instance.</returns>
     private Command CreateListCommand()
     {
-        var jsonOption = new Option<bool>(new[] { "--json", "-j" }, "Formats output in JSON instead of CSV.");
-        var pathOption = new Option<string>(new[] { "--path", "-f" }, "Writes output to the specified path instead of STDOUT.");
-        var systemNameOption = new Option<string>(new[] { "--system-name", "-s" }, "The name of the remote system to execute on (default localhost).");
+        var jsonOption = new Option<bool>(["--json", "-j"], "Formats output in JSON instead of CSV.");
+        var pathOption = new Option<string>(["--path", "-f"], "Writes output to the specified path instead of STDOUT.");
+        var systemNameOption = new Option<string>(["--system-name", "-s"], "The name of the remote system to execute on (default localhost).");
 
         // Ensure the path is a valid string.
         pathOption.AddValidator(result =>
@@ -249,12 +249,12 @@ public class CliBuilder
     private Command CreatePrincipalCommand()
     {
         var principalArgument = new Argument<string>("principal", "The principal to modify.");
-        var grantsOption = new Option<string[]>(new[] { "--grant", "-g" }, "The privilege to grant to the principal.");
-        var revocationsOption = new Option<string[]>(new[] { "--revoke", "-r" }, "The privilege to revoke from the principal.");
-        var revokeAllOption = new Option<bool>(new[] { "--revoke-all", "-a" }, "Revokes all privileges from the principal.");
-        var revokeOthersOption = new Option<bool>(new[] { "--revoke-others", "-o" }, "Revokes all privileges from the principal excluding those being granted.");
-        var dryRunOption = new Option<bool>(new[] { "--dry-run", "-d" }, "Enables dry-run mode.");
-        var systemNameOption = new Option<string>(new[] { "--system-name", "-s" }, "The name of the remote system to execute on (default localhost).");
+        var grantsOption = new Option<string[]>(["--grant", "-g"], "The privilege to grant to the principal.");
+        var revocationsOption = new Option<string[]>(["--revoke", "-r"], "The privilege to revoke from the principal.");
+        var revokeAllOption = new Option<bool>(["--revoke-all", "-a"], "Revokes all privileges from the principal.");
+        var revokeOthersOption = new Option<bool>(["--revoke-others", "-o"], "Revokes all privileges from the principal excluding those being granted.");
+        var dryRunOption = new Option<bool>(["--dry-run", "-d"], "Enables dry-run mode.");
+        var systemNameOption = new Option<string>(["--system-name", "-s"], "The name of the remote system to execute on (default localhost).");
 
         // Ensure the principal is a valid string.
         principalArgument.AddValidator(result =>
@@ -410,13 +410,13 @@ public class CliBuilder
     private Command CreatePrivilegeCommand()
     {
         var privilegeArgument = new Argument<string>("privilege", "The privilege to modify.");
-        var grantsOption = new Option<string[]>(new[] { "--grant", "-g" }, "The principal to grant the privilege to.");
-        var revocationsOption = new Option<string[]>(new[] { "--revoke", "-r" }, "The principal to revoke the privilege from.");
-        var revokeAllOption = new Option<bool>(new[] { "--revoke-all", "-a" }, "Revokes all principals from the privilege.");
-        var revokeOthersOption = new Option<bool>(new[] { "--revoke-others", "-o" }, "Revokes all principals from the privilege excluding those being granted.");
-        var revokePatternOption = new Option<string>(new[] { "--revoke-pattern", "-t" }, description: "Revokes all principals whose SID matches the regular expression excluding those being granted.");
-        var dryRunOption = new Option<bool>(new[] { "--dry-run", "-d" }, "Enables dry-run mode.");
-        var systemNameOption = new Option<string>(new[] { "--system-name", "-s" }, "The name of the remote system to execute on (default localhost).");
+        var grantsOption = new Option<string[]>(["--grant", "-g"], "The principal to grant the privilege to.");
+        var revocationsOption = new Option<string[]>(["--revoke", "-r"], "The principal to revoke the privilege from.");
+        var revokeAllOption = new Option<bool>(["--revoke-all", "-a"], "Revokes all principals from the privilege.");
+        var revokeOthersOption = new Option<bool>(["--revoke-others", "-o"], "Revokes all principals from the privilege excluding those being granted.");
+        var revokePatternOption = new Option<string>(["--revoke-pattern", "-t"], description: "Revokes all principals whose SID matches the regular expression excluding those being granted.");
+        var dryRunOption = new Option<bool>(["--dry-run", "-d"], "Enables dry-run mode.");
+        var systemNameOption = new Option<string>(["--system-name", "-s"], "The name of the remote system to execute on (default localhost).");
 
         // Ensure the principal is a valid string.
         privilegeArgument.AddValidator(result =>

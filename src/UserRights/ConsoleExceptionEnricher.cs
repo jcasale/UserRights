@@ -3,6 +3,7 @@ namespace UserRights;
 using System;
 using System.Globalization;
 using System.Text;
+
 using Serilog.Core;
 using Serilog.Events;
 
@@ -27,7 +28,7 @@ public class ConsoleExceptionEnricher : ILogEventEnricher
         var innerException = logEvent.Exception.InnerException;
         while (innerException is not null)
         {
-            stringBuilder.AppendFormat(CultureInfo.InvariantCulture, " ({0})", innerException.Message);
+            stringBuilder.Append(CultureInfo.InvariantCulture, $" ({innerException.Message})");
             innerException = innerException.InnerException;
         }
 

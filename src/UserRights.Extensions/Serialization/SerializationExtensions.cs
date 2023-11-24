@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+
 using CsvHelper;
 using CsvHelper.Configuration;
 
@@ -16,6 +17,14 @@ using CsvHelper.Configuration;
 /// </summary>
 public static class SerializationExtensions
 {
+    /// <summary>
+    /// Configures the JSON serializer options to format output as indented.
+    /// </summary>
+    private static readonly JsonSerializerOptions Options = new()
+    {
+        WriteIndented = true
+    };
+
     /// <summary>
     /// Serializes data to a string in CSV format.
     /// </summary>
@@ -36,9 +45,15 @@ public static class SerializationExtensions
 
         try
         {
-            using var writer = new StreamWriter(stream, new UTF8Encoding(false), leaveOpen: true);
-            using var csv = new CsvWriter(writer, csvConfiguration, leaveOpen: true);
-            await csv.WriteRecordsAsync(data, cancellationToken).ConfigureAwait(false);
+            var writer = new StreamWriter(stream, new UTF8Encoding(false), leaveOpen: true);
+            await using (writer.ConfigureAwait(false))
+            {
+                var csv = new CsvWriter(writer, csvConfiguration, leaveOpen: true);
+                await using (csv.ConfigureAwait(false))
+                {
+                    await csv.WriteRecordsAsync(data, cancellationToken).ConfigureAwait(false);
+                }
+            }
         }
         catch (Exception e)
         {
@@ -59,14 +74,9 @@ public static class SerializationExtensions
         ArgumentNullException.ThrowIfNull(data);
         ArgumentNullException.ThrowIfNull(stream);
 
-        var options = new JsonSerializerOptions
-        {
-            WriteIndented = true
-        };
-
         try
         {
-            await JsonSerializer.SerializeAsync(stream, data, options, cancellationToken).ConfigureAwait(false);
+            await JsonSerializer.SerializeAsync(stream, data, Options, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception e)
         {

@@ -386,7 +386,7 @@ dotnet_style_namespace_match_folder = true:suggestion
 dotnet_style_allow_multiple_blank_lines_experimental = false:suggestion
 dotnet_style_allow_statement_immediately_after_block_experimental = false:suggestion
 
-[*.csproj]
+[*.{csproj,props}]
 indent_size = 2
 
 [**.json]

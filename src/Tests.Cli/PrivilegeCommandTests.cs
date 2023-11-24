@@ -5,10 +5,12 @@ using System.Collections.Generic;
 using System.CommandLine.Parsing;
 using System.Linq;
 using System.Security.Principal;
+
 using Microsoft.Extensions.DependencyInjection;
 using UserRights.Application;
 using UserRights.Cli;
 using Xunit;
+
 using static Tests.TestData;
 
 /// <summary>

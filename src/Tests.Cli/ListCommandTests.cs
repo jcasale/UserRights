@@ -9,6 +9,7 @@ using System.Linq;
 using System.Security.Principal;
 using System.Text;
 using System.Text.Json;
+
 using CsvHelper;
 using CsvHelper.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +17,7 @@ using UserRights.Application;
 using UserRights.Cli;
 using UserRights.Extensions.Security;
 using Xunit;
+
 using static Tests.TestData;
 
 /// <summary>
@@ -84,7 +86,7 @@ public sealed class ListCommandTests : CliTestBase
             actual = JsonSerializer.Deserialize<UserRightEntry[]>(json)
                 ?.OrderBy(p => p.Privilege, StringComparer.OrdinalIgnoreCase)
                 .ThenBy(p => p.SecurityId, StringComparer.OrdinalIgnoreCase)
-                .ToArray() ?? Array.Empty<UserRightEntry>();
+                .ToArray() ?? [];
         }
         finally
         {
@@ -157,10 +159,12 @@ public sealed class ListCommandTests : CliTestBase
             using var streamReader = new StreamReader(file);
             using var csvReader = new CsvReader(streamReader, configuration);
 
-            actual = csvReader.GetRecords<UserRightEntry>()
-                .OrderBy(p => p.Privilege, StringComparer.OrdinalIgnoreCase)
-                .ThenBy(p => p.SecurityId, StringComparer.OrdinalIgnoreCase)
-                .ToArray();
+            actual =
+            [
+                .. csvReader.GetRecords<UserRightEntry>()
+                    .OrderBy(p => p.Privilege, StringComparer.OrdinalIgnoreCase)
+                    .ThenBy(p => p.SecurityId, StringComparer.OrdinalIgnoreCase)
+            ];
         }
         finally
         {

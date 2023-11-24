@@ -1,6 +1,7 @@
 namespace Tests.Cli;
 
 using System.CommandLine.Parsing;
+
 using Microsoft.Extensions.DependencyInjection;
 using UserRights.Application;
 using UserRights.Cli;

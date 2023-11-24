@@ -1,19 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0-windows</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <AnalysisLevel>latest-All</AnalysisLevel>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Meziantou.Analyzer" Version="2.0.54">
+    <PackageReference Include="Meziantou.Analyzer" Version="2.0.110">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
-    <PackageReference Include="StyleCop.Analyzers.Unstable" Version="1.2.0.435">
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="StyleCop.Analyzers.Unstable" Version="1.2.0.507">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -24,10 +24,5 @@
     <ProjectReference Include="..\UserRights.Application\UserRights.Application.csproj" />
     <ProjectReference Include="..\UserRights.Extensions\UserRights.Extensions.csproj" />
   </ItemGroup>
-
-  <PropertyGroup>
-    <CodeAnalysisRuleSet>..\StyleCop.ruleset</CodeAnalysisRuleSet>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-  </PropertyGroup>
 
 </Project>

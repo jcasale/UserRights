@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Principal;
+
 using UserRights.Application;
 
 /// <summary>
@@ -105,10 +106,10 @@ public class MockLsaUserRights : ILsaUserRights
 
         if (this.database.TryGetValue(userRight, out var accountSids))
         {
-            return accountSids.ToArray();
+            return [.. accountSids];
         }
 
-        return Array.Empty<SecurityIdentifier>();
+        return [];
     }
 
     /// <inheritdoc />

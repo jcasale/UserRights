@@ -9,6 +9,7 @@ using System.Security.Principal;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+
 using CsvHelper;
 using CsvHelper.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +17,7 @@ using UserRights.Application;
 using UserRights.Extensions.Security;
 using UserRights.Extensions.Serialization;
 using Xunit;
+
 using static Tests.TestData;
 
 /// <summary>
@@ -78,10 +80,10 @@ public sealed class UserRightsManagerListTests : UserRightsManagerTestBase
         Assert.Equal(expected, userRights, new UserRightEntryEqualityComparer());
 
         using var stream = new MemoryStream();
-        await userRights.ToCsv(stream).ConfigureAwait(false);
+        await userRights.ToCsv(stream).ConfigureAwait(true);
         stream.Position = 0;
         using var reader = new StreamReader(stream, Encoding.UTF8);
-        var serialized = await reader.ReadToEndAsync().ConfigureAwait(false);
+        var serialized = await reader.ReadToEndAsync().ConfigureAwait(true);
 
         var configuration = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
@@ -91,10 +93,12 @@ public sealed class UserRightsManagerListTests : UserRightsManagerTestBase
         using var stringReader = new StringReader(serialized);
         using var csvReader = new CsvReader(stringReader, configuration);
 
-        var actual = csvReader.GetRecords<UserRightEntry>()
+        var records = csvReader.GetRecordsAsync<UserRightEntry>();
+        var actual = await records
             .OrderBy(p => p.Privilege, StringComparer.OrdinalIgnoreCase)
             .ThenBy(p => p.SecurityId, StringComparer.OrdinalIgnoreCase)
-            .ToArray();
+            .ToArrayAsync()
+            .ConfigureAwait(true);
 
         Assert.Equal(expected, actual, new UserRightEntryEqualityComparer());
     }
@@ -143,15 +147,15 @@ public sealed class UserRightsManagerListTests : UserRightsManagerTestBase
         Assert.Equal(expected, userRights, new UserRightEntryEqualityComparer());
 
         using var stream = new MemoryStream();
-        await userRights.ToJson(stream).ConfigureAwait(false);
+        await userRights.ToJson(stream).ConfigureAwait(true);
         stream.Position = 0;
         using var reader = new StreamReader(stream, Encoding.UTF8);
-        var serialized = await reader.ReadToEndAsync().ConfigureAwait(false);
+        var serialized = await reader.ReadToEndAsync().ConfigureAwait(true);
 
         var actual = JsonSerializer.Deserialize<UserRightEntry[]>(serialized)
             ?.OrderBy(p => p.Privilege, StringComparer.OrdinalIgnoreCase)
             .ThenBy(p => p.SecurityId, StringComparer.OrdinalIgnoreCase)
-            .ToArray() ?? Array.Empty<UserRightEntry>();
+            .ToArray() ?? [];
 
         Assert.Equal(expected, actual, new UserRightEntryEqualityComparer());
     }

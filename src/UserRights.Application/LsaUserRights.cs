@@ -4,6 +4,7 @@ using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
+
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.Security.Authentication.Identity;
@@ -180,7 +181,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
 
             if (error == WIN32_ERROR.ERROR_NO_MORE_ITEMS)
             {
-                return Array.Empty<SecurityIdentifier>();
+                return [];
             }
 
             if (error != WIN32_ERROR.ERROR_SUCCESS)

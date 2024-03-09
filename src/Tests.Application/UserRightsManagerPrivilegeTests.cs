@@ -21,48 +21,51 @@ public sealed class UserRightsManagerPrivilegeTests : UserRightsManagerTestBase
     /// Generates invalid method arguments for the <see cref="IUserRightsManager.ModifyPrivilege"/> method.
     /// </summary>
     /// <returns>A sequence of method arguments.</returns>
-    public static IEnumerable<object[]> InvalidArguments()
+    public static TheoryData<IUserRights, string, string[], string[], bool, bool, Regex, bool> InvalidArguments()
     {
         var policy = new MockLsaUserRights();
         var pattern = new Regex(".*", RegexOptions.None, TimeSpan.FromSeconds(1));
 
-        // Verify null policy instance.
-        yield return new object[] { null!, Privilege1, new[] { PrincipalName1 }, Array.Empty<string>(), false, false, null!, false };
+        return new TheoryData<IUserRights, string, string[], string[], bool, bool, Regex, bool>
+        {
+            // Verify null policy instance.
+            { null!, Privilege1, [PrincipalName1], [], false, false, null!, false },
 
-        // Verify null or empty privilege.
-        yield return new object[] { policy, null!, new[] { PrincipalName1 }, Array.Empty<string>(), false, false, null!, false };
-        yield return new object[] { policy, string.Empty, new[] { PrincipalName1 }, Array.Empty<string>(), false, false, null!, false };
+            // Verify null or empty privilege.
+            { policy, null!, [PrincipalName1], [], false, false, null!, false },
+            { policy, string.Empty, [PrincipalName1], [], false, false, null!, false },
 
-        // Verify null grant collection.
-        yield return new object[] { policy, Privilege1, null!, new[] { PrincipalName1 }, false, false, null!, false };
+            // Verify null grant collection.
+            { policy, Privilege1, null!, [PrincipalName1], false, false, null!, false },
 
-        // Verify null revocation collection.
-        yield return new object[] { policy, Privilege1, new[] { PrincipalName1 }, null!, false, false, null!, false };
+            // Verify null revocation collection.
+            { policy, Privilege1, [PrincipalName1], null!, false, false, null!, false },
 
-        // Verify RevokeAll requirements.
-        yield return new object[] { policy, Privilege1, new[] { PrincipalName1 }, Array.Empty<string>(), true, false, null!, false };
-        yield return new object[] { policy, Privilege1, Array.Empty<string>(), new[] { PrincipalName1 }, true, false, null!, false };
-        yield return new object[] { policy, Privilege1, Array.Empty<string>(), Array.Empty<string>(), true, true, null!, false };
-        yield return new object[] { policy, Privilege1, Array.Empty<string>(), Array.Empty<string>(), true, false, pattern, false };
+            // Verify RevokeAll requirements.
+            { policy, Privilege1, [PrincipalName1], [], true, false, null!, false },
+            { policy, Privilege1, [], [PrincipalName1], true, false, null!, false },
+            { policy, Privilege1, [], [], true, true, null!, false },
+            { policy, Privilege1, [], [], true, false, pattern, false },
 
-        // Verify RevokeOthers requirements.
-        yield return new object[] { policy, Privilege1, Array.Empty<string>(), Array.Empty<string>(), false, true, null!, false };
-        yield return new object[] { policy, Privilege1, new[] { PrincipalName1 }, new[] { PrincipalName2 }, false, true, null!, false };
-        yield return new object[] { policy, Privilege1, Array.Empty<string>(), Array.Empty<string>(), true, true, null!, false };
-        yield return new object[] { policy, Privilege1, Array.Empty<string>(), Array.Empty<string>(), false, true, pattern, false };
+            // Verify RevokeOthers requirements.
+            { policy, Privilege1, [], [], false, true, null!, false },
+            { policy, Privilege1, [PrincipalName1], [PrincipalName2], false, true, null!, false },
+            { policy, Privilege1, [], [], true, true, null!, false },
+            { policy, Privilege1, [], [], false, true, pattern, false },
 
-        // Verify RevokePattern requirements.
-        yield return new object[] { policy, Privilege1, Array.Empty<string>(), new[] { PrincipalName1 }, false, false, pattern, false };
-        yield return new object[] { policy, Privilege1, Array.Empty<string>(), Array.Empty<string>(), true, false, pattern, false };
-        yield return new object[] { policy, Privilege1, Array.Empty<string>(), Array.Empty<string>(), false, true, pattern, false };
+            // Verify RevokePattern requirements.
+            { policy, Privilege1, [], [PrincipalName1], false, false, pattern, false },
+            { policy, Privilege1, [], [], true, false, pattern, false },
+            { policy, Privilege1, [], [], false, true, pattern, false },
 
-        // Verify remaining requirements.
-        yield return new object[] { policy, Privilege1, Array.Empty<string>(), Array.Empty<string>(), false, false, null!, false };
+            // Verify remaining requirements.
+            { policy, Privilege1, [], [], false, false, null!, false },
 
-        // Verify grant and revocation set restrictions.
-        yield return new object[] { policy, Privilege1, new[] { PrincipalName1 }, new[] { PrincipalName1 }, false, false, null!, false };
-        yield return new object[] { policy, Privilege1, new[] { PrincipalName1, PrincipalName1 }, Array.Empty<string>(), false, false, null!, false };
-        yield return new object[] { policy, Privilege1, Array.Empty<string>(), new[] { PrincipalName1, PrincipalName1 }, false, false, null!, false };
+            // Verify grant and revocation set restrictions.
+            { policy, Privilege1, [PrincipalName1], [PrincipalName1], false, false, null!, false },
+            { policy, Privilege1, [PrincipalName1, PrincipalName1], [], false, false, null!, false },
+            { policy, Privilege1, [], [PrincipalName1, PrincipalName1], false, false, null!, false }
+        };
     }
 
     /// <summary>

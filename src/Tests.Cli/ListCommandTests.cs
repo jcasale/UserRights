@@ -31,13 +31,13 @@ public sealed class ListCommandTests : CliTestBase
     [Fact]
     public void PathAndJsonShouldWork()
     {
-        var principals1 = new HashSet<SecurityIdentifier>
+        var principals1 = new List<SecurityIdentifier>
         {
             PrincipalSid1,
             PrincipalSid2
         };
 
-        var principals2 = new HashSet<SecurityIdentifier>
+        var principals2 = new List<SecurityIdentifier>
         {
             PrincipalSid1,
             PrincipalSid2
@@ -103,12 +103,12 @@ public sealed class ListCommandTests : CliTestBase
     [Fact]
     public void PathShouldWork()
     {
-        var principals1 = new HashSet<SecurityIdentifier>
+        var principals1 = new List<SecurityIdentifier>
         {
             PrincipalSid1,
             PrincipalSid2
         };
-        var principals2 = new HashSet<SecurityIdentifier>
+        var principals2 = new List<SecurityIdentifier>
         {
             PrincipalSid1,
             PrincipalSid2

@@ -43,13 +43,13 @@ public sealed class UserRightsManagerListTests : UserRightsManagerTestBase
     [Fact]
     public async Task SerializingToCsvShouldWork()
     {
-        var principals1 = new HashSet<SecurityIdentifier>
+        var principals1 = new List<SecurityIdentifier>
         {
             PrincipalSid1,
             PrincipalSid2
         };
 
-        var principals2 = new HashSet<SecurityIdentifier>
+        var principals2 = new List<SecurityIdentifier>
         {
             PrincipalSid1,
             PrincipalSid2
@@ -110,13 +110,13 @@ public sealed class UserRightsManagerListTests : UserRightsManagerTestBase
     [Fact]
     public async Task SerializingToJsonShouldWork()
     {
-        var principals1 = new HashSet<SecurityIdentifier>
+        var principals1 = new List<SecurityIdentifier>
         {
             PrincipalSid1,
             PrincipalSid2
         };
 
-        var principals2 = new HashSet<SecurityIdentifier>
+        var principals2 = new List<SecurityIdentifier>
         {
             PrincipalSid1,
             PrincipalSid2

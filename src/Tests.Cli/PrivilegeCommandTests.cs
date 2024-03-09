@@ -24,13 +24,13 @@ public sealed class PrivilegeCommandTests : CliTestBase
     [Fact]
     public void GrantAndRevokeOthersShouldWork()
     {
-        var principals1 = new HashSet<SecurityIdentifier>
+        var principals1 = new List<SecurityIdentifier>
         {
             PrincipalSid1,
             PrincipalSid2
         };
 
-        var principals2 = new HashSet<SecurityIdentifier>
+        var principals2 = new List<SecurityIdentifier>
         {
             PrincipalSid2
         };
@@ -86,12 +86,12 @@ public sealed class PrivilegeCommandTests : CliTestBase
     [Fact]
     public void GrantAndRevokePasses()
     {
-        var principals1 = new HashSet<SecurityIdentifier>
+        var principals1 = new List<SecurityIdentifier>
         {
             PrincipalSid1
         };
 
-        var principals2 = new HashSet<SecurityIdentifier>
+        var principals2 = new List<SecurityIdentifier>
         {
             PrincipalSid1,
             PrincipalSid2
@@ -145,14 +145,14 @@ public sealed class PrivilegeCommandTests : CliTestBase
     [Fact]
     public void GrantAndRevokePatternPasses()
     {
-        var principals1 = new HashSet<SecurityIdentifier>
+        var principals1 = new List<SecurityIdentifier>
         {
             PrincipalSidCurrent,
             PrincipalSid2,
             PrincipalSid3
         };
 
-        var principals2 = new HashSet<SecurityIdentifier>
+        var principals2 = new List<SecurityIdentifier>
         {
             PrincipalSid1,
             PrincipalSid2,
@@ -210,12 +210,12 @@ public sealed class PrivilegeCommandTests : CliTestBase
     [Fact]
     public void GrantPasses()
     {
-        var principals1 = new HashSet<SecurityIdentifier>
+        var principals1 = new List<SecurityIdentifier>
         {
             PrincipalSid1
         };
 
-        var principals2 = new HashSet<SecurityIdentifier>
+        var principals2 = new List<SecurityIdentifier>
         {
             PrincipalSid2
         };
@@ -266,13 +266,13 @@ public sealed class PrivilegeCommandTests : CliTestBase
     [Fact]
     public void RevokeAllPasses()
     {
-        var principals1 = new HashSet<SecurityIdentifier>
+        var principals1 = new List<SecurityIdentifier>
         {
             PrincipalSid1,
             PrincipalSid2
         };
 
-        var principals2 = new HashSet<SecurityIdentifier>
+        var principals2 = new List<SecurityIdentifier>
         {
             PrincipalSid1,
             PrincipalSid2
@@ -327,13 +327,13 @@ public sealed class PrivilegeCommandTests : CliTestBase
     [Fact]
     public void RevokePasses()
     {
-        var principals1 = new HashSet<SecurityIdentifier>
+        var principals1 = new List<SecurityIdentifier>
         {
             PrincipalSid1,
             PrincipalSid2
         };
 
-        var principals2 = new HashSet<SecurityIdentifier>
+        var principals2 = new List<SecurityIdentifier>
         {
             PrincipalSid2
         };
@@ -384,14 +384,14 @@ public sealed class PrivilegeCommandTests : CliTestBase
     [Fact]
     public void RevokePatternForAllButBuiltinAndVirtualPasses()
     {
-        var principals1 = new HashSet<SecurityIdentifier>
+        var principals1 = new List<SecurityIdentifier>
         {
             PrincipalSidCurrent,
             PrincipalSid2,
             PrincipalSid3
         };
 
-        var principals2 = new HashSet<SecurityIdentifier>
+        var principals2 = new List<SecurityIdentifier>
         {
             PrincipalSid1,
             PrincipalSid2,

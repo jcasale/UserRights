@@ -65,10 +65,7 @@ public class MockLsaUserRights : ILsaUserRights
             }
             else
             {
-                accountSids = new HashSet<SecurityIdentifier>
-                {
-                    accountSid
-                };
+                accountSids = [accountSid];
 
                 this.database.Add(userRight, accountSids);
             }

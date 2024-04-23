@@ -21,6 +21,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup dotnet
+        id: setup-dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.204
+
+      - run: echo '${{ steps.setup-dotnet.outputs.dotnet-version }}'
+
       - name: Restore packages
         run: dotnet.exe restore .\src\UserRights.sln
 

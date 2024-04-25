@@ -70,6 +70,20 @@ jobs:
 
       - name: Publish release
         if: github.ref_type == 'tag'
-        uses: ncipollo/release-action@v1
-        with:
-          artifacts: UserRights-net80-x64.zip,UserRights-net80-x64-self-contained.zip
+        run: |
+          @'
+          # Windows User Rights Assignment Utility
+
+          Compiled with .NET SDK ${{ steps.setup-dotnet.outputs.dotnet-version }}
+
+          ## UserRights-net80-x64-self-contained.zip
+
+          Self-contained release for Windows x64
+
+          ## UserRights-net80-x64.zip
+
+          Framework-dependent release for Windows x64
+          '@ |gh.exe release create ${{ github.ref }} --title ${{ github.ref_name }} --notes-file - UserRights-net80-x64.zip UserRights-net80-x64-self-contained.zip
+        env:
+          # Requires a personal access token with a fine-grained permission of contents:read/write.
+          GH_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}

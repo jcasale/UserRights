@@ -20,40 +20,43 @@ public sealed class UserRightsManagerPrincipalTests : UserRightsManagerTestBase
     /// Generates invalid method arguments for the <see cref="IUserRightsManager.ModifyPrincipal"/> method.
     /// </summary>
     /// <returns>A sequence of method arguments.</returns>
-    public static IEnumerable<object[]> InvalidArguments()
+    public static TheoryData<IUserRights, string, string[], string[], bool, bool, bool> InvalidArguments()
     {
         var policy = new MockLsaUserRights();
 
-        // Verify null policy instance.
-        yield return new object[] { null!, PrincipalName1, new[] { Privilege1 }, Array.Empty<string>(), false, false, false };
+        return new TheoryData<IUserRights, string, string[], string[], bool, bool, bool>
+        {
+            // Verify null policy instance.
+            { null!, PrincipalName1, [Privilege1], [], false, false, false },
 
-        // Verify null or empty principal.
-        yield return new object[] { policy, null!, new[] { Privilege1 }, Array.Empty<string>(), false, false, false };
-        yield return new object[] { policy, string.Empty, new[] { Privilege1 }, Array.Empty<string>(), false, false, false };
+            // Verify null or empty principal.
+            { policy, null!, [Privilege1], [], false, false, false },
+            { policy, string.Empty, [Privilege1], [], false, false, false },
 
-        // Verify null grant collection.
-        yield return new object[] { policy, PrincipalName1, null!, new[] { Privilege1 }, false, false, false };
+            // Verify null grant collection.
+            { policy, PrincipalName1, null!, [Privilege1], false, false, false },
 
-        // Verify null revocation collection.
-        yield return new object[] { policy, PrincipalName1, new[] { Privilege1 }, null!, false, false, false };
+            // Verify null revocation collection.
+            { policy, PrincipalName1, [Privilege1], null!, false, false, false },
 
-        // Verify RevokeAll requirements.
-        yield return new object[] { policy, PrincipalName1, new[] { Privilege1 }, Array.Empty<string>(), true, false, false };
-        yield return new object[] { policy, PrincipalName1, Array.Empty<string>(), new[] { Privilege1 }, true, false, false };
-        yield return new object[] { policy, PrincipalName1, Array.Empty<string>(), Array.Empty<string>(), true, true, false };
+            // Verify RevokeAll requirements.
+            { policy, PrincipalName1, [Privilege1], [], true, false, false },
+            { policy, PrincipalName1, [], [Privilege1], true, false, false },
+            { policy, PrincipalName1, [], [], true, true, false },
 
-        // Verify RevokeOthers requirements.
-        yield return new object[] { policy, PrincipalName1, new[] { Privilege1 }, Array.Empty<string>(), true, true, false };
-        yield return new object[] { policy, PrincipalName1, Array.Empty<string>(), Array.Empty<string>(), false, true, false };
-        yield return new object[] { policy, PrincipalName1, new[] { Privilege1 }, new[] { Privilege2 }, false, true, false };
+            // Verify RevokeOthers requirements.
+            { policy, PrincipalName1, [Privilege1], [], true, true, false },
+            { policy, PrincipalName1, [], [], false, true, false },
+            { policy, PrincipalName1, [Privilege1], [Privilege2], false, true, false },
 
-        // Verify remaining requirements.
-        yield return new object[] { policy, PrincipalName1, Array.Empty<string>(), Array.Empty<string>(), false, false, false };
+            // Verify remaining requirements.
+            { policy, PrincipalName1, [], [], false, false, false },
 
-        // Verify grant and revocation set restrictions.
-        yield return new object[] { policy, PrincipalName1, new[] { Privilege1 }, new[] { Privilege1 }, false, false, false };
-        yield return new object[] { policy, PrincipalName1, new[] { Privilege1, Privilege1 }, Array.Empty<string>(), false, false, false };
-        yield return new object[] { policy, PrincipalName1, Array.Empty<string>(), new[] { Privilege1, Privilege1 }, false, false, false };
+            // Verify grant and revocation set restrictions.
+            { policy, PrincipalName1, [Privilege1], [Privilege1], false, false, false },
+            { policy, PrincipalName1, [Privilege1, Privilege1], [], false, false, false },
+            { policy, PrincipalName1, [], [Privilege1, Privilege1], false, false, false }
+        };
     }
 
     /// <summary>
@@ -62,12 +65,12 @@ public sealed class UserRightsManagerPrincipalTests : UserRightsManagerTestBase
     [Fact]
     public void GrantAndRevokeOthersShouldWork()
     {
-        var principals1 = new HashSet<SecurityIdentifier>
+        var principals1 = new List<SecurityIdentifier>
         {
             PrincipalSid1
         };
 
-        var principals2 = new HashSet<SecurityIdentifier>
+        var principals2 = new List<SecurityIdentifier>
         {
             PrincipalSid2
         };
@@ -99,13 +102,13 @@ public sealed class UserRightsManagerPrincipalTests : UserRightsManagerTestBase
     [Fact]
     public void GrantAndRevokeShouldWork()
     {
-        var principals1 = new HashSet<SecurityIdentifier>
+        var principals1 = new List<SecurityIdentifier>
         {
             PrincipalSid1,
             PrincipalSid2
         };
 
-        var principals2 = new HashSet<SecurityIdentifier>
+        var principals2 = new List<SecurityIdentifier>
         {
             PrincipalSid2
         };
@@ -137,13 +140,13 @@ public sealed class UserRightsManagerPrincipalTests : UserRightsManagerTestBase
     [Fact]
     public void GrantShouldWork()
     {
-        var principals1 = new HashSet<SecurityIdentifier>
+        var principals1 = new List<SecurityIdentifier>
         {
             PrincipalSid1,
             PrincipalSid2
         };
 
-        var principals2 = new HashSet<SecurityIdentifier>
+        var principals2 = new List<SecurityIdentifier>
         {
             PrincipalSid2
         };
@@ -194,13 +197,13 @@ public sealed class UserRightsManagerPrincipalTests : UserRightsManagerTestBase
     [Fact]
     public void RevokeAllShouldWork()
     {
-        var principals1 = new HashSet<SecurityIdentifier>
+        var principals1 = new List<SecurityIdentifier>
         {
             PrincipalSid1,
             PrincipalSid2
         };
 
-        var principals2 = new HashSet<SecurityIdentifier>
+        var principals2 = new List<SecurityIdentifier>
         {
             PrincipalSid1,
             PrincipalSid2
@@ -233,13 +236,13 @@ public sealed class UserRightsManagerPrincipalTests : UserRightsManagerTestBase
     [Fact]
     public void RevokeShouldWork()
     {
-        var principals1 = new HashSet<SecurityIdentifier>
+        var principals1 = new List<SecurityIdentifier>
         {
             PrincipalSid1,
             PrincipalSid2
         };
 
-        var principals2 = new HashSet<SecurityIdentifier>
+        var principals2 = new List<SecurityIdentifier>
         {
             PrincipalSid2
         };

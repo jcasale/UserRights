@@ -21,11 +21,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Restore packages
-        run: dotnet.exe restore .\src\UserRights.sln
+      - name: Setup dotnet
+        id: setup-dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.204
+
+      - run: echo '${{ steps.setup-dotnet.outputs.dotnet-version }}'
 
       - name: Run tests
-        run: dotnet.exe test .\src\UserRights.sln
+        run: dotnet.exe test .\src\UserRights.sln --configuration Release --runtime win-x64
 
       - name: Clean solution
         run: dotnet.exe clean .\src\UserRights.sln --configuration Release
@@ -39,7 +44,7 @@ jobs:
           Get-ChildItem . -Exclude *.pdb,*.xml -Recurse |Compress-Archive -DestinationPath ../UserRights-net80-x64.zip
 
       - name: Upload runtime-dependent release
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
             name: UserRights-net80-x64
             path: publish
@@ -57,7 +62,7 @@ jobs:
           Compress-Archive -Path ./UserRights.exe -DestinationPath ../UserRights-net80-x64-self-contained.zip
 
       - name: Upload self-contained release
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
             name: UserRights-net80-x64-self-contained
             path: publish-packed
@@ -65,6 +70,20 @@ jobs:
 
       - name: Publish release
         if: github.ref_type == 'tag'
-        uses: ncipollo/release-action@v1
-        with:
-          artifacts: UserRights-net80-x64.zip,UserRights-net80-x64-self-contained.zip
+        run: |
+          @'
+          # Windows User Rights Assignment Utility
+
+          Compiled with .NET SDK ${{ steps.setup-dotnet.outputs.dotnet-version }}
+
+          ## UserRights-net80-x64-self-contained.zip
+
+          Self-contained release for Windows x64
+
+          ## UserRights-net80-x64.zip
+
+          Framework-dependent release for Windows x64
+          '@ |gh.exe release create ${{ github.ref }} --title ${{ github.ref_name }} --notes-file - UserRights-net80-x64.zip UserRights-net80-x64-self-contained.zip
+        env:
+          # Requires a personal access token with a fine-grained permission of contents:read/write.
+          GH_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}

@@ -78,7 +78,7 @@ public abstract class LsaUserRightsTestBase : IDisposable
     /// <summary>
     /// Releases resources when they are no longer required.
     /// </summary>
-    /// <param name="disposing">A value indicating whether the method call comes from a dispose method (its value is <c>true</c>) or from a finalizer (its value is <c>false</c>).</param>
+    /// <param name="disposing">A value indicating whether the method call comes from a dispose method (its value is <see langword="true"/>) or from a finalizer (its value is <see langword="false"/>).</param>
     protected virtual void Dispose(bool disposing)
     {
         if (this.disposed)

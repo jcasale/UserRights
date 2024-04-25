@@ -24,12 +24,12 @@ public sealed class PrincipalCommandTests : CliTestBase
     [Fact]
     public void GrantAndRevokeOthersShouldWork()
     {
-        var principals1 = new HashSet<SecurityIdentifier>
+        var principals1 = new List<SecurityIdentifier>
         {
             PrincipalSid1
         };
 
-        var principals2 = new HashSet<SecurityIdentifier>
+        var principals2 = new List<SecurityIdentifier>
         {
             PrincipalSid2
         };
@@ -81,13 +81,13 @@ public sealed class PrincipalCommandTests : CliTestBase
     [Fact]
     public void GrantAndRevokeShouldWork()
     {
-        var principals1 = new HashSet<SecurityIdentifier>
+        var principals1 = new List<SecurityIdentifier>
         {
             PrincipalSid1,
             PrincipalSid2
         };
 
-        var principals2 = new HashSet<SecurityIdentifier>
+        var principals2 = new List<SecurityIdentifier>
         {
             PrincipalSid2
         };
@@ -140,13 +140,13 @@ public sealed class PrincipalCommandTests : CliTestBase
     [Fact]
     public void GrantShouldWork()
     {
-        var principals1 = new HashSet<SecurityIdentifier>
+        var principals1 = new List<SecurityIdentifier>
         {
             PrincipalSid1,
             PrincipalSid2
         };
 
-        var principals2 = new HashSet<SecurityIdentifier>
+        var principals2 = new List<SecurityIdentifier>
         {
             PrincipalSid2
         };
@@ -197,13 +197,13 @@ public sealed class PrincipalCommandTests : CliTestBase
     [Fact]
     public void RevokeAllShouldWork()
     {
-        var principals1 = new HashSet<SecurityIdentifier>
+        var principals1 = new List<SecurityIdentifier>
         {
             PrincipalSid1,
             PrincipalSid2
         };
 
-        var principals2 = new HashSet<SecurityIdentifier>
+        var principals2 = new List<SecurityIdentifier>
         {
             PrincipalSid1,
             PrincipalSid2
@@ -254,13 +254,13 @@ public sealed class PrincipalCommandTests : CliTestBase
     [Fact]
     public void RevokeShouldWork()
     {
-        var principals1 = new HashSet<SecurityIdentifier>
+        var principals1 = new List<SecurityIdentifier>
         {
             PrincipalSid1,
             PrincipalSid2
         };
 
-        var principals2 = new HashSet<SecurityIdentifier>
+        var principals2 = new List<SecurityIdentifier>
         {
             PrincipalSid2
         };

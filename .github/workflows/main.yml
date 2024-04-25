@@ -29,11 +29,8 @@ jobs:
 
       - run: echo '${{ steps.setup-dotnet.outputs.dotnet-version }}'
 
-      - name: Restore packages
-        run: dotnet.exe restore .\src\UserRights.sln
-
       - name: Run tests
-        run: dotnet.exe test .\src\UserRights.sln
+        run: dotnet.exe test .\src\UserRights.sln --configuration Release --runtime win-x64
 
       - name: Clean solution
         run: dotnet.exe clean .\src\UserRights.sln --configuration Release

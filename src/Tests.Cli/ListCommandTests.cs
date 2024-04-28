@@ -7,8 +7,8 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security.Principal;
-using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 using CsvHelper;
 using CsvHelper.Configuration;
@@ -28,8 +28,9 @@ public sealed class ListCommandTests : CliTestBase
     /// <summary>
     /// Verifies listing user rights to a JSON file.
     /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     [Fact]
-    public void PathAndJsonShouldWork()
+    public async Task PathAndJsonShouldWork()
     {
         var principals1 = new List<SecurityIdentifier>
         {
@@ -79,11 +80,12 @@ public sealed class ListCommandTests : CliTestBase
         UserRightEntry[] actual;
         try
         {
-            rc = parser.Invoke(args);
+            rc = await parser.InvokeAsync(args);
 
-            var json = File.ReadAllText(file, Encoding.UTF8);
+            await using var stream = File.OpenRead(file);
 
-            actual = JsonSerializer.Deserialize<UserRightEntry[]>(json)
+            var results = await JsonSerializer.DeserializeAsync<UserRightEntry[]>(stream);
+            actual = results
                 ?.OrderBy(p => p.Privilege, StringComparer.OrdinalIgnoreCase)
                 .ThenBy(p => p.SecurityId, StringComparer.OrdinalIgnoreCase)
                 .ToArray() ?? [];
@@ -100,8 +102,9 @@ public sealed class ListCommandTests : CliTestBase
     /// <summary>
     /// Verifies listing user rights to a CSV file.
     /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     [Fact]
-    public void PathShouldWork()
+    public async Task PathShouldWork()
     {
         var principals1 = new List<SecurityIdentifier>
         {
@@ -149,7 +152,7 @@ public sealed class ListCommandTests : CliTestBase
         UserRightEntry[] actual;
         try
         {
-            rc = parser.Invoke(args);
+            rc = await parser.InvokeAsync(args);
 
             var configuration = new CsvConfiguration(CultureInfo.InvariantCulture)
             {
@@ -159,12 +162,10 @@ public sealed class ListCommandTests : CliTestBase
             using var streamReader = new StreamReader(file);
             using var csvReader = new CsvReader(streamReader, configuration);
 
-            actual =
-            [
-                .. csvReader.GetRecords<UserRightEntry>()
-                    .OrderBy(p => p.Privilege, StringComparer.OrdinalIgnoreCase)
-                    .ThenBy(p => p.SecurityId, StringComparer.OrdinalIgnoreCase)
-            ];
+            actual = await csvReader.GetRecordsAsync<UserRightEntry>()
+                .OrderBy(p => p.Privilege, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(p => p.SecurityId, StringComparer.OrdinalIgnoreCase)
+                .ToArrayAsync();
         }
         finally
         {

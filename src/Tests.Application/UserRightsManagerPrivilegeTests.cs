@@ -52,13 +52,13 @@ public sealed class UserRightsManagerPrivilegeTests : UserRightsManagerTestBase
             // Verify RevokeOthers requirements.
             { policy, Privilege1, [], [], false, true, null!, false },
             { policy, Privilege1, [PrincipalName1], [PrincipalName2], false, true, null!, false },
-            { policy, Privilege1, [], [], true, true, null!, false },
+            { policy, Privilege2, [], [], true, true, null!, false },
             { policy, Privilege1, [], [], false, true, pattern, false },
 
             // Verify RevokePattern requirements.
             { policy, Privilege1, [], [PrincipalName1], false, false, pattern, false },
-            { policy, Privilege1, [], [], true, false, pattern, false },
-            { policy, Privilege1, [], [], false, true, pattern, false },
+            { policy, Privilege2, [], [], true, false, pattern, false },
+            { policy, Privilege2, [], [], false, true, pattern, false },
 
             // Verify remaining requirements.
             { policy, Privilege1, [], [], false, false, null!, false },

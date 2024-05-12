@@ -7,6 +7,7 @@ using System.Security.Principal;
 
 using Windows.Win32;
 using Windows.Win32.Foundation;
+using Windows.Win32.Security;
 using Windows.Win32.Security.Authentication.Identity;
 
 /// <summary>
@@ -69,6 +70,8 @@ public class LsaUserRights : ILsaUserRights, IDisposable
             psid = new PSID(b);
         }
 
+        using var ssid = new LsaCloseSafeHandle(psid);
+
         Span<LSA_UNICODE_STRING> rights = stackalloc LSA_UNICODE_STRING[userRights.Length];
         for (var i = 0; i < userRights.Length; i++)
         {
@@ -87,7 +90,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
             }
         }
 
-        var status = PInvoke.LsaAddAccountRights(this.handle, psid, rights);
+        var status = PInvoke.LsaAddAccountRights(this.handle, ssid, rights);
         var error = PInvoke.LsaNtStatusToWinError(status);
 
         if ((WIN32_ERROR)error != WIN32_ERROR.ERROR_SUCCESS)
@@ -116,10 +119,12 @@ public class LsaUserRights : ILsaUserRights, IDisposable
             psid = new PSID(b);
         }
 
+        using var ssid = new LsaCloseSafeHandle(psid);
+
         LSA_UNICODE_STRING* userRights = default;
         try
         {
-            var status = PInvoke.LsaEnumerateAccountRights(this.handle, psid, out userRights, out var count);
+            var status = PInvoke.LsaEnumerateAccountRights(this.handle, ssid, out userRights, out var count);
             var error = (WIN32_ERROR)PInvoke.LsaNtStatusToWinError(status);
 
             if (error != WIN32_ERROR.ERROR_SUCCESS)
@@ -237,6 +242,8 @@ public class LsaUserRights : ILsaUserRights, IDisposable
             psid = new PSID(b);
         }
 
+        using var ssid = new LsaCloseSafeHandle(psid);
+
         Span<LSA_UNICODE_STRING> rights = stackalloc LSA_UNICODE_STRING[userRights.Length];
         for (var i = 0; i < userRights.Length; i++)
         {
@@ -255,7 +262,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
             }
         }
 
-        var status = PInvoke.LsaRemoveAccountRights(this.handle, psid, false, rights);
+        var status = PInvoke.LsaRemoveAccountRights(this.handle, ssid, false, rights);
         var error = PInvoke.LsaNtStatusToWinError(status);
 
         if ((WIN32_ERROR)error != WIN32_ERROR.ERROR_SUCCESS)

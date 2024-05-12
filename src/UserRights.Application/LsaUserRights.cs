@@ -64,38 +64,36 @@ public class LsaUserRights : ILsaUserRights, IDisposable
 
         var bytes = new byte[accountSid.BinaryLength];
         accountSid.GetBinaryForm(bytes, 0);
-        PSID psid;
         fixed (byte* b = bytes)
         {
-            psid = new PSID(b);
-        }
+            var psid = new PSID(b);
+            using var ssid = new LsaCloseSafeHandle(psid);
 
-        using var ssid = new LsaCloseSafeHandle(psid);
-
-        Span<LSA_UNICODE_STRING> rights = stackalloc LSA_UNICODE_STRING[userRights.Length];
-        for (var i = 0; i < userRights.Length; i++)
-        {
-            var privilege = userRights[i];
-
-            fixed (char* p = privilege)
+            Span<LSA_UNICODE_STRING> rights = stackalloc LSA_UNICODE_STRING[userRights.Length];
+            for (var i = 0; i < userRights.Length; i++)
             {
-                var length = checked((ushort)(privilege.Length * sizeof(char)));
+                var privilege = userRights[i];
 
-                rights[i] = new LSA_UNICODE_STRING
+                fixed (char* p = privilege)
                 {
-                    Length = length,
-                    MaximumLength = length,
-                    Buffer = p
-                };
+                    var length = checked((ushort)(privilege.Length * sizeof(char)));
+
+                    rights[i] = new LSA_UNICODE_STRING
+                    {
+                        Length = length,
+                        MaximumLength = length,
+                        Buffer = p
+                    };
+                }
             }
-        }
 
-        var status = PInvoke.LsaAddAccountRights(this.handle, ssid, rights);
-        var error = PInvoke.LsaNtStatusToWinError(status);
+            var status = PInvoke.LsaAddAccountRights(this.handle, ssid, rights);
+            var error = PInvoke.LsaNtStatusToWinError(status);
 
-        if ((WIN32_ERROR)error != WIN32_ERROR.ERROR_SUCCESS)
-        {
-            throw new Win32Exception((int)error);
+            if ((WIN32_ERROR)error != WIN32_ERROR.ERROR_SUCCESS)
+            {
+                throw new Win32Exception((int)error);
+            }
         }
     }
 
@@ -113,44 +111,42 @@ public class LsaUserRights : ILsaUserRights, IDisposable
 
         var bytes = new byte[accountSid.BinaryLength];
         accountSid.GetBinaryForm(bytes, 0);
-        PSID psid;
         fixed (byte* b = bytes)
         {
-            psid = new PSID(b);
-        }
+            var psid = new PSID(b);
+            using var ssid = new LsaCloseSafeHandle(psid);
 
-        using var ssid = new LsaCloseSafeHandle(psid);
-
-        LSA_UNICODE_STRING* userRights = default;
-        try
-        {
-            var status = PInvoke.LsaEnumerateAccountRights(this.handle, ssid, out userRights, out var count);
-            var error = (WIN32_ERROR)PInvoke.LsaNtStatusToWinError(status);
-
-            if (error != WIN32_ERROR.ERROR_SUCCESS)
+            LSA_UNICODE_STRING* userRights = default;
+            try
             {
-                throw new Win32Exception((int)error);
+                var status = PInvoke.LsaEnumerateAccountRights(this.handle, ssid, out userRights, out var count);
+                var error = (WIN32_ERROR)PInvoke.LsaNtStatusToWinError(status);
+
+                if (error != WIN32_ERROR.ERROR_SUCCESS)
+                {
+                    throw new Win32Exception((int)error);
+                }
+
+                var results = new string[count];
+
+                for (var i = 0; i < count; i++)
+                {
+                    var offset = Marshal.SizeOf(typeof(LSA_UNICODE_STRING)) * i;
+                    var ptr = nint.Add((nint)userRights, offset);
+                    var result = Marshal.PtrToStructure(ptr, typeof(LSA_UNICODE_STRING)) ?? throw new InvalidOperationException();
+                    var unicodeString = (LSA_UNICODE_STRING)result;
+
+                    results[i] = new string(unicodeString.Buffer.Value);
+                }
+
+                return results;
             }
-
-            var results = new string[count];
-
-            for (var i = 0; i < count; i++)
+            finally
             {
-                var offset = Marshal.SizeOf(typeof(LSA_UNICODE_STRING)) * i;
-                var ptr = nint.Add((nint)userRights, offset);
-                var result = Marshal.PtrToStructure(ptr, typeof(LSA_UNICODE_STRING)) ?? throw new InvalidOperationException();
-                var unicodeString = (LSA_UNICODE_STRING)result;
-
-                results[i] = new string(unicodeString.Buffer.Value);
-            }
-
-            return results;
-        }
-        finally
-        {
-            if (userRights is not null)
-            {
-                PInvoke.LsaFreeMemory(userRights);
+                if (userRights is not null)
+                {
+                    PInvoke.LsaFreeMemory(userRights);
+                }
             }
         }
     }
@@ -166,52 +162,60 @@ public class LsaUserRights : ILsaUserRights, IDisposable
         }
 
         LSA_UNICODE_STRING userRightUnicode = default;
-        if (userRight is not null)
-        {
-            fixed (char* c = userRight)
-            {
-                var length = checked((ushort)(userRight.Length * sizeof(char)));
 
-                userRightUnicode.Length = length;
-                userRightUnicode.MaximumLength = length;
-                userRightUnicode.Buffer = c;
-            }
+        if (userRight is null)
+        {
+            return Method(userRightUnicode);
         }
 
-        void* buffer = default;
-        try
+        fixed (char* c = userRight)
         {
-            var status = PInvoke.LsaEnumerateAccountsWithUserRight(this.handle, userRightUnicode, out buffer, out var count);
-            var error = (WIN32_ERROR)PInvoke.LsaNtStatusToWinError(status);
+            var length = checked((ushort)(userRight.Length * sizeof(char)));
 
-            if (error == WIN32_ERROR.ERROR_NO_MORE_ITEMS)
-            {
-                return [];
-            }
+            userRightUnicode.Length = length;
+            userRightUnicode.MaximumLength = length;
+            userRightUnicode.Buffer = c;
 
-            if (error != WIN32_ERROR.ERROR_SUCCESS)
-            {
-                throw new Win32Exception((int)error);
-            }
-
-            var results = new SecurityIdentifier[count];
-
-            for (var i = 0; i < count; i++)
-            {
-                var offset = Marshal.SizeOf(typeof(LSA_ENUMERATION_INFORMATION)) * i;
-                var result = Marshal.PtrToStructure(nint.Add((nint)buffer, offset), typeof(LSA_ENUMERATION_INFORMATION)) ?? throw new InvalidOperationException();
-                var sid = ((LSA_ENUMERATION_INFORMATION)result).Sid;
-
-                results[i] = new SecurityIdentifier((nint)sid.Value);
-            }
-
-            return results;
+            return Method(userRightUnicode);
         }
-        finally
+
+        SecurityIdentifier[] Method(LSA_UNICODE_STRING right)
         {
-            if (buffer is not null)
+            void* buffer = default;
+            try
             {
-                PInvoke.LsaFreeMemory(buffer);
+                var status = PInvoke.LsaEnumerateAccountsWithUserRight(this.handle, right, out buffer, out var count);
+                var error = (WIN32_ERROR)PInvoke.LsaNtStatusToWinError(status);
+
+                if (error == WIN32_ERROR.ERROR_NO_MORE_ITEMS)
+                {
+                    return [];
+                }
+
+                if (error != WIN32_ERROR.ERROR_SUCCESS)
+                {
+                    throw new Win32Exception((int)error);
+                }
+
+                var results = new SecurityIdentifier[count];
+
+                for (var i = 0; i < count; i++)
+                {
+                    var offset = Marshal.SizeOf(typeof(LSA_ENUMERATION_INFORMATION)) * i;
+                    var result = Marshal.PtrToStructure(nint.Add((nint)buffer, offset), typeof(LSA_ENUMERATION_INFORMATION)) ?? throw new InvalidOperationException();
+                    var sid = ((LSA_ENUMERATION_INFORMATION)result).Sid;
+
+                    results[i] = new SecurityIdentifier((nint)sid.Value);
+                }
+
+                return results;
+            }
+            finally
+            {
+                if (buffer is not null)
+                {
+                    PInvoke.LsaFreeMemory(buffer);
+                }
             }
         }
     }
@@ -236,38 +240,36 @@ public class LsaUserRights : ILsaUserRights, IDisposable
 
         var bytes = new byte[accountSid.BinaryLength];
         accountSid.GetBinaryForm(bytes, 0);
-        PSID psid;
         fixed (byte* b = bytes)
         {
-            psid = new PSID(b);
-        }
+            var psid = new PSID(b);
+            using var ssid = new LsaCloseSafeHandle(psid);
 
-        using var ssid = new LsaCloseSafeHandle(psid);
-
-        Span<LSA_UNICODE_STRING> rights = stackalloc LSA_UNICODE_STRING[userRights.Length];
-        for (var i = 0; i < userRights.Length; i++)
-        {
-            var privilege = userRights[i];
-
-            fixed (char* p = privilege)
+            Span<LSA_UNICODE_STRING> rights = stackalloc LSA_UNICODE_STRING[userRights.Length];
+            for (var i = 0; i < userRights.Length; i++)
             {
-                var length = checked((ushort)(privilege.Length * sizeof(char)));
+                var privilege = userRights[i];
 
-                rights[i] = new LSA_UNICODE_STRING
+                fixed (char* p = privilege)
                 {
-                    Length = length,
-                    MaximumLength = length,
-                    Buffer = p
-                };
+                    var length = checked((ushort)(privilege.Length * sizeof(char)));
+
+                    rights[i] = new LSA_UNICODE_STRING
+                    {
+                        Length = length,
+                        MaximumLength = length,
+                        Buffer = p
+                    };
+                }
             }
-        }
 
-        var status = PInvoke.LsaRemoveAccountRights(this.handle, ssid, false, rights);
-        var error = PInvoke.LsaNtStatusToWinError(status);
+            var status = PInvoke.LsaRemoveAccountRights(this.handle, ssid, false, rights);
+            var error = PInvoke.LsaNtStatusToWinError(status);
 
-        if ((WIN32_ERROR)error != WIN32_ERROR.ERROR_SUCCESS)
-        {
-            throw new Win32Exception((int)error);
+            if ((WIN32_ERROR)error != WIN32_ERROR.ERROR_SUCCESS)
+            {
+                throw new Win32Exception((int)error);
+            }
         }
     }
 
@@ -306,26 +308,34 @@ public class LsaUserRights : ILsaUserRights, IDisposable
         }
 
         LSA_UNICODE_STRING systemNameUnicode = default;
-        if (systemName is not null)
+
+        if (systemName is null)
         {
-            fixed (char* c = systemName)
+            return Method(systemNameUnicode, ref objectAttributes, desiredAccess);
+        }
+
+        fixed (char* c = systemName)
+        {
+            var length = checked((ushort)(systemName.Length * sizeof(char)));
+
+            systemNameUnicode.Length = length;
+            systemNameUnicode.MaximumLength = length;
+            systemNameUnicode.Buffer = c;
+
+            return Method(systemNameUnicode, ref objectAttributes, desiredAccess);
+        }
+
+        static LsaCloseSafeHandle Method(LSA_UNICODE_STRING name, ref LSA_OBJECT_ATTRIBUTES attributes, uint access)
+        {
+            var status = PInvoke.LsaOpenPolicy(name, attributes, access, out var policyHandle);
+            var error = PInvoke.LsaNtStatusToWinError(status);
+
+            if ((WIN32_ERROR)error != WIN32_ERROR.ERROR_SUCCESS)
             {
-                var length = checked((ushort)(systemName.Length * sizeof(char)));
-
-                systemNameUnicode.Length = length;
-                systemNameUnicode.MaximumLength = length;
-                systemNameUnicode.Buffer = c;
+                throw new Win32Exception((int)error);
             }
+
+            return policyHandle;
         }
-
-        var status = PInvoke.LsaOpenPolicy(systemNameUnicode, objectAttributes, desiredAccess, out var policyHandle);
-        var error = PInvoke.LsaNtStatusToWinError(status);
-
-        if ((WIN32_ERROR)error != WIN32_ERROR.ERROR_SUCCESS)
-        {
-            throw new Win32Exception((int)error);
-        }
-
-        return policyHandle;
     }
 }

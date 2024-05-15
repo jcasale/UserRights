@@ -65,14 +65,8 @@ public class UserRightsManager : IUserRightsManager
     public void ModifyPrincipal(IUserRights policy, string principal, string[] grants, string[] revocations, bool revokeAll, bool revokeOthers, bool dryRun)
     {
         ArgumentNullException.ThrowIfNull(policy);
-
-        if (string.IsNullOrWhiteSpace(principal))
-        {
-            throw new ArgumentException("Value cannot be null or whitespace.", nameof(principal));
-        }
-
+        ArgumentException.ThrowIfNullOrWhiteSpace(principal);
         ArgumentNullException.ThrowIfNull(grants);
-
         ArgumentNullException.ThrowIfNull(revocations);
 
         if (revokeAll && (revokeOthers || grants.Length > 0 || revocations.Length > 0))
@@ -162,14 +156,8 @@ public class UserRightsManager : IUserRightsManager
     public void ModifyPrivilege(IUserRights policy, string privilege, string[] grants, string[] revocations, bool revokeAll, bool revokeOthers, Regex? revokePattern, bool dryRun)
     {
         ArgumentNullException.ThrowIfNull(policy);
-
-        if (string.IsNullOrWhiteSpace(privilege))
-        {
-            throw new ArgumentException("Value cannot be null or whitespace.", nameof(privilege));
-        }
-
+        ArgumentException.ThrowIfNullOrWhiteSpace(privilege);
         ArgumentNullException.ThrowIfNull(grants);
-
         ArgumentNullException.ThrowIfNull(revocations);
 
         if (revokeAll && (grants.Length > 0 || revocations.Length > 0 || revokeOthers || revokePattern is not null))
@@ -277,13 +265,8 @@ public class UserRightsManager : IUserRightsManager
     private void GrantPrivilege(IUserRights policy, SecurityIdentifier principal, string privilege, bool dryRun)
     {
         ArgumentNullException.ThrowIfNull(policy);
-
         ArgumentNullException.ThrowIfNull(principal);
-
-        if (string.IsNullOrWhiteSpace(privilege))
-        {
-            throw new ArgumentException("Value cannot be null or whitespace.", nameof(privilege));
-        }
+        ArgumentException.ThrowIfNullOrWhiteSpace(privilege);
 
         if (dryRun)
         {
@@ -316,13 +299,8 @@ public class UserRightsManager : IUserRightsManager
     private void RevokePrivilege(IUserRights policy, SecurityIdentifier principal, string privilege, bool dryRun)
     {
         ArgumentNullException.ThrowIfNull(policy);
-
         ArgumentNullException.ThrowIfNull(principal);
-
-        if (string.IsNullOrWhiteSpace(privilege))
-        {
-            throw new ArgumentException("Value cannot be null or whitespace.", nameof(privilege));
-        }
+        ArgumentException.ThrowIfNullOrWhiteSpace(privilege);
 
         if (dryRun)
         {

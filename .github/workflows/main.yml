@@ -25,7 +25,7 @@ jobs:
         id: setup-dotnet
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.204
+          global-json-file: src/global.json
 
       - run: echo '${{ steps.setup-dotnet.outputs.dotnet-version }}'
 

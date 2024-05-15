@@ -20,11 +20,15 @@ public sealed class UserRightsManagerPrincipalTests : UserRightsManagerTestBase
     /// Generates invalid method arguments for the <see cref="IUserRightsManager.ModifyPrincipal"/> method.
     /// </summary>
     /// <returns>A sequence of method arguments.</returns>
-    public static TheoryData<IUserRights, string, string[], string[], bool, bool, bool> InvalidArguments()
+    public static TheoryData<IUserRightsSerializable, string, string[], string[], bool, bool, bool> InvalidArguments()
     {
-        var policy = new MockLsaUserRights();
+        var policy = new MockLsaUserRights(
+            new Dictionary<string, ICollection<SecurityIdentifier>>(StringComparer.InvariantCultureIgnoreCase)
+            {
+                { "joey", new List<SecurityIdentifier> { PrincipalSid1 } }
+            });
 
-        return new TheoryData<IUserRights, string, string[], string[], bool, bool, bool>
+        return new TheoryData<IUserRightsSerializable, string, string[], string[], bool, bool, bool>
         {
             // Verify null policy instance.
             { null!, PrincipalName1, [Privilege1], [], false, false, false },
@@ -184,7 +188,7 @@ public sealed class UserRightsManagerPrincipalTests : UserRightsManagerTestBase
     /// <param name="dryRun">Enables dry-run mode.</param>
     [Theory]
     [MemberData(nameof(InvalidArguments))]
-    public void InvalidArgumentsThrowsException(IUserRights policy, string principal, string[] grants, string[] revocations, bool revokeAll, bool revokeOthers, bool dryRun)
+    public void InvalidArgumentsThrowsException(IUserRightsSerializable policy, string principal, string[] grants, string[] revocations, bool revokeAll, bool revokeOthers, bool dryRun)
     {
         var manager = this.ServiceProvider.GetRequiredService<IUserRightsManager>();
 

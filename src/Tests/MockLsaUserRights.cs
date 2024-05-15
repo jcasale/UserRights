@@ -7,25 +7,36 @@ using System.Security.Principal;
 
 using UserRights.Application;
 
+using Xunit.Abstractions;
+
 /// <summary>
 /// Represents a mock <see cref="ILsaUserRights"/> implementation.
 /// </summary>
-public class MockLsaUserRights : ILsaUserRights
+public sealed class MockLsaUserRights : ILsaUserRights, IUserRightsSerializable
 {
-    private readonly IDictionary<string, ICollection<SecurityIdentifier>> database;
+    private readonly IDictionary<string, ICollection<SecurityIdentifier>> database = new Dictionary<string, ICollection<SecurityIdentifier>>(StringComparer.InvariantCultureIgnoreCase);
     private bool connected;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MockLsaUserRights"/> class.
     /// </summary>
-    public MockLsaUserRights() => this.database = new Dictionary<string, ICollection<SecurityIdentifier>>(StringComparer.InvariantCultureIgnoreCase);
+    public MockLsaUserRights()
+    {
+    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MockLsaUserRights"/> class.
     /// </summary>
     /// <param name="database">A map of privilege to assigned principals.</param>
     public MockLsaUserRights(IDictionary<string, ICollection<SecurityIdentifier>> database)
-        => this.database = database ?? throw new ArgumentNullException(nameof(database));
+    {
+        ArgumentNullException.ThrowIfNull(database);
+
+        foreach (var kvp in database)
+        {
+            this.database.Add(kvp.Key, kvp.Value);
+        }
+    }
 
     /// <inheritdoc />
     public void Connect(string? systemName = default)
@@ -138,4 +149,34 @@ public class MockLsaUserRights : ILsaUserRights
     /// Allow a test to assert the policy database before manipulating it.
     /// </summary>
     public void ResetConnection() => this.connected = false;
+
+    /// <inheritdoc/>
+    public void Deserialize(IXunitSerializationInfo info)
+    {
+        ArgumentNullException.ThrowIfNull(info);
+
+        var items = info.GetValue<string[][]>(nameof(this.database));
+        foreach (var item in items)
+        {
+            this.database.Add(item[0], item[1..].Select(p => new SecurityIdentifier(p)).ToArray());
+        }
+    }
+
+    /// <inheritdoc/>
+    public void Serialize(IXunitSerializationInfo info)
+    {
+        ArgumentNullException.ThrowIfNull(info);
+
+        // Flatten the map into an array of arrays composed of the principal and their security ids.
+        var data = this.database.Select(p =>
+        {
+            string[] items = [p.Key, ..p.Value.Select(x => x.Value)];
+            return items;
+        }).ToArray();
+
+        info.AddValue(nameof(this.database), data);
+    }
+
+    /// <inheritdoc/>
+    public override string ToString() => $"{string.Join(" | ", this.database.Select(p => $"{p.Key}: {string.Join(',', p.Value)}"))}";
 }

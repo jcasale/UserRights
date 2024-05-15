@@ -7,7 +7,9 @@ using System.Security.Principal;
 using System.Text.RegularExpressions;
 
 using Microsoft.Extensions.DependencyInjection;
+
 using UserRights.Application;
+
 using Xunit;
 
 using static Tests.TestData;
@@ -21,12 +23,12 @@ public sealed class UserRightsManagerPrivilegeTests : UserRightsManagerTestBase
     /// Generates invalid method arguments for the <see cref="IUserRightsManager.ModifyPrivilege"/> method.
     /// </summary>
     /// <returns>A sequence of method arguments.</returns>
-    public static TheoryData<IUserRights, string, string[], string[], bool, bool, Regex, bool> InvalidArguments()
+    public static TheoryData<IUserRightsSerializable, string, string[], string[], bool, bool, string, bool> InvalidArguments()
     {
         var policy = new MockLsaUserRights();
-        var pattern = new Regex(".*", RegexOptions.None, TimeSpan.FromSeconds(1));
+        const string pattern = ".*";
 
-        return new TheoryData<IUserRights, string, string[], string[], bool, bool, Regex, bool>
+        return new TheoryData<IUserRightsSerializable, string, string[], string[], bool, bool, string, bool>
         {
             // Verify null policy instance.
             { null!, Privilege1, [PrincipalName1], [], false, false, null!, false },
@@ -50,13 +52,13 @@ public sealed class UserRightsManagerPrivilegeTests : UserRightsManagerTestBase
             // Verify RevokeOthers requirements.
             { policy, Privilege1, [], [], false, true, null!, false },
             { policy, Privilege1, [PrincipalName1], [PrincipalName2], false, true, null!, false },
-            { policy, Privilege1, [], [], true, true, null!, false },
+            { policy, Privilege2, [], [], true, true, null!, false },
             { policy, Privilege1, [], [], false, true, pattern, false },
 
             // Verify RevokePattern requirements.
             { policy, Privilege1, [], [PrincipalName1], false, false, pattern, false },
-            { policy, Privilege1, [], [], true, false, pattern, false },
-            { policy, Privilege1, [], [], false, true, pattern, false },
+            { policy, Privilege2, [], [], true, false, pattern, false },
+            { policy, Privilege2, [], [], false, true, pattern, false },
 
             // Verify remaining requirements.
             { policy, Privilege1, [], [], false, false, null!, false },
@@ -243,11 +245,12 @@ public sealed class UserRightsManagerPrivilegeTests : UserRightsManagerTestBase
     /// <param name="dryRun">Enables dry-run mode.</param>
     [Theory]
     [MemberData(nameof(InvalidArguments))]
-    public void InvalidArgumentsThrowsException(IUserRights policy, string privilege, string[] grants, string[] revocations, bool revokeAll, bool revokeOthers, Regex revokePattern, bool dryRun)
+    public void InvalidArgumentsThrowsException(IUserRightsSerializable policy, string privilege, string[] grants, string[] revocations, bool revokeAll, bool revokeOthers, string revokePattern, bool dryRun)
     {
         var manager = this.ServiceProvider.GetRequiredService<IUserRightsManager>();
+        var regex = string.IsNullOrWhiteSpace(revokePattern) ? null : new Regex(revokePattern, RegexOptions.None, TimeSpan.FromSeconds(1));
 
-        Assert.ThrowsAny<ArgumentException>(() => manager.ModifyPrivilege(policy, privilege, grants, revocations, revokeAll, revokeOthers, revokePattern, dryRun));
+        Assert.ThrowsAny<ArgumentException>(() => manager.ModifyPrivilege(policy, privilege, grants, revocations, revokeAll, revokeOthers, regex, dryRun));
     }
 
     /// <summary>

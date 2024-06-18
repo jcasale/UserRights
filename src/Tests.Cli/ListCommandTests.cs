@@ -156,7 +156,7 @@ public sealed class ListCommandTests : CliTestBase
 
             var configuration = new CsvConfiguration(CultureInfo.InvariantCulture)
             {
-                PrepareHeaderForMatch = a => a.Header.ToUpperInvariant()
+                PrepareHeaderForMatch = a => a.Header?.ToUpperInvariant() ?? throw new InvalidOperationException()
             };
 
             using var streamReader = new StreamReader(file);

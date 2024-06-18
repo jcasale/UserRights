@@ -87,7 +87,7 @@ public sealed class UserRightsManagerListTests : UserRightsManagerTestBase
 
         var configuration = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
-            PrepareHeaderForMatch = a => a.Header.ToUpperInvariant()
+            PrepareHeaderForMatch = a => a.Header?.ToUpperInvariant() ?? throw new InvalidOperationException()
         };
 
         using var stringReader = new StringReader(serialized);

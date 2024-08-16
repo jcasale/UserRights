@@ -25,14 +25,14 @@ public sealed class LsaUserRightsGetPrincipalsTests : LsaUserRightsTestBase
         var expected = this.InitialState.Values
             .SelectMany(p => p)
             .Distinct()
-            .OrderBy(p => p)
+            .Order()
             .ToArray();
 
         using var policy = new LsaUserRights();
         policy.Connect();
 
         var actual = policy.LsaEnumerateAccountsWithUserRight()
-            .OrderBy(p => p)
+            .Order()
             .ToArray();
 
         Assert.Equal(expected, actual);

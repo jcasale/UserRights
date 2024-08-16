@@ -1,6 +1,5 @@
+.idea/
 .vs/
 **/bin/
 **/obj/
 *.user
-VersionInfo.cs
-version.props

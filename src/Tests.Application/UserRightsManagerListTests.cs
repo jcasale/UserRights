@@ -70,7 +70,7 @@ public sealed class UserRightsManagerListTests : UserRightsManagerTestBase
         var policy = new MockLsaUserRights(database);
         policy.Connect("SystemName");
 
-        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }, policy.LsaEnumerateAccountsWithUserRight().OrderBy(p => p));
+        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }, policy.LsaEnumerateAccountsWithUserRight().Order());
         Assert.Equal(new[] { Privilege1, Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
         Assert.Equal(new[] { Privilege1, Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid2));
 
@@ -87,7 +87,7 @@ public sealed class UserRightsManagerListTests : UserRightsManagerTestBase
 
         var configuration = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
-            PrepareHeaderForMatch = a => a.Header.ToUpperInvariant()
+            PrepareHeaderForMatch = a => a.Header?.ToUpperInvariant() ?? throw new InvalidOperationException()
         };
 
         using var stringReader = new StringReader(serialized);
@@ -137,7 +137,7 @@ public sealed class UserRightsManagerListTests : UserRightsManagerTestBase
         var policy = new MockLsaUserRights(database);
         policy.Connect("SystemName");
 
-        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }, policy.LsaEnumerateAccountsWithUserRight().OrderBy(p => p));
+        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }, policy.LsaEnumerateAccountsWithUserRight().Order());
         Assert.Equal(new[] { Privilege1, Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
         Assert.Equal(new[] { Privilege1, Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid2));
 

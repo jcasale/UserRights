@@ -6,7 +6,7 @@ The `UserRights.exe` utility is an application for managing the User Rights Assi
 
 ## Use Case - Automating User Rights Assignment on Windows Servers
 
-Managing user rights assignment with group policies is not trivial. The interface only allows either exclusively specifying all the principals that will be granted the right, or leaving the user right unmanaged. That is the only reasonable approach, the grants will vary depending on the roles or applications that are installed. There may be virtual accounts (e.g., IIS application pool accounts with security identifiers matching S-1-5-82-&ast;) or NT service accounts (e.g., MSSQL accounts with security identifiers matching S-1-5-80-&ast;) that are granted privileges.
+Managing user rights assignment with group policies is not trivial. The interface only allows either exclusively specifying all the principals that will be granted the right or leaving the user right unmanaged. That is the only reasonable approach, the grants will vary depending on the roles or applications that are installed. There may be virtual accounts (e.g., IIS application pool accounts with security identifiers matching S-1-5-82-&ast;) or NT service accounts (e.g., MSSQL accounts with security identifiers matching S-1-5-80-&ast;) that are granted privileges.
 
 This requires the creation and maintenance of unique and highly specific group policies for each platform and software combination. For example, a typical approach for managing the *SeServiceLogonRight* right might resemble:
 
@@ -15,13 +15,13 @@ This requires the creation and maintenance of unique and highly specific group p
    - Ensure the mode is set to *Update*.
    - Ensure *Delete all member users* is enabled.
    - Ensure *Delete all member groups* is enabled.
-   - Enable item level targeting, add an *LDAP Query* and configure it to pass **only** when the LDAP query does **not** return a value indicating the related directory group was not found (e.g., `DOMAIN\allow-log-on-service-%ComputerName%`).
+   - Enable item-level targeting, add an *LDAP Query*, and configure it to pass **only** when the LDAP query does **not** return a value indicating the related directory group was not found (e.g., `DOMAIN\allow-log-on-service-%ComputerName%`).
 1. Add another group policy preference item using *Local Users and Groups* to create a local security group for the permission being managed (e.g., `allow-log-on-service`).
    - Ensure the mode is set to *Update*.
    - Ensure *Delete all member users* is enabled.
    - Ensure *Delete all member groups* is enabled.
-   - Configure a single member by adding the related directory group using the variable based convention (e.g., `DOMAIN\allow-log-on-service-%ComputerName%`).
-   - Enable item level targeting, add an *LDAP Query* and configure it to pass **only** when the LDAP query **does** return a value indicating the related directory group was found (e.g., `DOMAIN\allow-log-on-service-%ComputerName%`).
+   - Configure a single member by adding the related directory group using the variable-based convention (e.g., `DOMAIN\allow-log-on-service-%ComputerName%`).
+   - Enable item-level targeting, add an *LDAP Query*, and configure it to pass **only** when the LDAP query **does** return a value indicating the related directory group was found (e.g., `DOMAIN\allow-log-on-service-%ComputerName%`).
 1. Enable the group policy *User Right Assignment* for the *SeServiceLogonRight* right:
    - Add any required local users.
    - Add any required local groups.
@@ -57,15 +57,15 @@ This example illustrates an approach for managing the *SeServiceLogonRight* righ
 
     - Set the program to the full path to the utility.
       For example: `\\example.com\NETLOGON\UserRights.exe`.
-    - Set the arguments to execute the utility in *privilege* mode, grant the *SeServiceLogonRight* privilege to a security group corresponding to the servers `sAMAccountName` value, and remove any other regular user accounts or groups. For example:
+    - Set the arguments to execute the utility in *privilege* mode, grant the *SeServiceLogonRight* privilege to a security group corresponding to the server's `sAMAccountName` value, and remove any other regular user accounts or groups. For example:
 
         `privilege SeServiceLogonRight --grant EXAMPLE\allow-log-on-service-%ComputerName% --revoke-pattern "^S-1-5-21"`
 
-1. Select the common tab and enable item level targeting.
+1. Select the common tab and enable item-level targeting.
 
     ![Alt text](/docs/images/scheduled-task-common.png "scheduled-task-common")
 
-1. Select the targeting button, and configure item level targeting to ensure the preference is only executed when the corresponding Active Directory security exists in the directory.
+1. Select the targeting button, and configure item-level targeting to ensure the preference is only executed when the corresponding Active Directory security exists in the directory.
 
     ![Alt text](/docs/images/scheduled-task-targeting-editor.png "scheduled-task-targeting-editor")
 
@@ -75,13 +75,13 @@ This example illustrates an approach for managing the *SeServiceLogonRight* righ
    - Set the binding to `LDAP:`
    - Set the attribute to the same type used in the filter `name`
 
-   The example above uses the groups `name` attribute type, which may be a better option than `sAMAccountName` in some environments.
+   The example above uses the group's `name` attribute type, which may be a better option than `sAMAccountName` in some environments.
 1. Repeat all the above steps with the following changes to accommodate the case when the directory group does not exist:
    - Configure the action to execute the `UserRights.exe` utility with the following arguments:
 
        `privilege SeServiceLogonRight --revoke-pattern "^S-1-5-21"`
 
-   - Configure item level targeting to enable the preference when the LDAP query does not return a value.
+   - Configure item-level targeting to enable the preference when the LDAP query does not return a value.
 
 Granting the privilege to a new user or service account only requires granting membership in the associated directory security group. Servers without a corresponding directory security will only have the user right privilege pruned according to the pattern.
 
@@ -91,7 +91,7 @@ If the privilege is later directly granted to a local or domain user account or 
 
 Diagnostic messages are emitted to the console and the Windows application event log.
 
-Events originate from the *UserRights* source and have the following possible ids:
+Events originate from the *UserRights* source and have the following possible IDs:
 
 | Event Id | Description                                               |
 |:--------:|-----------------------------------------------------------|
@@ -191,8 +191,8 @@ UserRights.exe list --path x:\path\file.csv
 
 Releases are provided in two formats that both target .Net 8.0:
 
-  * An archive containing a runtime-dependent executable and all the required libraries.
-  * An archive containing a single, self-contained executable to make deployment simple.
+- An archive containing a runtime-dependent executable and all the required libraries.
+- An archive containing a single, self-contained executable to make deployment simple.
 
 ## Useful Links
 

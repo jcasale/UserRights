@@ -131,12 +131,11 @@ public class LsaUserRights : ILsaUserRights, IDisposable
 
                 for (var i = 0; i < count; i++)
                 {
-                    var offset = Marshal.SizeOf(typeof(LSA_UNICODE_STRING)) * i;
+                    var offset = Marshal.SizeOf<LSA_UNICODE_STRING>() * i;
                     var ptr = nint.Add((nint)userRights, offset);
-                    var result = Marshal.PtrToStructure(ptr, typeof(LSA_UNICODE_STRING)) ?? throw new InvalidOperationException();
-                    var unicodeString = (LSA_UNICODE_STRING)result;
+                    var result = Marshal.PtrToStructure<LSA_UNICODE_STRING>(ptr);
 
-                    results[i] = new string(unicodeString.Buffer.Value);
+                    results[i] = new string(result.Buffer.Value);
                 }
 
                 return results;
@@ -201,9 +200,9 @@ public class LsaUserRights : ILsaUserRights, IDisposable
 
                 for (var i = 0; i < count; i++)
                 {
-                    var offset = Marshal.SizeOf(typeof(LSA_ENUMERATION_INFORMATION)) * i;
-                    var result = Marshal.PtrToStructure(nint.Add((nint)buffer, offset), typeof(LSA_ENUMERATION_INFORMATION)) ?? throw new InvalidOperationException();
-                    var sid = ((LSA_ENUMERATION_INFORMATION)result).Sid;
+                    var offset = Marshal.SizeOf<LSA_ENUMERATION_INFORMATION>() * i;
+                    var result = Marshal.PtrToStructure<LSA_ENUMERATION_INFORMATION>(nint.Add((nint)buffer, offset));
+                    var sid = result.Sid;
 
                     results[i] = new SecurityIdentifier((nint)sid.Value);
                 }

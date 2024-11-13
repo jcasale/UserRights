@@ -27,7 +27,14 @@ jobs:
         with:
           global-json-file: src/global.json
 
-      - run: echo '${{ steps.setup-dotnet.outputs.dotnet-version }}'
+      - name: Set dotnet version
+        id: dotnet-version
+        run: |
+          $version = [version]::new('${{ steps.setup-dotnet.outputs.dotnet-version }}')
+          $label = 'net{0}{1}' -f $version.Major, $version.Minor
+          echo $label
+          
+          "label=$label" >> $env:GITHUB_OUTPUT
 
       - name: Run tests
         run: dotnet.exe test .\src\UserRights.sln --configuration Release --runtime win-x64
@@ -41,12 +48,12 @@ jobs:
       - name: Archive runtime-dependent release
         run: |
           cd ./publish
-          Get-ChildItem . -Exclude *.pdb,*.xml -Recurse |Compress-Archive -DestinationPath ../UserRights-net80-x64.zip
+          Get-ChildItem . -Exclude *.pdb,*.xml -Recurse |Compress-Archive -DestinationPath ../UserRights-${{ steps.dotnet-version.outputs.label }}-x64.zip
 
       - name: Upload runtime-dependent release
         uses: actions/upload-artifact@v4
         with:
-            name: UserRights-net80-x64
+            name: UserRights-${{ steps.dotnet-version.outputs.label }}-x64
             path: publish
             if-no-files-found: error
 
@@ -59,12 +66,12 @@ jobs:
       - name: Archive self-contained release
         run: |
           cd ./publish-packed
-          Compress-Archive -Path ./UserRights.exe -DestinationPath ../UserRights-net80-x64-self-contained.zip
+          Compress-Archive -Path ./UserRights.exe -DestinationPath ../UserRights-${{ steps.dotnet-version.outputs.label }}-x64-self-contained.zip
 
       - name: Upload self-contained release
         uses: actions/upload-artifact@v4
         with:
-            name: UserRights-net80-x64-self-contained
+            name: UserRights-${{ steps.dotnet-version.outputs.label }}-x64-self-contained
             path: publish-packed
             if-no-files-found: error
 
@@ -76,14 +83,14 @@ jobs:
 
           Compiled with .NET SDK ${{ steps.setup-dotnet.outputs.dotnet-version }}
 
-          ## UserRights-net80-x64-self-contained.zip
+          ## UserRights-${{ steps.dotnet-version.outputs.label }}-x64-self-contained.zip
 
           Self-contained release for Windows x64
 
-          ## UserRights-net80-x64.zip
+          ## UserRights-${{ steps.dotnet-version.outputs.label }}-x64.zip
 
           Framework-dependent release for Windows x64
-          '@ |gh.exe release create ${{ github.ref }} --title ${{ github.ref_name }} --notes-file - UserRights-net80-x64.zip UserRights-net80-x64-self-contained.zip
+          '@ |gh.exe release create ${{ github.ref }} --title ${{ github.ref_name }} --notes-file - UserRights-${{ steps.dotnet-version.outputs.label }}-x64.zip UserRights-${{ steps.dotnet-version.outputs.label }}-x64-self-contained.zip
         env:
           # Requires a personal access token with a fine-grained permission of contents:read/write.
           GH_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}

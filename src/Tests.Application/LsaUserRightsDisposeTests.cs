@@ -15,7 +15,7 @@ public class LsaUserRightsDisposeTests
     [Fact]
     public void CanBeDisposedMultipleTimes()
     {
-        using var policy = new LsaUserRights();
+        var policy = new LsaUserRights();
 
         policy.Dispose();
 

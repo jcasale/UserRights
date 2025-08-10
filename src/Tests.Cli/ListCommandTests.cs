@@ -2,7 +2,6 @@ namespace Tests.Cli;
 
 using System;
 using System.Collections.Generic;
-using System.CommandLine.Parsing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -62,10 +61,9 @@ public sealed class ListCommandTests : CliTestBase
         this.ServiceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
         this.ServiceCollection.AddSingleton<CliBuilder>();
 
-        var cliBuilder = this.ServiceProvider.GetRequiredService<CliBuilder>();
+        var builder = this.ServiceProvider.GetRequiredService<CliBuilder>();
 
-        var commandLineBuilder = cliBuilder.Create();
-        var parser = commandLineBuilder.Build();
+        var configuration = builder.Build();
 
         var file = Path.GetTempFileName();
         var args = new[]
@@ -80,7 +78,7 @@ public sealed class ListCommandTests : CliTestBase
         UserRightEntry[] actual;
         try
         {
-            rc = await parser.InvokeAsync(args);
+            rc = await configuration.Parse(args).Validate().InvokeAsync();
 
             await using var stream = File.OpenRead(file);
 
@@ -135,10 +133,9 @@ public sealed class ListCommandTests : CliTestBase
         this.ServiceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
         this.ServiceCollection.AddSingleton<CliBuilder>();
 
-        var cliBuilder = this.ServiceProvider.GetRequiredService<CliBuilder>();
+        var builder = this.ServiceProvider.GetRequiredService<CliBuilder>();
 
-        var commandLineBuilder = cliBuilder.Create();
-        var parser = commandLineBuilder.Build();
+        var configuration = builder.Build();
 
         var file = Path.GetTempFileName();
         var args = new[]
@@ -152,15 +149,15 @@ public sealed class ListCommandTests : CliTestBase
         UserRightEntry[] actual;
         try
         {
-            rc = await parser.InvokeAsync(args);
+            rc = await configuration.Parse(args).Validate().InvokeAsync();
 
-            var configuration = new CsvConfiguration(CultureInfo.InvariantCulture)
+            var csvConfiguration = new CsvConfiguration(CultureInfo.InvariantCulture)
             {
-                PrepareHeaderForMatch = a => a.Header?.ToUpperInvariant() ?? throw new InvalidOperationException()
+                PrepareHeaderForMatch = a => a.Header.ToUpperInvariant() ?? throw new InvalidOperationException()
             };
 
             using var streamReader = new StreamReader(file);
-            using var csvReader = new CsvReader(streamReader, configuration);
+            using var csvReader = new CsvReader(streamReader, csvConfiguration);
 
             actual = await csvReader.GetRecordsAsync<UserRightEntry>()
                 .OrderBy(p => p.Privilege, StringComparer.OrdinalIgnoreCase)

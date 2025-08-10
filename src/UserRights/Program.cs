@@ -1,8 +1,6 @@
 namespace UserRights;
 
 using System;
-using System.CommandLine.Builder;
-using System.CommandLine.Parsing;
 using System.Globalization;
 using System.Text;
 using System.Threading.Tasks;
@@ -41,7 +39,7 @@ internal static class Program
             // Log syntax errors to assist with instrumenting automation.
             using (LogContext.PushProperty("EventId", OperationId.SyntaxError))
             {
-                Log.Fatal(e, "Syntax error.");
+                Log.Fatal("{SyntaxError}", e.Message);
             }
 
             rc = 1;
@@ -105,11 +103,11 @@ internal static class Program
             "{#if ConsoleException is not null}{ConsoleException}\n{#end}";
 
         const string eventLogTemplate =
-            "{@m:l}\n\n" +
             "Context: {EnvironmentUserName}\n" +
             "Process Id: {ProcessId}\n" +
             "Correlation Id: {CorrelationId}\n" +
-            "Arguments: {Arguments}" +
+            "Arguments: {Arguments}\n\n" +
+            "{@m:l}" +
             "{#if @x is not null}\n\n{@x}{#end}";
 
         // Configure the initial logging state with the console sink only enabled for warning level.
@@ -144,22 +142,16 @@ internal static class Program
 
         await using var _ = serviceProvider.ConfigureAwait(false);
 
-        var cliBuilder = serviceProvider.GetRequiredService<CliBuilder>();
+        var builder = serviceProvider.GetRequiredService<CliBuilder>();
 
-        var commandLineBuilder = cliBuilder.Create();
-        commandLineBuilder.AddMiddleware(
-            async (context, next) =>
-            {
-                if (!string.Equals(context.ParseResult.CommandResult.Command.Name, "list", StringComparison.Ordinal))
-                {
-                    levelSwitch.MinimumLevel = LogEventLevel.Verbose;
-                }
+        var configuration = builder.Build();
 
-                await next(context).ConfigureAwait(false);
-            });
+        var parseResult = configuration.Parse(args);
+        if (!string.Equals(parseResult.CommandResult.Command.Name, "list", StringComparison.Ordinal))
+        {
+            levelSwitch.MinimumLevel = LogEventLevel.Verbose;
+        }
 
-        var parser = commandLineBuilder.Build();
-
-        return await parser.InvokeAsync(args).ConfigureAwait(false);
+        return await parseResult.Validate().InvokeAsync().ConfigureAwait(false);
     }
 }

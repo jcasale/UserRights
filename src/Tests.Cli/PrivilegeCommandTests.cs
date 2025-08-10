@@ -2,7 +2,6 @@ namespace Tests.Cli;
 
 using System;
 using System.Collections.Generic;
-using System.CommandLine.Parsing;
 using System.Linq;
 using System.Security.Principal;
 
@@ -56,10 +55,9 @@ public sealed class PrivilegeCommandTests : CliTestBase
         this.ServiceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
         this.ServiceCollection.AddSingleton<CliBuilder>();
 
-        var cliBuilder = this.ServiceProvider.GetRequiredService<CliBuilder>();
+        var builder = this.ServiceProvider.GetRequiredService<CliBuilder>();
 
-        var commandLineBuilder = cliBuilder.Create();
-        var parser = commandLineBuilder.Build();
+        var configuration = builder.Build();
 
         var args = new[]
         {
@@ -70,7 +68,7 @@ public sealed class PrivilegeCommandTests : CliTestBase
             "--revoke-others"
         };
 
-        var rc = parser.Invoke(args);
+        var rc = configuration.Parse(args).Validate().Invoke();
 
         Assert.Equal(0, rc);
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.Order(), policy.LsaEnumerateAccountsWithUserRight().Order());
@@ -116,10 +114,9 @@ public sealed class PrivilegeCommandTests : CliTestBase
         this.ServiceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
         this.ServiceCollection.AddSingleton<CliBuilder>();
 
-        var cliBuilder = this.ServiceProvider.GetRequiredService<CliBuilder>();
+        var builder = this.ServiceProvider.GetRequiredService<CliBuilder>();
 
-        var commandLineBuilder = cliBuilder.Create();
-        var parser = commandLineBuilder.Build();
+        var configuration = builder.Build();
 
         var args = new[]
         {
@@ -131,7 +128,7 @@ public sealed class PrivilegeCommandTests : CliTestBase
             PrincipalName1
         };
 
-        var rc = parser.Invoke(args);
+        var rc = configuration.Parse(args).Validate().Invoke();
 
         Assert.Equal(0, rc);
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.Order(), policy.LsaEnumerateAccountsWithUserRight().Order());
@@ -180,10 +177,9 @@ public sealed class PrivilegeCommandTests : CliTestBase
         this.ServiceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
         this.ServiceCollection.AddSingleton<CliBuilder>();
 
-        var cliBuilder = this.ServiceProvider.GetRequiredService<CliBuilder>();
+        var builder = this.ServiceProvider.GetRequiredService<CliBuilder>();
 
-        var commandLineBuilder = cliBuilder.Create();
-        var parser = commandLineBuilder.Build();
+        var configuration = builder.Build();
 
         var args = new[]
         {
@@ -195,7 +191,7 @@ public sealed class PrivilegeCommandTests : CliTestBase
             "^S-1-5-21"
         };
 
-        var rc = parser.Invoke(args);
+        var rc = configuration.Parse(args).Validate().Invoke();
 
         Assert.Equal(0, rc);
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2, PrincipalSid3 }.Order(), policy.LsaEnumerateAccountsWithUserRight().Order());
@@ -239,10 +235,9 @@ public sealed class PrivilegeCommandTests : CliTestBase
         this.ServiceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
         this.ServiceCollection.AddSingleton<CliBuilder>();
 
-        var cliBuilder = this.ServiceProvider.GetRequiredService<CliBuilder>();
+        var builder = this.ServiceProvider.GetRequiredService<CliBuilder>();
 
-        var commandLineBuilder = cliBuilder.Create();
-        var parser = commandLineBuilder.Build();
+        var configuration = builder.Build();
 
         var args = new[]
         {
@@ -252,7 +247,7 @@ public sealed class PrivilegeCommandTests : CliTestBase
             PrincipalName1
         };
 
-        var rc = parser.Invoke(args);
+        var rc = configuration.Parse(args).Validate().Invoke();
 
         Assert.Equal(0, rc);
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.Order(), policy.LsaEnumerateAccountsWithUserRight().Order());
@@ -299,10 +294,9 @@ public sealed class PrivilegeCommandTests : CliTestBase
         this.ServiceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
         this.ServiceCollection.AddSingleton<CliBuilder>();
 
-        var cliBuilder = this.ServiceProvider.GetRequiredService<CliBuilder>();
+        var builder = this.ServiceProvider.GetRequiredService<CliBuilder>();
 
-        var commandLineBuilder = cliBuilder.Create();
-        var parser = commandLineBuilder.Build();
+        var configuration = builder.Build();
 
         var args = new[]
         {
@@ -311,7 +305,7 @@ public sealed class PrivilegeCommandTests : CliTestBase
             "--revoke-all"
         };
 
-        var rc = parser.Invoke(args);
+        var rc = configuration.Parse(args).Validate().Invoke();
 
         Assert.Equal(0, rc);
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.Order(), policy.LsaEnumerateAccountsWithUserRight().Order());
@@ -357,10 +351,9 @@ public sealed class PrivilegeCommandTests : CliTestBase
         this.ServiceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
         this.ServiceCollection.AddSingleton<CliBuilder>();
 
-        var cliBuilder = this.ServiceProvider.GetRequiredService<CliBuilder>();
+        var builder = this.ServiceProvider.GetRequiredService<CliBuilder>();
 
-        var commandLineBuilder = cliBuilder.Create();
-        var parser = commandLineBuilder.Build();
+        var configuration = builder.Build();
 
         var args = new[]
         {
@@ -370,7 +363,7 @@ public sealed class PrivilegeCommandTests : CliTestBase
             PrincipalName2
         };
 
-        var rc = parser.Invoke(args);
+        var rc = configuration.Parse(args).Validate().Invoke();
 
         Assert.Equal(0, rc);
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.Order(), policy.LsaEnumerateAccountsWithUserRight().Order());
@@ -419,10 +412,9 @@ public sealed class PrivilegeCommandTests : CliTestBase
         this.ServiceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
         this.ServiceCollection.AddSingleton<CliBuilder>();
 
-        var cliBuilder = this.ServiceProvider.GetRequiredService<CliBuilder>();
+        var builder = this.ServiceProvider.GetRequiredService<CliBuilder>();
 
-        var commandLineBuilder = cliBuilder.Create();
-        var parser = commandLineBuilder.Build();
+        var configuration = builder.Build();
 
         var args = new[]
         {
@@ -432,7 +424,7 @@ public sealed class PrivilegeCommandTests : CliTestBase
             "^S-1-5-21"
         };
 
-        var rc = parser.Invoke(args);
+        var rc = configuration.Parse(args).Validate().Invoke();
 
         Assert.Equal(0, rc);
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2, PrincipalSid3 }.Order(), policy.LsaEnumerateAccountsWithUserRight().Order());

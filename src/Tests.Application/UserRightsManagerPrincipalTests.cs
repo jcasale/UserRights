@@ -28,7 +28,7 @@ public sealed class UserRightsManagerPrincipalTests : UserRightsManagerTestBase
                 { "joey", new List<SecurityIdentifier> { PrincipalSid1 } }
             });
 
-        return new TheoryData<IUserRightsSerializable, string, string[], string[], bool, bool, bool>
+        return new()
         {
             // Verify null policy instance.
             { null!, PrincipalName1, [Privilege1], [], false, false, false },

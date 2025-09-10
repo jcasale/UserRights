@@ -28,7 +28,7 @@ public sealed class UserRightsManagerPrivilegeTests : UserRightsManagerTestBase
         var policy = new MockLsaUserRights();
         const string pattern = ".*";
 
-        return new TheoryData<IUserRightsSerializable, string, string[], string[], bool, bool, string, bool>
+        return new()
         {
             // Verify null policy instance.
             { null!, Privilege1, [PrincipalName1], [], false, false, null!, false },

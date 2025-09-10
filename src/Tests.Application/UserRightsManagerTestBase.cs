@@ -29,7 +29,7 @@ public abstract class UserRightsManagerTestBase : IDisposable
                 .AddDebug());
 
         // Defer the creation until the instance is accessed to allow inheritors to modify the service collection.
-        _serviceProvider = new Lazy<ServiceProvider>(_serviceCollection.BuildServiceProvider);
+        _serviceProvider = new(_serviceCollection.BuildServiceProvider);
     }
 
     /// <summary>

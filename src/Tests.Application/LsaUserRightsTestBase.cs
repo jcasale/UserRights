@@ -261,7 +261,7 @@ public abstract class LsaUserRightsTestBase : IDisposable
             foreach (var value in values)
             {
                 var securityIdentifier = value.StartsWith('*')
-                    ? new SecurityIdentifier(value.TrimStart('*'))
+                    ? new(value.TrimStart('*'))
                     : value.ToSecurityIdentifier();
 
                 securityIdentifiers.Add(securityIdentifier);
@@ -270,7 +270,7 @@ public abstract class LsaUserRightsTestBase : IDisposable
             dictionary.Add(child.Key, securityIdentifiers.AsReadOnly());
         }
 
-        return new ReadOnlyDictionary<string, IReadOnlyCollection<SecurityIdentifier>>(dictionary);
+        return new(dictionary);
     }
 
     /// <summary>

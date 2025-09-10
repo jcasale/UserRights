@@ -78,7 +78,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
                 {
                     var length = checked((ushort)(privilege.Length * sizeof(char)));
 
-                    rights[i] = new LSA_UNICODE_STRING
+                    rights[i] = new()
                     {
                         Length = length,
                         MaximumLength = length,
@@ -135,7 +135,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
                     var ptr = nint.Add((nint)userRights, offset);
                     var result = Marshal.PtrToStructure<LSA_UNICODE_STRING>(ptr);
 
-                    results[i] = new string(result.Buffer.Value);
+                    results[i] = new(result.Buffer.Value);
                 }
 
                 return results;
@@ -204,7 +204,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
                     var result = Marshal.PtrToStructure<LSA_ENUMERATION_INFORMATION>(nint.Add((nint)buffer, offset));
                     var sid = result.Sid;
 
-                    results[i] = new SecurityIdentifier((nint)sid.Value);
+                    results[i] = new((nint)sid.Value);
                 }
 
                 return results;
@@ -253,7 +253,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
                 {
                     var length = checked((ushort)(privilege.Length * sizeof(char)));
 
-                    rights[i] = new LSA_UNICODE_STRING
+                    rights[i] = new()
                     {
                         Length = length,
                         MaximumLength = length,

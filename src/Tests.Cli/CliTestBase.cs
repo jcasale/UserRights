@@ -26,7 +26,7 @@ public abstract class CliTestBase : IDisposable
                 .SetMinimumLevel(LogLevel.Trace)
                 .AddDebug());
 
-        _serviceProvider = new Lazy<ServiceProvider>(_serviceCollection.BuildServiceProvider);
+        _serviceProvider = new(_serviceCollection.BuildServiceProvider);
     }
 
     /// <summary>

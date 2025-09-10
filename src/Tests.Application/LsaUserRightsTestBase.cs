@@ -26,10 +26,10 @@ public abstract class LsaUserRightsTestBase : IDisposable
     private const string RestoreSecurityTemplateName = "restore.ini";
     private const string RestoreSecurityLogName = "restore.log";
 
-    private readonly DirectoryInfo? directory = CreateTempDirectory();
-    private readonly IReadOnlyDictionary<string, IReadOnlyCollection<SecurityIdentifier>> initialState;
+    private readonly DirectoryInfo? _directory = CreateTempDirectory();
+    private readonly IReadOnlyDictionary<string, IReadOnlyCollection<SecurityIdentifier>> _initialState;
 
-    private bool disposed;
+    private bool _disposed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="LsaUserRightsTestBase"/> class.
@@ -39,17 +39,17 @@ public abstract class LsaUserRightsTestBase : IDisposable
         try
         {
             // Create a backup to restore during disposal.
-            CreateSecurityDatabaseBackup(directory.FullName);
+            CreateSecurityDatabaseBackup(_directory.FullName);
 
             // Load the contents of the backup for use as initial state.
-            initialState = ReadSecurityDatabaseBackup(directory.FullName);
+            _initialState = ReadSecurityDatabaseBackup(_directory.FullName);
 
             // Create the updated configuration file to remove assignments for any privileges that were originally empty.
-            CreateRestoreTemplate(directory.FullName, initialState);
+            CreateRestoreTemplate(_directory.FullName, _initialState);
         }
         catch
         {
-            directory = null;
+            _directory = null;
 
             throw;
         }
@@ -62,9 +62,9 @@ public abstract class LsaUserRightsTestBase : IDisposable
     {
         get
         {
-            ObjectDisposedException.ThrowIf(disposed, this);
+            ObjectDisposedException.ThrowIf(_disposed, this);
 
-            return initialState;
+            return _initialState;
         }
     }
 
@@ -81,21 +81,21 @@ public abstract class LsaUserRightsTestBase : IDisposable
     /// <param name="disposing">A value indicating whether the method call comes from a dispose method (its value is <see langword="true"/>) or from a finalizer (its value is <see langword="false"/>).</param>
     protected virtual void Dispose(bool disposing)
     {
-        if (disposed)
+        if (_disposed)
         {
             return;
         }
 
         if (disposing)
         {
-            if (directory is not null)
+            if (_directory is not null)
             {
-                RestoreSecurityDatabaseBackup(directory.FullName);
+                RestoreSecurityDatabaseBackup(_directory.FullName);
 
-                directory.Delete(true);
+                _directory.Delete(true);
             }
 
-            disposed = true;
+            _disposed = true;
         }
     }
 
@@ -105,7 +105,7 @@ public abstract class LsaUserRightsTestBase : IDisposable
     /// <returns>A map of privilege to security identifiers.</returns>
     protected IReadOnlyDictionary<string, IReadOnlyCollection<SecurityIdentifier>> GetCurrentState()
     {
-        ObjectDisposedException.ThrowIf(disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         var directoryInfo = CreateTempDirectory();
 

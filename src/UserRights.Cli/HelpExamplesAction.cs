@@ -1,4 +1,4 @@
-﻿namespace UserRights.Cli;
+namespace UserRights.Cli;
 
 using System;
 using System.CommandLine;
@@ -12,7 +12,7 @@ using System.Text;
 /// </summary>
 public class HelpExamplesAction : SynchronousCommandLineAction
 {
-    private readonly HelpAction helpAction;
+    private readonly HelpAction _helpAction;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="HelpExamplesAction"/> class.
@@ -22,7 +22,7 @@ public class HelpExamplesAction : SynchronousCommandLineAction
     {
         ArgumentNullException.ThrowIfNull(helpAction);
 
-        helpAction = helpAction;
+        _helpAction = helpAction;
     }
 
     /// <inheritdoc />
@@ -30,7 +30,7 @@ public class HelpExamplesAction : SynchronousCommandLineAction
     {
         ArgumentNullException.ThrowIfNull(parseResult);
 
-        var result = helpAction.Invoke(parseResult);
+        var result = _helpAction.Invoke(parseResult);
 
         GenerateExamples(parseResult);
 

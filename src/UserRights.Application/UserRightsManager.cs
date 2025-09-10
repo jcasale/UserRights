@@ -14,13 +14,13 @@ using UserRights.Extensions.Security;
 /// </summary>
 public class UserRightsManager : IUserRightsManager
 {
-    private readonly ILogger logger;
+    private readonly ILogger _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UserRightsManager"/> class.
     /// </summary>
     /// <param name="logger">The logging instance.</param>
-    public UserRightsManager(ILogger<UserRightsManager> logger) => logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    public UserRightsManager(ILogger<UserRightsManager> logger) => _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     /// <inheritdoc />
     public IEnumerable<IUserRightEntry> GetUserRights(IUserRights policy)
@@ -270,7 +270,7 @@ public class UserRightsManager : IUserRightsManager
 
         if (dryRun)
         {
-            logger.LogInformation(OperationId.PrivilegeGrantDryrun, "Granting {Privilege:l} to {Principal}.", privilege, principal);
+            _logger.LogInformation(OperationId.PrivilegeGrantDryrun, "Granting {Privilege:l} to {Principal}.", privilege, principal);
 
             return;
         }
@@ -281,12 +281,12 @@ public class UserRightsManager : IUserRightsManager
         }
         catch
         {
-            logger.LogError(OperationId.PrivilegeGrantFailure, "Failed to grant {Privilege:l} to {Principal}.", privilege, principal);
+            _logger.LogError(OperationId.PrivilegeGrantFailure, "Failed to grant {Privilege:l} to {Principal}.", privilege, principal);
 
             throw;
         }
 
-        logger.LogInformation(OperationId.PrivilegeGrantSuccess, "Successfully granted {Privilege:l} to {Principal}.", privilege, principal);
+        _logger.LogInformation(OperationId.PrivilegeGrantSuccess, "Successfully granted {Privilege:l} to {Principal}.", privilege, principal);
     }
 
     /// <summary>
@@ -304,7 +304,7 @@ public class UserRightsManager : IUserRightsManager
 
         if (dryRun)
         {
-            logger.LogInformation(OperationId.PrivilegeRevokeDryrun, "Revoking {Privilege:l} from {Principal}.", privilege, principal);
+            _logger.LogInformation(OperationId.PrivilegeRevokeDryrun, "Revoking {Privilege:l} from {Principal}.", privilege, principal);
 
             return;
         }
@@ -315,11 +315,11 @@ public class UserRightsManager : IUserRightsManager
         }
         catch
         {
-            logger.LogError(OperationId.PrivilegeRevokeFailure, "Failed to revoke {Privilege:l} from {Principal}.", privilege, principal);
+            _logger.LogError(OperationId.PrivilegeRevokeFailure, "Failed to revoke {Privilege:l} from {Principal}.", privilege, principal);
 
             throw;
         }
 
-        logger.LogInformation(OperationId.PrivilegeRevokeSuccess, "Successfully revoked {Privilege:l} from {Principal}.", privilege, principal);
+        _logger.LogInformation(OperationId.PrivilegeRevokeSuccess, "Successfully revoked {Privilege:l} from {Principal}.", privilege, principal);
     }
 }

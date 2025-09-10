@@ -15,15 +15,15 @@ using Windows.Win32.Security.Authentication.Identity;
 /// </summary>
 public class LsaUserRights : ILsaUserRights, IDisposable
 {
-    private bool disposed;
-    private LsaCloseSafeHandle? handle;
+    private bool _disposed;
+    private LsaCloseSafeHandle? _handle;
 
     /// <inheritdoc />
     public void Connect(string? systemName = default)
     {
-        ObjectDisposedException.ThrowIf(disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
-        if (handle is not null)
+        if (_handle is not null)
         {
             throw new InvalidOperationException("A connection to the policy database already exists.");
         }
@@ -34,7 +34,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
             PInvoke.POLICY_LOOKUP_NAMES |
             PInvoke.POLICY_VIEW_LOCAL_INFORMATION;
 
-        handle = LsaOpenPolicy(ref objectAttributes, desiredAccess, systemName);
+        _handle = LsaOpenPolicy(ref objectAttributes, desiredAccess, systemName);
     }
 
     /// <inheritdoc />
@@ -47,9 +47,9 @@ public class LsaUserRights : ILsaUserRights, IDisposable
     /// <inheritdoc />
     public unsafe void LsaAddAccountRights(SecurityIdentifier accountSid, params string[] userRights)
     {
-        ObjectDisposedException.ThrowIf(disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
-        if (handle is null)
+        if (_handle is null)
         {
             throw new InvalidOperationException("A connection to the policy database is required.");
         }
@@ -87,7 +87,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
                 }
             }
 
-            var status = PInvoke.LsaAddAccountRights(handle, ssid, rights);
+            var status = PInvoke.LsaAddAccountRights(_handle, ssid, rights);
             var error = PInvoke.LsaNtStatusToWinError(status);
 
             if ((WIN32_ERROR)error != WIN32_ERROR.ERROR_SUCCESS)
@@ -100,9 +100,9 @@ public class LsaUserRights : ILsaUserRights, IDisposable
     /// <inheritdoc />
     public unsafe string[] LsaEnumerateAccountRights(SecurityIdentifier accountSid)
     {
-        ObjectDisposedException.ThrowIf(disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
-        if (handle is null)
+        if (_handle is null)
         {
             throw new InvalidOperationException("A connection to the policy database is required.");
         }
@@ -119,7 +119,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
             LSA_UNICODE_STRING* userRights = default;
             try
             {
-                var status = PInvoke.LsaEnumerateAccountRights(handle, ssid, out userRights, out var count);
+                var status = PInvoke.LsaEnumerateAccountRights(_handle, ssid, out userRights, out var count);
                 var error = (WIN32_ERROR)PInvoke.LsaNtStatusToWinError(status);
 
                 if (error != WIN32_ERROR.ERROR_SUCCESS)
@@ -153,9 +153,9 @@ public class LsaUserRights : ILsaUserRights, IDisposable
     /// <inheritdoc />
     public unsafe SecurityIdentifier[] LsaEnumerateAccountsWithUserRight(string? userRight = default)
     {
-        ObjectDisposedException.ThrowIf(disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
-        if (handle is null)
+        if (_handle is null)
         {
             throw new InvalidOperationException("A connection to the policy database is required.");
         }
@@ -183,7 +183,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
             void* buffer = default;
             try
             {
-                var status = PInvoke.LsaEnumerateAccountsWithUserRight(handle, right, out buffer, out var count);
+                var status = PInvoke.LsaEnumerateAccountsWithUserRight(_handle, right, out buffer, out var count);
                 var error = (WIN32_ERROR)PInvoke.LsaNtStatusToWinError(status);
 
                 if (error == WIN32_ERROR.ERROR_NO_MORE_ITEMS)
@@ -222,9 +222,9 @@ public class LsaUserRights : ILsaUserRights, IDisposable
     /// <inheritdoc />
     public unsafe void LsaRemoveAccountRights(SecurityIdentifier accountSid, params string[] userRights)
     {
-        ObjectDisposedException.ThrowIf(disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
-        if (handle is null)
+        if (_handle is null)
         {
             throw new InvalidOperationException("A connection to the policy database is required.");
         }
@@ -262,7 +262,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
                 }
             }
 
-            var status = PInvoke.LsaRemoveAccountRights(handle, ssid, false, rights);
+            var status = PInvoke.LsaRemoveAccountRights(_handle, ssid, false, rights);
             var error = PInvoke.LsaNtStatusToWinError(status);
 
             if ((WIN32_ERROR)error != WIN32_ERROR.ERROR_SUCCESS)
@@ -278,15 +278,15 @@ public class LsaUserRights : ILsaUserRights, IDisposable
     /// <param name="disposing">A value indicating whether the method call comes from a dispose method (its value is <see langword="true"/>) or from a finalizer (its value is <see langword="false"/>).</param>
     protected virtual void Dispose(bool disposing)
     {
-        if (disposed)
+        if (_disposed)
         {
             return;
         }
 
         if (disposing)
         {
-            handle?.Dispose();
-            disposed = true;
+            _handle?.Dispose();
+            _disposed = true;
         }
     }
 
@@ -299,9 +299,9 @@ public class LsaUserRights : ILsaUserRights, IDisposable
     /// <returns>A handle to the Policy object.</returns>
     private unsafe LsaCloseSafeHandle LsaOpenPolicy(ref LSA_OBJECT_ATTRIBUTES objectAttributes, uint desiredAccess, string? systemName = default)
     {
-        ObjectDisposedException.ThrowIf(disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
-        if (handle is not null)
+        if (_handle is not null)
         {
             throw new InvalidOperationException("A connection to the policy database already exists.");
         }

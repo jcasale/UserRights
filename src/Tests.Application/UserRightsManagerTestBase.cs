@@ -11,17 +11,17 @@ using UserRights.Application;
 /// </summary>
 public abstract class UserRightsManagerTestBase : IDisposable
 {
-    private readonly IServiceCollection serviceCollection;
-    private readonly Lazy<ServiceProvider> serviceProvider;
+    private readonly IServiceCollection _serviceCollection;
+    private readonly Lazy<ServiceProvider> _serviceProvider;
 
-    private bool disposed;
+    private bool _disposed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UserRightsManagerTestBase"/> class.
     /// </summary>
     protected UserRightsManagerTestBase()
     {
-        serviceCollection = new ServiceCollection()
+        _serviceCollection = new ServiceCollection()
             .AddSingleton<IUserRightsManager, UserRightsManager>()
             .AddLogging(builder => builder
                 .ClearProviders()
@@ -29,7 +29,7 @@ public abstract class UserRightsManagerTestBase : IDisposable
                 .AddDebug());
 
         // Defer the creation until the instance is accessed to allow inheritors to modify the service collection.
-        serviceProvider = new Lazy<ServiceProvider>(serviceCollection.BuildServiceProvider);
+        _serviceProvider = new Lazy<ServiceProvider>(_serviceCollection.BuildServiceProvider);
     }
 
     /// <summary>
@@ -39,9 +39,9 @@ public abstract class UserRightsManagerTestBase : IDisposable
     {
         get
         {
-            ObjectDisposedException.ThrowIf(disposed, this);
+            ObjectDisposedException.ThrowIf(_disposed, this);
 
-            return serviceCollection;
+            return _serviceCollection;
         }
     }
 
@@ -52,9 +52,9 @@ public abstract class UserRightsManagerTestBase : IDisposable
     {
         get
         {
-            ObjectDisposedException.ThrowIf(disposed, this);
+            ObjectDisposedException.ThrowIf(_disposed, this);
 
-            return serviceProvider.Value;
+            return _serviceProvider.Value;
         }
     }
 
@@ -71,19 +71,19 @@ public abstract class UserRightsManagerTestBase : IDisposable
     /// <param name="disposing">A value indicating whether the method call comes from a dispose method (its value is <see langword="true"/>) or from a finalizer (its value is <see langword="false"/>).</param>
     protected virtual void Dispose(bool disposing)
     {
-        if (disposed)
+        if (_disposed)
         {
             return;
         }
 
         if (disposing)
         {
-            if (serviceProvider.IsValueCreated)
+            if (_serviceProvider.IsValueCreated)
             {
-                serviceProvider.Value.Dispose();
+                _serviceProvider.Value.Dispose();
             }
 
-            disposed = true;
+            _disposed = true;
         }
     }
 }

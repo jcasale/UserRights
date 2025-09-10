@@ -10,7 +10,7 @@ using Xunit;
 /// </summary>
 public sealed class PrincipalSyntaxTests : CliTestBase
 {
-    private readonly CliBuilder builder;
+    private readonly CliBuilder _builder;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PrincipalSyntaxTests"/> class.
@@ -21,7 +21,7 @@ public sealed class PrincipalSyntaxTests : CliTestBase
         ServiceCollection.AddSingleton<IUserRightsManager, MockUserRightsManager>();
         ServiceCollection.AddSingleton<CliBuilder>();
 
-        builder = ServiceProvider.GetRequiredService<CliBuilder>();
+        _builder = ServiceProvider.GetRequiredService<CliBuilder>();
     }
 
     /// <summary>
@@ -31,7 +31,7 @@ public sealed class PrincipalSyntaxTests : CliTestBase
     public void GrantAndRevokeShouldWork()
     {
         var args = new[] { "principal", "DOMAIN\\UserOrGroup", "--grant", "SeServiceLogonRight", "--revoke", "SeBatchLogonRight" };
-        var configuration = builder.Build();
+        var configuration = _builder.Build();
 
         var rc = configuration.Parse(args).Validate().Invoke();
 
@@ -45,7 +45,7 @@ public sealed class PrincipalSyntaxTests : CliTestBase
     public void GrantMultipleShouldWork()
     {
         var args = new[] { "principal", "DOMAIN\\UserOrGroup", "--grant", "SeServiceLogonRight", "--grant", "SeBatchLogonRight" };
-        var configuration = builder.Build();
+        var configuration = _builder.Build();
 
         var rc = configuration.Parse(args).Validate().Invoke();
 
@@ -59,7 +59,7 @@ public sealed class PrincipalSyntaxTests : CliTestBase
     public void GrantShouldWork()
     {
         var args = new[] { "principal", "DOMAIN\\UserOrGroup", "--grant", "SeServiceLogonRight" };
-        var configuration = builder.Build();
+        var configuration = _builder.Build();
 
         var rc = configuration.Parse(args).Validate().Invoke();
 
@@ -74,7 +74,7 @@ public sealed class PrincipalSyntaxTests : CliTestBase
     [InlineData("principal", "DOMAIN\\UserOrGroup", "--grant", "")]
     [InlineData("principal", "DOMAIN\\UserOrGroup", "--grant", " ")]
     public void GrantWithInvalidStringThrowsException(params string[] args)
-        => Assert.Throws<SyntaxException>(() => builder.Build().Parse(args).Validate().Invoke());
+        => Assert.Throws<SyntaxException>(() => _builder.Build().Parse(args).Validate().Invoke());
 
     /// <summary>
     /// Ensures granting a privilege and revoking all other privileges is rejected.
@@ -83,7 +83,7 @@ public sealed class PrincipalSyntaxTests : CliTestBase
     public void GrantWithRevokeAllThrowsException()
     {
         var args = new[] { "principal", "DOMAIN\\UserOrGroup", "--grant", "SeServiceLogonRight", "--revoke-all" };
-        var configuration = builder.Build();
+        var configuration = _builder.Build();
 
         Assert.Throws<SyntaxException>(() => configuration.Parse(args).Validate().Invoke());
     }
@@ -95,7 +95,7 @@ public sealed class PrincipalSyntaxTests : CliTestBase
     public void NoOptionsThrowsException()
     {
         var args = new[] { "principal" };
-        var configuration = builder.Build();
+        var configuration = _builder.Build();
 
         Assert.Throws<SyntaxException>(() => configuration.Parse(args).Validate().Invoke());
     }
@@ -109,7 +109,7 @@ public sealed class PrincipalSyntaxTests : CliTestBase
     [InlineData("principal", "DOMAIN\\UserOrGroup", "--grant", "SeServiceLogonRight", "--grant", "SeServiceLogonRight")]
     [InlineData("principal", "DOMAIN\\UserOrGroup", "--revoke", "SeServiceLogonRight", "--revoke", "SeServiceLogonRight")]
     public void OverlappingGrantsAndRevokesThrowsException(params string[] args)
-        => Assert.Throws<SyntaxException>(() => builder.Build().Parse(args).Validate().Invoke());
+        => Assert.Throws<SyntaxException>(() => _builder.Build().Parse(args).Validate().Invoke());
 
     /// <summary>
     /// Ensures an empty or whitespace principal is rejected.
@@ -119,7 +119,7 @@ public sealed class PrincipalSyntaxTests : CliTestBase
     [InlineData("principal", "", "--grant", "SeServiceLogonRight")]
     [InlineData("principal", " ", "--grant", "SeServiceLogonRight")]
     public void PrincipalWithInvalidStringThrowsException(params string[] args)
-        => Assert.Throws<SyntaxException>(() => builder.Build().Parse(args).Validate().Invoke());
+        => Assert.Throws<SyntaxException>(() => _builder.Build().Parse(args).Validate().Invoke());
 
     /// <summary>
     /// Ensures revoking all privileges is accepted.
@@ -128,7 +128,7 @@ public sealed class PrincipalSyntaxTests : CliTestBase
     public void RevokeAllShouldWork()
     {
         var args = new[] { "principal", "DOMAIN\\UserOrGroup", "--revoke-all" };
-        var configuration = builder.Build();
+        var configuration = _builder.Build();
 
         var rc = configuration.Parse(args).Validate().Invoke();
 
@@ -142,7 +142,7 @@ public sealed class PrincipalSyntaxTests : CliTestBase
     public void RevokeAllWithGrantsThrowsException()
     {
         var args = new[] { "principal", "DOMAIN\\UserOrGroup", "--revoke-all", "--grant", "SeServiceLogonRight" };
-        var configuration = builder.Build();
+        var configuration = _builder.Build();
 
         Assert.Throws<SyntaxException>(() => configuration.Parse(args).Validate().Invoke());
     }
@@ -154,7 +154,7 @@ public sealed class PrincipalSyntaxTests : CliTestBase
     public void RevokeAllWithRevocationsThrowsException()
     {
         var args = new[] { "principal", "DOMAIN\\UserOrGroup", "--revoke-all", "--revoke", "SeServiceLogonRight" };
-        var configuration = builder.Build();
+        var configuration = _builder.Build();
 
         Assert.Throws<SyntaxException>(() => configuration.Parse(args).Validate().Invoke());
     }
@@ -166,7 +166,7 @@ public sealed class PrincipalSyntaxTests : CliTestBase
     public void RevokeAllWithRevokeOthersThrowsException()
     {
         var args = new[] { "principal", "DOMAIN\\UserOrGroup", "--revoke-all", "--revoke-others" };
-        var configuration = builder.Build();
+        var configuration = _builder.Build();
 
         Assert.Throws<SyntaxException>(() => configuration.Parse(args).Validate().Invoke());
     }
@@ -178,7 +178,7 @@ public sealed class PrincipalSyntaxTests : CliTestBase
     public void RevokeMultipleShouldWork()
     {
         var args = new[] { "principal", "DOMAIN\\UserOrGroup", "--revoke", "SeServiceLogonRight", "--revoke", "SeBatchLogonRight" };
-        var configuration = builder.Build();
+        var configuration = _builder.Build();
 
         var rc = configuration.Parse(args).Validate().Invoke();
 
@@ -193,7 +193,7 @@ public sealed class PrincipalSyntaxTests : CliTestBase
     {
         var args = new[] { "principal", "DOMAIN\\UserOrGroup", "--revoke-others" };
 
-        Assert.Throws<SyntaxException>(() => builder.Build().Parse(args).Validate().Invoke());
+        Assert.Throws<SyntaxException>(() => _builder.Build().Parse(args).Validate().Invoke());
     }
 
     /// <summary>
@@ -203,7 +203,7 @@ public sealed class PrincipalSyntaxTests : CliTestBase
     public void RevokeOthersWithRevocationsThrowsException()
     {
         var args = new[] { "principal", "DOMAIN\\UserOrGroup", "--revoke-others", "--revoke", "SeServiceLogonRight" };
-        var configuration = builder.Build();
+        var configuration = _builder.Build();
 
         Assert.Throws<SyntaxException>(() => configuration.Parse(args).Validate().Invoke());
     }
@@ -215,7 +215,7 @@ public sealed class PrincipalSyntaxTests : CliTestBase
     public void RevokeShouldWork()
     {
         var args = new[] { "principal", "DOMAIN\\UserOrGroup", "--revoke", "SeServiceLogonRight" };
-        var configuration = builder.Build();
+        var configuration = _builder.Build();
 
         var rc = configuration.Parse(args).Validate().Invoke();
 
@@ -230,7 +230,7 @@ public sealed class PrincipalSyntaxTests : CliTestBase
     [InlineData("principal", "DOMAIN\\UserOrGroup", "--revoke", "")]
     [InlineData("principal", "DOMAIN\\UserOrGroup", "--revoke", " ")]
     public void RevokeWithInvalidStringThrowsException(params string[] args)
-        => Assert.Throws<SyntaxException>(() => builder.Build().Parse(args).Validate().Invoke());
+        => Assert.Throws<SyntaxException>(() => _builder.Build().Parse(args).Validate().Invoke());
 
     /// <summary>
     /// Ensures an empty or whitespace system name is rejected.
@@ -240,5 +240,5 @@ public sealed class PrincipalSyntaxTests : CliTestBase
     [InlineData("principal", "DOMAIN\\UserOrGroup", "--grant", "SeServiceLogonRight", "--system-name", "")]
     [InlineData("principal", "DOMAIN\\UserOrGroup", "--grant", "SeServiceLogonRight", "--system-name", " ")]
     public void SystemNameWithInvalidStringThrowsException(params string[] args)
-        => Assert.Throws<SyntaxException>(() => builder.Build().Parse(args).Validate().Invoke());
+        => Assert.Throws<SyntaxException>(() => _builder.Build().Parse(args).Validate().Invoke());
 }

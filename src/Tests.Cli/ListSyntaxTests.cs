@@ -10,7 +10,7 @@ using Xunit;
 /// </summary>
 public sealed class ListSyntaxTests : CliTestBase
 {
-    private readonly CliBuilder builder;
+    private readonly CliBuilder _builder;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ListSyntaxTests"/> class.
@@ -21,7 +21,7 @@ public sealed class ListSyntaxTests : CliTestBase
         ServiceCollection.AddSingleton<IUserRightsManager, MockUserRightsManager>();
         ServiceCollection.AddSingleton<CliBuilder>();
 
-        builder = ServiceProvider.GetRequiredService<CliBuilder>();
+        _builder = ServiceProvider.GetRequiredService<CliBuilder>();
     }
 
     /// <summary>
@@ -31,7 +31,7 @@ public sealed class ListSyntaxTests : CliTestBase
     public void CsvToStdoutShouldWork()
     {
         var args = new[] { "list" };
-        var configuration = builder.Build();
+        var configuration = _builder.Build();
 
         var rc = configuration.Parse(args).Validate().Invoke();
 
@@ -45,7 +45,7 @@ public sealed class ListSyntaxTests : CliTestBase
     public void CsvToPathShouldWork()
     {
         var args = new[] { "list", "--path", "file.csv" };
-        var configuration = builder.Build();
+        var configuration = _builder.Build();
 
         var rc = configuration.Parse(args).Validate().Invoke();
 
@@ -60,7 +60,7 @@ public sealed class ListSyntaxTests : CliTestBase
     [InlineData("list", "--path", "")]
     [InlineData("list", "--path", " ")]
     public void PathWithInvalidStringThrowsException(params string[] args)
-        => Assert.Throws<SyntaxException>(() => builder.Build().Parse(args).Validate().Invoke());
+        => Assert.Throws<SyntaxException>(() => _builder.Build().Parse(args).Validate().Invoke());
 
     /// <summary>
     /// Ensures an empty or whitespace system name is rejected.
@@ -70,7 +70,7 @@ public sealed class ListSyntaxTests : CliTestBase
     [InlineData("list", "--system-name", "")]
     [InlineData("list", "--system-name", " ")]
     public void SystemNameWithInvalidStringThrowsException(params string[] args)
-        => Assert.Throws<SyntaxException>(() => builder.Build().Parse(args).Validate().Invoke());
+        => Assert.Throws<SyntaxException>(() => _builder.Build().Parse(args).Validate().Invoke());
 
     /// <summary>
     /// Verifies list mode with JSON formatted output sent to STDOUT is parsed successfully.
@@ -79,7 +79,7 @@ public sealed class ListSyntaxTests : CliTestBase
     public void JsonToStdoutShouldWork()
     {
         var args = new[] { "list", "--json" };
-        var configuration = builder.Build();
+        var configuration = _builder.Build();
 
         var rc = configuration.Parse(args).Validate().Invoke();
 
@@ -93,7 +93,7 @@ public sealed class ListSyntaxTests : CliTestBase
     public void JsonToPathShouldWork()
     {
         var args = new[] { "list", "--json", "--path", "file.csv" };
-        var configuration = builder.Build();
+        var configuration = _builder.Build();
 
         var rc = configuration.Parse(args).Validate().Invoke();
 

@@ -42,17 +42,17 @@ public sealed class PrincipalCommandTests : CliTestBase
         var policy = new MockLsaUserRights(database);
         policy.Connect("SystemName");
 
-        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }, policy.LsaEnumerateAccountsWithUserRight().Order());
+        Assert.Equal([PrincipalSid1, PrincipalSid2], policy.LsaEnumerateAccountsWithUserRight().Order());
         Assert.Equal(new[] { Privilege1 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
         Assert.Equal(new[] { Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid2));
 
         policy.ResetConnection();
 
-        this.ServiceCollection.AddSingleton<ILsaUserRights>(policy);
-        this.ServiceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
-        this.ServiceCollection.AddSingleton<CliBuilder>();
+        ServiceCollection.AddSingleton<ILsaUserRights>(policy);
+        ServiceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
+        ServiceCollection.AddSingleton<CliBuilder>();
 
-        var builder = this.ServiceProvider.GetRequiredService<CliBuilder>();
+        var builder = ServiceProvider.GetRequiredService<CliBuilder>();
 
         var configuration = builder.Build();
 
@@ -68,7 +68,7 @@ public sealed class PrincipalCommandTests : CliTestBase
         var rc = configuration.Parse(args).Validate().Invoke();
 
         Assert.Equal(0, rc);
-        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }, policy.LsaEnumerateAccountsWithUserRight().Order());
+        Assert.Equal([PrincipalSid1, PrincipalSid2], policy.LsaEnumerateAccountsWithUserRight().Order());
         Assert.Equal(new[] { Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
         Assert.Equal(new[] { Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid2));
     }
@@ -105,11 +105,11 @@ public sealed class PrincipalCommandTests : CliTestBase
 
         policy.ResetConnection();
 
-        this.ServiceCollection.AddSingleton<ILsaUserRights>(policy);
-        this.ServiceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
-        this.ServiceCollection.AddSingleton<CliBuilder>();
+        ServiceCollection.AddSingleton<ILsaUserRights>(policy);
+        ServiceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
+        ServiceCollection.AddSingleton<CliBuilder>();
 
-        var builder = this.ServiceProvider.GetRequiredService<CliBuilder>();
+        var builder = ServiceProvider.GetRequiredService<CliBuilder>();
 
         var configuration = builder.Build();
 
@@ -163,11 +163,11 @@ public sealed class PrincipalCommandTests : CliTestBase
 
         policy.ResetConnection();
 
-        this.ServiceCollection.AddSingleton<ILsaUserRights>(policy);
-        this.ServiceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
-        this.ServiceCollection.AddSingleton<CliBuilder>();
+        ServiceCollection.AddSingleton<ILsaUserRights>(policy);
+        ServiceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
+        ServiceCollection.AddSingleton<CliBuilder>();
 
-        var builder = this.ServiceProvider.GetRequiredService<CliBuilder>();
+        var builder = ServiceProvider.GetRequiredService<CliBuilder>();
 
         var configuration = builder.Build();
 
@@ -220,11 +220,11 @@ public sealed class PrincipalCommandTests : CliTestBase
 
         policy.ResetConnection();
 
-        this.ServiceCollection.AddSingleton<ILsaUserRights>(policy);
-        this.ServiceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
-        this.ServiceCollection.AddSingleton<CliBuilder>();
+        ServiceCollection.AddSingleton<ILsaUserRights>(policy);
+        ServiceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
+        ServiceCollection.AddSingleton<CliBuilder>();
 
-        var builder = this.ServiceProvider.GetRequiredService<CliBuilder>();
+        var builder = ServiceProvider.GetRequiredService<CliBuilder>();
 
         var configuration = builder.Build();
 
@@ -239,7 +239,7 @@ public sealed class PrincipalCommandTests : CliTestBase
 
         Assert.Equal(0, rc);
         Assert.Empty(policy.LsaEnumerateAccountRights(PrincipalSid1));
-        Assert.Equal(new[] { PrincipalSid2 }, policy.LsaEnumerateAccountsWithUserRight());
+        Assert.Equal([PrincipalSid2], policy.LsaEnumerateAccountsWithUserRight());
         Assert.Equal(new[] { Privilege1, Privilege2 }.Order(StringComparer.OrdinalIgnoreCase), policy.LsaEnumerateAccountRights(PrincipalSid2).Order(StringComparer.OrdinalIgnoreCase));
     }
 
@@ -275,11 +275,11 @@ public sealed class PrincipalCommandTests : CliTestBase
 
         policy.ResetConnection();
 
-        this.ServiceCollection.AddSingleton<ILsaUserRights>(policy);
-        this.ServiceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
-        this.ServiceCollection.AddSingleton<CliBuilder>();
+        ServiceCollection.AddSingleton<ILsaUserRights>(policy);
+        ServiceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
+        ServiceCollection.AddSingleton<CliBuilder>();
 
-        var builder = this.ServiceProvider.GetRequiredService<CliBuilder>();
+        var builder = ServiceProvider.GetRequiredService<CliBuilder>();
 
         var configuration = builder.Build();
 

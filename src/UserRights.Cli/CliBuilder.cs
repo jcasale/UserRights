@@ -21,9 +21,9 @@ using UserRights.Extensions.Serialization;
 /// </summary>
 public class CliBuilder
 {
-    private readonly ILogger logger;
-    private readonly ILsaUserRights policy;
-    private readonly IUserRightsManager manager;
+    private readonly ILogger _logger;
+    private readonly ILsaUserRights _policy;
+    private readonly IUserRightsManager _manager;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CliBuilder"/> class.
@@ -33,9 +33,9 @@ public class CliBuilder
     /// <param name="manager">The user rights application instance.</param>
     public CliBuilder(ILogger<CliBuilder> logger, ILsaUserRights policy, IUserRightsManager manager)
     {
-        this.logger = logger;
-        this.policy = policy;
-        this.manager = manager;
+        _logger = logger;
+        _policy = policy;
+        _manager = manager;
     }
 
     /// <summary>
@@ -46,9 +46,9 @@ public class CliBuilder
     {
         var rootCommand = new RootCommand("Windows User Rights Assignment Utility")
         {
-            this.BuildListCommand(),
-            this.BuildPrincipalCommand(),
-            this.BuildPrivilegeCommand()
+            BuildListCommand(),
+            BuildPrincipalCommand(),
+            BuildPrivilegeCommand()
         };
 
         foreach (var option in rootCommand.Options)
@@ -125,15 +125,15 @@ public class CliBuilder
 
         command.SetAction(async (parseResult, cancellationToken) =>
         {
-            this.logger.LogInformation(OperationId.ListMode, "{Program:l} v{Version} executing in {Mode:l} mode.", ProgramInfo.Program, ProgramInfo.Version, command.Name);
+            _logger.LogInformation(OperationId.ListMode, "{Program:l} v{Version} executing in {Mode:l} mode.", ProgramInfo.Program, ProgramInfo.Version, command.Name);
 
             var json = parseResult.GetValue(jsonOption);
             var path = parseResult.GetValue(pathOption);
             var systemName = parseResult.GetValue(systemNameOption);
 
-            this.policy.Connect(systemName);
+            _policy.Connect(systemName);
 
-            var results = this.manager.GetUserRights(this.policy);
+            var results = _manager.GetUserRights(_policy);
 
             if (string.IsNullOrWhiteSpace(path))
             {
@@ -348,14 +348,14 @@ public class CliBuilder
             var dryRun = parseResult.GetValue(dryRunOption);
             var systemName = parseResult.GetValue(systemNameOption);
 
-            this.logger.BeginScope(new Dictionary<string, object>(StringComparer.Ordinal) { { "DryRun", dryRun } });
+            _logger.BeginScope(new Dictionary<string, object>(StringComparer.Ordinal) { { "DryRun", dryRun } });
 
-            this.logger.LogInformation(OperationId.PrincipalMode, "{Program:l} v{Version} executing in {Mode:l} mode.", ProgramInfo.Program, ProgramInfo.Version, command.Name);
+            _logger.LogInformation(OperationId.PrincipalMode, "{Program:l} v{Version} executing in {Mode:l} mode.", ProgramInfo.Program, ProgramInfo.Version, command.Name);
 
-            this.policy.Connect(systemName);
+            _policy.Connect(systemName);
 
-            this.manager.ModifyPrincipal(
-                this.policy,
+            _manager.ModifyPrincipal(
+                _policy,
                 principal!,
                 grants!,
                 revocations!,
@@ -577,18 +577,18 @@ public class CliBuilder
             var dryRun = parseResult.GetValue(dryRunOption);
             var systemName = parseResult.GetValue(systemNameOption);
 
-            this.logger.BeginScope(new Dictionary<string, object>(StringComparer.Ordinal) { { "DryRun", dryRun } });
+            _logger.BeginScope(new Dictionary<string, object>(StringComparer.Ordinal) { { "DryRun", dryRun } });
 
-            this.logger.LogInformation(OperationId.PrivilegeMode, "{Program:l} v{Version} executing in {Mode:l} mode.", ProgramInfo.Program, ProgramInfo.Version, command.Name);
+            _logger.LogInformation(OperationId.PrivilegeMode, "{Program:l} v{Version} executing in {Mode:l} mode.", ProgramInfo.Program, ProgramInfo.Version, command.Name);
 
             var revokeRegex = string.IsNullOrWhiteSpace(revokePattern)
                 ? null
                 : new Regex(revokePattern, RegexOptions.None, TimeSpan.FromSeconds(1));
 
-            this.policy.Connect(systemName);
+            _policy.Connect(systemName);
 
-            this.manager.ModifyPrivilege(
-                this.policy,
+            _manager.ModifyPrivilege(
+                _policy,
                 privilege!,
                 grants!,
                 revocations!,

@@ -26,10 +26,10 @@ public abstract class LsaUserRightsTestBase : IDisposable
     private const string RestoreSecurityTemplateName = "restore.ini";
     private const string RestoreSecurityLogName = "restore.log";
 
-    private readonly DirectoryInfo? directory = CreateTempDirectory();
-    private readonly IReadOnlyDictionary<string, IReadOnlyCollection<SecurityIdentifier>> initialState;
+    private readonly DirectoryInfo? _directory = CreateTempDirectory();
+    private readonly IReadOnlyDictionary<string, IReadOnlyCollection<SecurityIdentifier>> _initialState;
 
-    private bool disposed;
+    private bool _disposed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="LsaUserRightsTestBase"/> class.
@@ -39,17 +39,17 @@ public abstract class LsaUserRightsTestBase : IDisposable
         try
         {
             // Create a backup to restore during disposal.
-            CreateSecurityDatabaseBackup(this.directory.FullName);
+            CreateSecurityDatabaseBackup(_directory.FullName);
 
             // Load the contents of the backup for use as initial state.
-            this.initialState = ReadSecurityDatabaseBackup(this.directory.FullName);
+            _initialState = ReadSecurityDatabaseBackup(_directory.FullName);
 
             // Create the updated configuration file to remove assignments for any privileges that were originally empty.
-            CreateRestoreTemplate(this.directory.FullName, this.initialState);
+            CreateRestoreTemplate(_directory.FullName, _initialState);
         }
         catch
         {
-            this.directory = null;
+            _directory = null;
 
             throw;
         }
@@ -62,16 +62,16 @@ public abstract class LsaUserRightsTestBase : IDisposable
     {
         get
         {
-            ObjectDisposedException.ThrowIf(this.disposed, this);
+            ObjectDisposedException.ThrowIf(_disposed, this);
 
-            return this.initialState;
+            return _initialState;
         }
     }
 
     /// <inheritdoc />
     public void Dispose()
     {
-        this.Dispose(true);
+        Dispose(true);
         GC.SuppressFinalize(this);
     }
 
@@ -81,21 +81,21 @@ public abstract class LsaUserRightsTestBase : IDisposable
     /// <param name="disposing">A value indicating whether the method call comes from a dispose method (its value is <see langword="true"/>) or from a finalizer (its value is <see langword="false"/>).</param>
     protected virtual void Dispose(bool disposing)
     {
-        if (this.disposed)
+        if (_disposed)
         {
             return;
         }
 
         if (disposing)
         {
-            if (this.directory is not null)
+            if (_directory is not null)
             {
-                RestoreSecurityDatabaseBackup(this.directory.FullName);
+                RestoreSecurityDatabaseBackup(_directory.FullName);
 
-                this.directory.Delete(true);
+                _directory.Delete(true);
             }
 
-            this.disposed = true;
+            _disposed = true;
         }
     }
 
@@ -105,7 +105,7 @@ public abstract class LsaUserRightsTestBase : IDisposable
     /// <returns>A map of privilege to security identifiers.</returns>
     protected IReadOnlyDictionary<string, IReadOnlyCollection<SecurityIdentifier>> GetCurrentState()
     {
-        ObjectDisposedException.ThrowIf(this.disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         var directoryInfo = CreateTempDirectory();
 
@@ -125,11 +125,7 @@ public abstract class LsaUserRightsTestBase : IDisposable
     /// <param name="stateBackup">The map of privilege to security identifiers for the backup configuration file.</param>
     private static void CreateRestoreTemplate(string workingDirectory, IReadOnlyDictionary<string, IReadOnlyCollection<SecurityIdentifier>> stateBackup)
     {
-        if (string.IsNullOrWhiteSpace(workingDirectory))
-        {
-            throw new ArgumentException("Value cannot be null or whitespace.", nameof(workingDirectory));
-        }
-
+        ArgumentException.ThrowIfNullOrWhiteSpace(workingDirectory);
         ArgumentNullException.ThrowIfNull(stateBackup);
 
         // Load existing assignments.
@@ -173,10 +169,7 @@ public abstract class LsaUserRightsTestBase : IDisposable
     /// <param name="workingDirectory">The path to a directory where the backup files will be created.</param>
     private static void CreateSecurityDatabaseBackup(string workingDirectory)
     {
-        if (string.IsNullOrWhiteSpace(workingDirectory))
-        {
-            throw new ArgumentException("Value cannot be null or whitespace.", nameof(workingDirectory));
-        }
+        ArgumentException.ThrowIfNullOrWhiteSpace(workingDirectory);
 
         var arguments = string.Format(
             CultureInfo.InvariantCulture,
@@ -239,12 +232,9 @@ public abstract class LsaUserRightsTestBase : IDisposable
     /// </summary>
     /// <param name="workingDirectory">The path to a directory where the backup files exist.</param>
     /// <returns>A map of privilege to security identifiers.</returns>
-    private static IReadOnlyDictionary<string, IReadOnlyCollection<SecurityIdentifier>> ReadSecurityDatabaseBackup(string workingDirectory)
+    private static ReadOnlyDictionary<string, IReadOnlyCollection<SecurityIdentifier>> ReadSecurityDatabaseBackup(string workingDirectory)
     {
-        if (string.IsNullOrWhiteSpace(workingDirectory))
-        {
-            throw new ArgumentException("Value cannot be null or whitespace.", nameof(workingDirectory));
-        }
+        ArgumentException.ThrowIfNullOrWhiteSpace(workingDirectory);
 
         var path = Path.Combine(workingDirectory, ExportSecurityTemplateName);
 
@@ -271,7 +261,7 @@ public abstract class LsaUserRightsTestBase : IDisposable
             foreach (var value in values)
             {
                 var securityIdentifier = value.StartsWith('*')
-                    ? new SecurityIdentifier(value.TrimStart('*'))
+                    ? new(value.TrimStart('*'))
                     : value.ToSecurityIdentifier();
 
                 securityIdentifiers.Add(securityIdentifier);
@@ -280,7 +270,7 @@ public abstract class LsaUserRightsTestBase : IDisposable
             dictionary.Add(child.Key, securityIdentifiers.AsReadOnly());
         }
 
-        return new ReadOnlyDictionary<string, IReadOnlyCollection<SecurityIdentifier>>(dictionary);
+        return new(dictionary);
     }
 
     /// <summary>
@@ -289,10 +279,7 @@ public abstract class LsaUserRightsTestBase : IDisposable
     /// <param name="workingDirectory">The path to a directory where the backup files exist.</param>
     private static void RestoreSecurityDatabaseBackup(string workingDirectory)
     {
-        if (string.IsNullOrWhiteSpace(workingDirectory))
-        {
-            throw new ArgumentException("Value cannot be null or whitespace.", nameof(workingDirectory));
-        }
+        ArgumentException.ThrowIfNullOrWhiteSpace(workingDirectory);
 
         var arguments = string.Format(
             CultureInfo.InvariantCulture,

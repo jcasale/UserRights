@@ -20,6 +20,6 @@ public sealed class AdminOnlyFactAttribute : FactAttribute
             return;
         }
 
-        this.Skip = "Current user is not an administrator.";
+        Skip = "Current user is not an administrator.";
     }
 }

@@ -28,7 +28,7 @@ public sealed class UserRightsManagerPrincipalTests : UserRightsManagerTestBase
                 { "joey", new List<SecurityIdentifier> { PrincipalSid1 } }
             });
 
-        return new TheoryData<IUserRightsSerializable, string, string[], string[], bool, bool, bool>
+        return new()
         {
             // Verify null policy instance.
             { null!, PrincipalName1, [Privilege1], [], false, false, false },
@@ -88,14 +88,14 @@ public sealed class UserRightsManagerPrincipalTests : UserRightsManagerTestBase
         var policy = new MockLsaUserRights(database);
         policy.Connect("SystemName");
 
-        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }, policy.LsaEnumerateAccountsWithUserRight().Order());
+        Assert.Equal([PrincipalSid1, PrincipalSid2], policy.LsaEnumerateAccountsWithUserRight().Order());
         Assert.Equal(new[] { Privilege1 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
         Assert.Equal(new[] { Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid2));
 
-        var manager = this.ServiceProvider.GetRequiredService<IUserRightsManager>();
+        var manager = ServiceProvider.GetRequiredService<IUserRightsManager>();
         manager.ModifyPrincipal(policy, PrincipalName1, [Privilege2], [], false, true, false);
 
-        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }, policy.LsaEnumerateAccountsWithUserRight().Order());
+        Assert.Equal([PrincipalSid1, PrincipalSid2], policy.LsaEnumerateAccountsWithUserRight().Order());
         Assert.Equal(new[] { Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
         Assert.Equal(new[] { Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid2));
     }
@@ -130,7 +130,7 @@ public sealed class UserRightsManagerPrincipalTests : UserRightsManagerTestBase
         Assert.Equal(new[] { Privilege1 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
         Assert.Equal(new[] { Privilege1, Privilege2 }.Order(StringComparer.OrdinalIgnoreCase), policy.LsaEnumerateAccountRights(PrincipalSid2).Order(StringComparer.OrdinalIgnoreCase));
 
-        var manager = this.ServiceProvider.GetRequiredService<IUserRightsManager>();
+        var manager = ServiceProvider.GetRequiredService<IUserRightsManager>();
         manager.ModifyPrincipal(policy, PrincipalName1, [Privilege2], [Privilege1], false, false, false);
 
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.Order(), policy.LsaEnumerateAccountsWithUserRight().Order());
@@ -168,7 +168,7 @@ public sealed class UserRightsManagerPrincipalTests : UserRightsManagerTestBase
         Assert.Equal(new[] { Privilege1 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
         Assert.Equal(new[] { Privilege1, Privilege2 }.Order(StringComparer.OrdinalIgnoreCase), policy.LsaEnumerateAccountRights(PrincipalSid2).Order(StringComparer.OrdinalIgnoreCase));
 
-        var manager = this.ServiceProvider.GetRequiredService<IUserRightsManager>();
+        var manager = ServiceProvider.GetRequiredService<IUserRightsManager>();
         manager.ModifyPrincipal(policy, PrincipalName1, [Privilege2], [], false, false, false);
 
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.Order(), policy.LsaEnumerateAccountsWithUserRight().Order());
@@ -190,7 +190,7 @@ public sealed class UserRightsManagerPrincipalTests : UserRightsManagerTestBase
     [MemberData(nameof(InvalidArguments))]
     public void InvalidArgumentsThrowsException(IUserRightsSerializable policy, string principal, string[] grants, string[] revocations, bool revokeAll, bool revokeOthers, bool dryRun)
     {
-        var manager = this.ServiceProvider.GetRequiredService<IUserRightsManager>();
+        var manager = ServiceProvider.GetRequiredService<IUserRightsManager>();
 
         Assert.ThrowsAny<ArgumentException>(() => manager.ModifyPrincipal(policy, principal, grants, revocations, revokeAll, revokeOthers, dryRun));
     }
@@ -226,11 +226,11 @@ public sealed class UserRightsManagerPrincipalTests : UserRightsManagerTestBase
         Assert.Equal(new[] { Privilege1, Privilege2 }.Order(StringComparer.OrdinalIgnoreCase), policy.LsaEnumerateAccountRights(PrincipalSid1).Order(StringComparer.OrdinalIgnoreCase));
         Assert.Equal(new[] { Privilege1, Privilege2 }.Order(StringComparer.OrdinalIgnoreCase), policy.LsaEnumerateAccountRights(PrincipalSid2).Order(StringComparer.OrdinalIgnoreCase));
 
-        var manager = this.ServiceProvider.GetRequiredService<IUserRightsManager>();
+        var manager = ServiceProvider.GetRequiredService<IUserRightsManager>();
         manager.ModifyPrincipal(policy, PrincipalName1, [], [], true, false, false);
 
         Assert.Empty(policy.LsaEnumerateAccountRights(PrincipalSid1));
-        Assert.Equal(new[] { PrincipalSid2 }, policy.LsaEnumerateAccountsWithUserRight());
+        Assert.Equal([PrincipalSid2], policy.LsaEnumerateAccountsWithUserRight());
         Assert.Equal(new[] { Privilege1, Privilege2 }.Order(StringComparer.OrdinalIgnoreCase), policy.LsaEnumerateAccountRights(PrincipalSid2).Order(StringComparer.OrdinalIgnoreCase));
     }
 
@@ -264,7 +264,7 @@ public sealed class UserRightsManagerPrincipalTests : UserRightsManagerTestBase
         Assert.Equal(new[] { Privilege1 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
         Assert.Equal(new[] { Privilege1, Privilege2 }.Order(StringComparer.OrdinalIgnoreCase), policy.LsaEnumerateAccountRights(PrincipalSid2).Order(StringComparer.OrdinalIgnoreCase));
 
-        var manager = this.ServiceProvider.GetRequiredService<IUserRightsManager>();
+        var manager = ServiceProvider.GetRequiredService<IUserRightsManager>();
         manager.ModifyPrincipal(policy, PrincipalName2, [], [Privilege2], false, false, false);
 
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.Order(), policy.LsaEnumerateAccountsWithUserRight().Order());

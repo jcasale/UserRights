@@ -15,15 +15,15 @@ using Windows.Win32.Security.Authentication.Identity;
 /// </summary>
 public class LsaUserRights : ILsaUserRights, IDisposable
 {
-    private bool disposed;
-    private LsaCloseSafeHandle? handle;
+    private bool _disposed;
+    private LsaCloseSafeHandle? _handle;
 
     /// <inheritdoc />
-    public void Connect(string? systemName = default)
+    public void Connect(string? systemName = null)
     {
-        ObjectDisposedException.ThrowIf(this.disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
-        if (this.handle is not null)
+        if (_handle is not null)
         {
             throw new InvalidOperationException("A connection to the policy database already exists.");
         }
@@ -34,22 +34,22 @@ public class LsaUserRights : ILsaUserRights, IDisposable
             PInvoke.POLICY_LOOKUP_NAMES |
             PInvoke.POLICY_VIEW_LOCAL_INFORMATION;
 
-        this.handle = this.LsaOpenPolicy(ref objectAttributes, desiredAccess, systemName);
+        _handle = LsaOpenPolicy(ref objectAttributes, desiredAccess, systemName);
     }
 
     /// <inheritdoc />
     public void Dispose()
     {
-        this.Dispose(true);
+        Dispose(true);
         GC.SuppressFinalize(this);
     }
 
     /// <inheritdoc />
     public unsafe void LsaAddAccountRights(SecurityIdentifier accountSid, params string[] userRights)
     {
-        ObjectDisposedException.ThrowIf(this.disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
-        if (this.handle is null)
+        if (_handle is null)
         {
             throw new InvalidOperationException("A connection to the policy database is required.");
         }
@@ -78,7 +78,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
                 {
                     var length = checked((ushort)(privilege.Length * sizeof(char)));
 
-                    rights[i] = new LSA_UNICODE_STRING
+                    rights[i] = new()
                     {
                         Length = length,
                         MaximumLength = length,
@@ -87,7 +87,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
                 }
             }
 
-            var status = PInvoke.LsaAddAccountRights(this.handle, ssid, rights);
+            var status = PInvoke.LsaAddAccountRights(_handle, ssid, rights);
             var error = PInvoke.LsaNtStatusToWinError(status);
 
             if ((WIN32_ERROR)error != WIN32_ERROR.ERROR_SUCCESS)
@@ -100,9 +100,9 @@ public class LsaUserRights : ILsaUserRights, IDisposable
     /// <inheritdoc />
     public unsafe string[] LsaEnumerateAccountRights(SecurityIdentifier accountSid)
     {
-        ObjectDisposedException.ThrowIf(this.disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
-        if (this.handle is null)
+        if (_handle is null)
         {
             throw new InvalidOperationException("A connection to the policy database is required.");
         }
@@ -116,10 +116,10 @@ public class LsaUserRights : ILsaUserRights, IDisposable
             var psid = new PSID(b);
             using var ssid = new LsaCloseSafeHandle(psid);
 
-            LSA_UNICODE_STRING* userRights = default;
+            LSA_UNICODE_STRING* userRights = null;
             try
             {
-                var status = PInvoke.LsaEnumerateAccountRights(this.handle, ssid, out userRights, out var count);
+                var status = PInvoke.LsaEnumerateAccountRights(_handle, ssid, out userRights, out var count);
                 var error = (WIN32_ERROR)PInvoke.LsaNtStatusToWinError(status);
 
                 if (error != WIN32_ERROR.ERROR_SUCCESS)
@@ -135,7 +135,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
                     var ptr = nint.Add((nint)userRights, offset);
                     var result = Marshal.PtrToStructure<LSA_UNICODE_STRING>(ptr);
 
-                    results[i] = new string(result.Buffer.Value);
+                    results[i] = new(result.Buffer.Value);
                 }
 
                 return results;
@@ -151,11 +151,11 @@ public class LsaUserRights : ILsaUserRights, IDisposable
     }
 
     /// <inheritdoc />
-    public unsafe SecurityIdentifier[] LsaEnumerateAccountsWithUserRight(string? userRight = default)
+    public unsafe SecurityIdentifier[] LsaEnumerateAccountsWithUserRight(string? userRight = null)
     {
-        ObjectDisposedException.ThrowIf(this.disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
-        if (this.handle is null)
+        if (_handle is null)
         {
             throw new InvalidOperationException("A connection to the policy database is required.");
         }
@@ -180,10 +180,10 @@ public class LsaUserRights : ILsaUserRights, IDisposable
 
         SecurityIdentifier[] Method(LSA_UNICODE_STRING right)
         {
-            void* buffer = default;
+            void* buffer = null;
             try
             {
-                var status = PInvoke.LsaEnumerateAccountsWithUserRight(this.handle, right, out buffer, out var count);
+                var status = PInvoke.LsaEnumerateAccountsWithUserRight(_handle, right, out buffer, out var count);
                 var error = (WIN32_ERROR)PInvoke.LsaNtStatusToWinError(status);
 
                 if (error == WIN32_ERROR.ERROR_NO_MORE_ITEMS)
@@ -204,7 +204,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
                     var result = Marshal.PtrToStructure<LSA_ENUMERATION_INFORMATION>(nint.Add((nint)buffer, offset));
                     var sid = result.Sid;
 
-                    results[i] = new SecurityIdentifier((nint)sid.Value);
+                    results[i] = new((nint)sid.Value);
                 }
 
                 return results;
@@ -222,9 +222,9 @@ public class LsaUserRights : ILsaUserRights, IDisposable
     /// <inheritdoc />
     public unsafe void LsaRemoveAccountRights(SecurityIdentifier accountSid, params string[] userRights)
     {
-        ObjectDisposedException.ThrowIf(this.disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
-        if (this.handle is null)
+        if (_handle is null)
         {
             throw new InvalidOperationException("A connection to the policy database is required.");
         }
@@ -253,7 +253,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
                 {
                     var length = checked((ushort)(privilege.Length * sizeof(char)));
 
-                    rights[i] = new LSA_UNICODE_STRING
+                    rights[i] = new()
                     {
                         Length = length,
                         MaximumLength = length,
@@ -262,7 +262,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
                 }
             }
 
-            var status = PInvoke.LsaRemoveAccountRights(this.handle, ssid, false, rights);
+            var status = PInvoke.LsaRemoveAccountRights(_handle, ssid, false, rights);
             var error = PInvoke.LsaNtStatusToWinError(status);
 
             if ((WIN32_ERROR)error != WIN32_ERROR.ERROR_SUCCESS)
@@ -278,15 +278,15 @@ public class LsaUserRights : ILsaUserRights, IDisposable
     /// <param name="disposing">A value indicating whether the method call comes from a dispose method (its value is <see langword="true"/>) or from a finalizer (its value is <see langword="false"/>).</param>
     protected virtual void Dispose(bool disposing)
     {
-        if (this.disposed)
+        if (_disposed)
         {
             return;
         }
 
         if (disposing)
         {
-            this.handle?.Dispose();
-            this.disposed = true;
+            _handle?.Dispose();
+            _disposed = true;
         }
     }
 
@@ -297,11 +297,11 @@ public class LsaUserRights : ILsaUserRights, IDisposable
     /// <param name="desiredAccess">The requested access rights.</param>
     /// <param name="systemName">The name of the target system.</param>
     /// <returns>A handle to the Policy object.</returns>
-    private unsafe LsaCloseSafeHandle LsaOpenPolicy(ref LSA_OBJECT_ATTRIBUTES objectAttributes, uint desiredAccess, string? systemName = default)
+    private unsafe LsaCloseSafeHandle LsaOpenPolicy(ref LSA_OBJECT_ATTRIBUTES objectAttributes, uint desiredAccess, string? systemName = null)
     {
-        ObjectDisposedException.ThrowIf(this.disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
-        if (this.handle is not null)
+        if (_handle is not null)
         {
             throw new InvalidOperationException("A connection to the policy database already exists.");
         }

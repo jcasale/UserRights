@@ -232,7 +232,7 @@ public abstract class LsaUserRightsTestBase : IDisposable
     /// </summary>
     /// <param name="workingDirectory">The path to a directory where the backup files exist.</param>
     /// <returns>A map of privilege to security identifiers.</returns>
-    private static IReadOnlyDictionary<string, IReadOnlyCollection<SecurityIdentifier>> ReadSecurityDatabaseBackup(string workingDirectory)
+    private static ReadOnlyDictionary<string, IReadOnlyCollection<SecurityIdentifier>> ReadSecurityDatabaseBackup(string workingDirectory)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(workingDirectory);
 

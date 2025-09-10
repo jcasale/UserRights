@@ -20,13 +20,13 @@ public abstract class CliTestBase : IDisposable
     /// </summary>
     protected CliTestBase()
     {
-        this.serviceCollection = new ServiceCollection()
+        serviceCollection = new ServiceCollection()
             .AddLogging(builder => builder
                 .ClearProviders()
                 .SetMinimumLevel(LogLevel.Trace)
                 .AddDebug());
 
-        this.serviceProvider = new Lazy<ServiceProvider>(this.serviceCollection.BuildServiceProvider);
+        serviceProvider = new Lazy<ServiceProvider>(serviceCollection.BuildServiceProvider);
     }
 
     /// <summary>
@@ -36,9 +36,9 @@ public abstract class CliTestBase : IDisposable
     {
         get
         {
-            ObjectDisposedException.ThrowIf(this.disposed, this);
+            ObjectDisposedException.ThrowIf(disposed, this);
 
-            return this.serviceCollection;
+            return serviceCollection;
         }
     }
 
@@ -49,16 +49,16 @@ public abstract class CliTestBase : IDisposable
     {
         get
         {
-            ObjectDisposedException.ThrowIf(this.disposed, this);
+            ObjectDisposedException.ThrowIf(disposed, this);
 
-            return this.serviceProvider.Value;
+            return serviceProvider.Value;
         }
     }
 
     /// <inheritdoc />
     public void Dispose()
     {
-        this.Dispose(true);
+        Dispose(true);
         GC.SuppressFinalize(this);
     }
 
@@ -68,15 +68,15 @@ public abstract class CliTestBase : IDisposable
     /// <param name="disposing">A value indicating whether the method call comes from a dispose method (its value is <see langword="true"/>) or from a finalizer (its value is <see langword="false"/>).</param>
     protected virtual void Dispose(bool disposing)
     {
-        if (this.disposed)
+        if (disposed)
         {
             return;
         }
 
         if (disposing)
         {
-            this.serviceProvider.Value.Dispose();
-            this.disposed = true;
+            serviceProvider.Value.Dispose();
+            disposed = true;
         }
     }
 }

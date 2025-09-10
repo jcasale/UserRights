@@ -31,7 +31,7 @@ public sealed class UserRightsManagerListTests : UserRightsManagerTestBase
     [Fact]
     public void InvalidArgumentsThrowsException()
     {
-        var manager = this.ServiceProvider.GetRequiredService<IUserRightsManager>();
+        var manager = ServiceProvider.GetRequiredService<IUserRightsManager>();
 
         Assert.ThrowsAny<ArgumentException>(() => manager.GetUserRights(null!));
     }
@@ -74,7 +74,7 @@ public sealed class UserRightsManagerListTests : UserRightsManagerTestBase
         Assert.Equal([Privilege1, Privilege2], policy.LsaEnumerateAccountRights(PrincipalSid1));
         Assert.Equal([Privilege1, Privilege2], policy.LsaEnumerateAccountRights(PrincipalSid2));
 
-        var manager = this.ServiceProvider.GetRequiredService<IUserRightsManager>();
+        var manager = ServiceProvider.GetRequiredService<IUserRightsManager>();
         var userRights = manager.GetUserRights(policy).ToArray();
 
         Assert.Equal(expected, userRights, new UserRightEntryEqualityComparer());
@@ -141,7 +141,7 @@ public sealed class UserRightsManagerListTests : UserRightsManagerTestBase
         Assert.Equal(new[] { Privilege1, Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
         Assert.Equal(new[] { Privilege1, Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid2));
 
-        var manager = this.ServiceProvider.GetRequiredService<IUserRightsManager>();
+        var manager = ServiceProvider.GetRequiredService<IUserRightsManager>();
         var userRights = manager.GetUserRights(policy).ToArray();
 
         Assert.Equal(expected, userRights, new UserRightEntryEqualityComparer());

@@ -22,7 +22,7 @@ public class HelpExamplesAction : SynchronousCommandLineAction
     {
         ArgumentNullException.ThrowIfNull(helpAction);
 
-        this.helpAction = helpAction;
+        helpAction = helpAction;
     }
 
     /// <inheritdoc />
@@ -30,7 +30,7 @@ public class HelpExamplesAction : SynchronousCommandLineAction
     {
         ArgumentNullException.ThrowIfNull(parseResult);
 
-        var result = this.helpAction.Invoke(parseResult);
+        var result = helpAction.Invoke(parseResult);
 
         GenerateExamples(parseResult);
 

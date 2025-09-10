@@ -39,17 +39,17 @@ public abstract class LsaUserRightsTestBase : IDisposable
         try
         {
             // Create a backup to restore during disposal.
-            CreateSecurityDatabaseBackup(this.directory.FullName);
+            CreateSecurityDatabaseBackup(directory.FullName);
 
             // Load the contents of the backup for use as initial state.
-            this.initialState = ReadSecurityDatabaseBackup(this.directory.FullName);
+            initialState = ReadSecurityDatabaseBackup(directory.FullName);
 
             // Create the updated configuration file to remove assignments for any privileges that were originally empty.
-            CreateRestoreTemplate(this.directory.FullName, this.initialState);
+            CreateRestoreTemplate(directory.FullName, initialState);
         }
         catch
         {
-            this.directory = null;
+            directory = null;
 
             throw;
         }
@@ -62,16 +62,16 @@ public abstract class LsaUserRightsTestBase : IDisposable
     {
         get
         {
-            ObjectDisposedException.ThrowIf(this.disposed, this);
+            ObjectDisposedException.ThrowIf(disposed, this);
 
-            return this.initialState;
+            return initialState;
         }
     }
 
     /// <inheritdoc />
     public void Dispose()
     {
-        this.Dispose(true);
+        Dispose(true);
         GC.SuppressFinalize(this);
     }
 
@@ -81,21 +81,21 @@ public abstract class LsaUserRightsTestBase : IDisposable
     /// <param name="disposing">A value indicating whether the method call comes from a dispose method (its value is <see langword="true"/>) or from a finalizer (its value is <see langword="false"/>).</param>
     protected virtual void Dispose(bool disposing)
     {
-        if (this.disposed)
+        if (disposed)
         {
             return;
         }
 
         if (disposing)
         {
-            if (this.directory is not null)
+            if (directory is not null)
             {
-                RestoreSecurityDatabaseBackup(this.directory.FullName);
+                RestoreSecurityDatabaseBackup(directory.FullName);
 
-                this.directory.Delete(true);
+                directory.Delete(true);
             }
 
-            this.disposed = true;
+            disposed = true;
         }
     }
 
@@ -105,7 +105,7 @@ public abstract class LsaUserRightsTestBase : IDisposable
     /// <returns>A map of privilege to security identifiers.</returns>
     protected IReadOnlyDictionary<string, IReadOnlyCollection<SecurityIdentifier>> GetCurrentState()
     {
-        ObjectDisposedException.ThrowIf(this.disposed, this);
+        ObjectDisposedException.ThrowIf(disposed, this);
 
         var directoryInfo = CreateTempDirectory();
 

@@ -21,7 +21,7 @@ public abstract class UserRightsManagerTestBase : IDisposable
     /// </summary>
     protected UserRightsManagerTestBase()
     {
-        this.serviceCollection = new ServiceCollection()
+        serviceCollection = new ServiceCollection()
             .AddSingleton<IUserRightsManager, UserRightsManager>()
             .AddLogging(builder => builder
                 .ClearProviders()
@@ -29,7 +29,7 @@ public abstract class UserRightsManagerTestBase : IDisposable
                 .AddDebug());
 
         // Defer the creation until the instance is accessed to allow inheritors to modify the service collection.
-        this.serviceProvider = new Lazy<ServiceProvider>(this.serviceCollection.BuildServiceProvider);
+        serviceProvider = new Lazy<ServiceProvider>(serviceCollection.BuildServiceProvider);
     }
 
     /// <summary>
@@ -39,9 +39,9 @@ public abstract class UserRightsManagerTestBase : IDisposable
     {
         get
         {
-            ObjectDisposedException.ThrowIf(this.disposed, this);
+            ObjectDisposedException.ThrowIf(disposed, this);
 
-            return this.serviceCollection;
+            return serviceCollection;
         }
     }
 
@@ -52,16 +52,16 @@ public abstract class UserRightsManagerTestBase : IDisposable
     {
         get
         {
-            ObjectDisposedException.ThrowIf(this.disposed, this);
+            ObjectDisposedException.ThrowIf(disposed, this);
 
-            return this.serviceProvider.Value;
+            return serviceProvider.Value;
         }
     }
 
     /// <inheritdoc />
     public void Dispose()
     {
-        this.Dispose(true);
+        Dispose(true);
         GC.SuppressFinalize(this);
     }
 
@@ -71,19 +71,19 @@ public abstract class UserRightsManagerTestBase : IDisposable
     /// <param name="disposing">A value indicating whether the method call comes from a dispose method (its value is <see langword="true"/>) or from a finalizer (its value is <see langword="false"/>).</param>
     protected virtual void Dispose(bool disposing)
     {
-        if (this.disposed)
+        if (disposed)
         {
             return;
         }
 
         if (disposing)
         {
-            if (this.serviceProvider.IsValueCreated)
+            if (serviceProvider.IsValueCreated)
             {
-                this.serviceProvider.Value.Dispose();
+                serviceProvider.Value.Dispose();
             }
 
-            this.disposed = true;
+            disposed = true;
         }
     }
 }

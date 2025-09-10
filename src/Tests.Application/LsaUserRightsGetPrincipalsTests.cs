@@ -22,7 +22,7 @@ public sealed class LsaUserRightsGetPrincipalsTests : LsaUserRightsTestBase
     [AdminOnlyFact]
     public void GetPrincipalsShouldWork()
     {
-        var expected = this.InitialState.Values
+        var expected = InitialState.Values
             .SelectMany(p => p)
             .Distinct()
             .Order()

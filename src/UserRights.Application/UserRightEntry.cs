@@ -18,9 +18,9 @@ public record UserRightEntry : IUserRightEntry
         ArgumentException.ThrowIfNullOrEmpty(privilege);
         ArgumentException.ThrowIfNullOrEmpty(securityId);
 
-        this.Privilege = privilege;
-        this.SecurityId = securityId;
-        this.AccountName = string.IsNullOrWhiteSpace(accountName) ? null : accountName;
+        Privilege = privilege;
+        SecurityId = securityId;
+        AccountName = string.IsNullOrWhiteSpace(accountName) ? null : accountName;
     }
 
     /// <summary>

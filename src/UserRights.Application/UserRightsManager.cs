@@ -20,7 +20,7 @@ public class UserRightsManager : IUserRightsManager
     /// Initializes a new instance of the <see cref="UserRightsManager"/> class.
     /// </summary>
     /// <param name="logger">The logging instance.</param>
-    public UserRightsManager(ILogger<UserRightsManager> logger) => this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    public UserRightsManager(ILogger<UserRightsManager> logger) => logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     /// <inheritdoc />
     public IEnumerable<IUserRightEntry> GetUserRights(IUserRights policy)
@@ -116,7 +116,7 @@ public class UserRightsManager : IUserRightsManager
         {
             foreach (var privilege in privileges)
             {
-                this.RevokePrivilege(policy, securityIdentifier, privilege, dryRun);
+                RevokePrivilege(policy, securityIdentifier, privilege, dryRun);
             }
 
             // Ignore any further processing.
@@ -135,20 +135,20 @@ public class UserRightsManager : IUserRightsManager
             var others = privileges.Where(p => !grantSet.Contains(p));
             foreach (var privilege in others)
             {
-                this.RevokePrivilege(policy, securityIdentifier, privilege, dryRun);
+                RevokePrivilege(policy, securityIdentifier, privilege, dryRun);
             }
         }
 
         // Grant any deficit privileges.
         foreach (var privilege in deficit)
         {
-            this.GrantPrivilege(policy, securityIdentifier, privilege, dryRun);
+            GrantPrivilege(policy, securityIdentifier, privilege, dryRun);
         }
 
         // Revoke any surplus privileges.
         foreach (var privilege in surplus)
         {
-            this.RevokePrivilege(policy, securityIdentifier, privilege, dryRun);
+            RevokePrivilege(policy, securityIdentifier, privilege, dryRun);
         }
     }
 
@@ -209,7 +209,7 @@ public class UserRightsManager : IUserRightsManager
         {
             foreach (var principal in principals)
             {
-                this.RevokePrivilege(policy, principal, privilege, dryRun);
+                RevokePrivilege(policy, principal, privilege, dryRun);
             }
 
             // Ignore any further processing.
@@ -228,7 +228,7 @@ public class UserRightsManager : IUserRightsManager
             var others = principals.Where(p => !grantSet.Contains(p));
             foreach (var principal in others)
             {
-                this.RevokePrivilege(policy, principal, privilege, dryRun);
+                RevokePrivilege(policy, principal, privilege, dryRun);
             }
         }
 
@@ -238,20 +238,20 @@ public class UserRightsManager : IUserRightsManager
             var matches = principals.Where(p => !grantSet.Contains(p) && revokePattern.IsMatch(p.Value));
             foreach (var principal in matches)
             {
-                this.RevokePrivilege(policy, principal, privilege, dryRun);
+                RevokePrivilege(policy, principal, privilege, dryRun);
             }
         }
 
         // Grant any deficit principals.
         foreach (var sid in deficit)
         {
-            this.GrantPrivilege(policy, sid, privilege, dryRun);
+            GrantPrivilege(policy, sid, privilege, dryRun);
         }
 
         // Revoke any surplus principals.
         foreach (var sid in surplus)
         {
-            this.RevokePrivilege(policy, sid, privilege, dryRun);
+            RevokePrivilege(policy, sid, privilege, dryRun);
         }
     }
 
@@ -270,7 +270,7 @@ public class UserRightsManager : IUserRightsManager
 
         if (dryRun)
         {
-            this.logger.LogInformation(OperationId.PrivilegeGrantDryrun, "Granting {Privilege:l} to {Principal}.", privilege, principal);
+            logger.LogInformation(OperationId.PrivilegeGrantDryrun, "Granting {Privilege:l} to {Principal}.", privilege, principal);
 
             return;
         }
@@ -281,12 +281,12 @@ public class UserRightsManager : IUserRightsManager
         }
         catch
         {
-            this.logger.LogError(OperationId.PrivilegeGrantFailure, "Failed to grant {Privilege:l} to {Principal}.", privilege, principal);
+            logger.LogError(OperationId.PrivilegeGrantFailure, "Failed to grant {Privilege:l} to {Principal}.", privilege, principal);
 
             throw;
         }
 
-        this.logger.LogInformation(OperationId.PrivilegeGrantSuccess, "Successfully granted {Privilege:l} to {Principal}.", privilege, principal);
+        logger.LogInformation(OperationId.PrivilegeGrantSuccess, "Successfully granted {Privilege:l} to {Principal}.", privilege, principal);
     }
 
     /// <summary>
@@ -304,7 +304,7 @@ public class UserRightsManager : IUserRightsManager
 
         if (dryRun)
         {
-            this.logger.LogInformation(OperationId.PrivilegeRevokeDryrun, "Revoking {Privilege:l} from {Principal}.", privilege, principal);
+            logger.LogInformation(OperationId.PrivilegeRevokeDryrun, "Revoking {Privilege:l} from {Principal}.", privilege, principal);
 
             return;
         }
@@ -315,11 +315,11 @@ public class UserRightsManager : IUserRightsManager
         }
         catch
         {
-            this.logger.LogError(OperationId.PrivilegeRevokeFailure, "Failed to revoke {Privilege:l} from {Principal}.", privilege, principal);
+            logger.LogError(OperationId.PrivilegeRevokeFailure, "Failed to revoke {Privilege:l} from {Principal}.", privilege, principal);
 
             throw;
         }
 
-        this.logger.LogInformation(OperationId.PrivilegeRevokeSuccess, "Successfully revoked {Privilege:l} from {Principal}.", privilege, principal);
+        logger.LogInformation(OperationId.PrivilegeRevokeSuccess, "Successfully revoked {Privilege:l} from {Principal}.", privilege, principal);
     }
 }

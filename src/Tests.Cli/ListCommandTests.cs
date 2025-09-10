@@ -57,11 +57,11 @@ public sealed class ListCommandTests : CliTestBase
 
         var policy = new MockLsaUserRights(database);
 
-        this.ServiceCollection.AddSingleton<ILsaUserRights>(policy);
-        this.ServiceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
-        this.ServiceCollection.AddSingleton<CliBuilder>();
+        ServiceCollection.AddSingleton<ILsaUserRights>(policy);
+        ServiceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
+        ServiceCollection.AddSingleton<CliBuilder>();
 
-        var builder = this.ServiceProvider.GetRequiredService<CliBuilder>();
+        var builder = ServiceProvider.GetRequiredService<CliBuilder>();
 
         var configuration = builder.Build();
 
@@ -129,11 +129,11 @@ public sealed class ListCommandTests : CliTestBase
             .ThenBy(p => p.SecurityId, StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
-        this.ServiceCollection.AddSingleton<ILsaUserRights>(policy);
-        this.ServiceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
-        this.ServiceCollection.AddSingleton<CliBuilder>();
+        ServiceCollection.AddSingleton<ILsaUserRights>(policy);
+        ServiceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
+        ServiceCollection.AddSingleton<CliBuilder>();
 
-        var builder = this.ServiceProvider.GetRequiredService<CliBuilder>();
+        var builder = ServiceProvider.GetRequiredService<CliBuilder>();
 
         var configuration = builder.Build();
 

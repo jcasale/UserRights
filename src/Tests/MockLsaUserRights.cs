@@ -34,19 +34,19 @@ public sealed class MockLsaUserRights : ILsaUserRights, IUserRightsSerializable
 
         foreach (var kvp in database)
         {
-            this.database.Add(kvp.Key, kvp.Value);
+            database.Add(kvp.Key, kvp.Value);
         }
     }
 
     /// <inheritdoc />
     public void Connect(string? systemName = default)
     {
-        if (this.connected)
+        if (connected)
         {
             throw new InvalidOperationException("A connection to the policy database already exists.");
         }
 
-        this.connected = true;
+        connected = true;
     }
 
     /// <inheritdoc />
@@ -60,14 +60,14 @@ public sealed class MockLsaUserRights : ILsaUserRights, IUserRightsSerializable
             throw new ArgumentException("Value cannot be an empty collection.", nameof(userRights));
         }
 
-        if (!this.connected)
+        if (!connected)
         {
             throw new InvalidOperationException("A connection to the policy database is required.");
         }
 
         foreach (var userRight in userRights)
         {
-            if (this.database.TryGetValue(userRight, out var accountSids))
+            if (database.TryGetValue(userRight, out var accountSids))
             {
                 if (!accountSids.Contains(accountSid))
                 {
@@ -78,7 +78,7 @@ public sealed class MockLsaUserRights : ILsaUserRights, IUserRightsSerializable
             {
                 accountSids = [accountSid];
 
-                this.database.Add(userRight, accountSids);
+                database.Add(userRight, accountSids);
             }
         }
     }
@@ -88,12 +88,12 @@ public sealed class MockLsaUserRights : ILsaUserRights, IUserRightsSerializable
     {
         ArgumentNullException.ThrowIfNull(accountSid);
 
-        if (!this.connected)
+        if (!connected)
         {
             throw new InvalidOperationException("A connection to the policy database is required.");
         }
 
-        return this.database
+        return database
             .Where(p => p.Value.Contains(accountSid))
             .Select(p => p.Key)
             .ToArray();
@@ -102,17 +102,17 @@ public sealed class MockLsaUserRights : ILsaUserRights, IUserRightsSerializable
     /// <inheritdoc />
     public SecurityIdentifier[] LsaEnumerateAccountsWithUserRight(string? userRight = default)
     {
-        if (!this.connected)
+        if (!connected)
         {
             throw new InvalidOperationException("A connection to the policy database is required.");
         }
 
         if (string.IsNullOrWhiteSpace(userRight))
         {
-            return this.database.Values.SelectMany(p => p).Distinct().ToArray();
+            return database.Values.SelectMany(p => p).Distinct().ToArray();
         }
 
-        if (this.database.TryGetValue(userRight, out var accountSids))
+        if (database.TryGetValue(userRight, out var accountSids))
         {
             return [.. accountSids];
         }
@@ -131,14 +131,14 @@ public sealed class MockLsaUserRights : ILsaUserRights, IUserRightsSerializable
             throw new ArgumentException("Value cannot be an empty collection.", nameof(userRights));
         }
 
-        if (!this.connected)
+        if (!connected)
         {
             throw new InvalidOperationException("A connection to the policy database is required.");
         }
 
         foreach (var userRight in userRights)
         {
-            if (this.database.TryGetValue(userRight, out var principals) && principals.Contains(accountSid))
+            if (database.TryGetValue(userRight, out var principals) && principals.Contains(accountSid))
             {
                 principals.Remove(accountSid);
             }
@@ -148,17 +148,17 @@ public sealed class MockLsaUserRights : ILsaUserRights, IUserRightsSerializable
     /// <summary>
     /// Allow a test to assert the policy database before manipulating it.
     /// </summary>
-    public void ResetConnection() => this.connected = false;
+    public void ResetConnection() => connected = false;
 
     /// <inheritdoc/>
     public void Deserialize(IXunitSerializationInfo info)
     {
         ArgumentNullException.ThrowIfNull(info);
 
-        var items = info.GetValue<string[][]>(nameof(this.database));
+        var items = info.GetValue<string[][]>(nameof(database));
         foreach (var item in items)
         {
-            this.database.Add(item[0], item[1..].Select(p => new SecurityIdentifier(p)).ToArray());
+            database.Add(item[0], item[1..].Select(p => new SecurityIdentifier(p)).ToArray());
         }
     }
 
@@ -168,15 +168,15 @@ public sealed class MockLsaUserRights : ILsaUserRights, IUserRightsSerializable
         ArgumentNullException.ThrowIfNull(info);
 
         // Flatten the map into an array of arrays composed of the principal and their security ids.
-        var data = this.database.Select(p =>
+        var data = database.Select(p =>
         {
             string[] items = [p.Key, ..p.Value.Select(x => x.Value)];
             return items;
         }).ToArray();
 
-        info.AddValue(nameof(this.database), data);
+        info.AddValue(nameof(database), data);
     }
 
     /// <inheritdoc/>
-    public override string ToString() => $"{string.Join(" | ", this.database.Select(p => $"{p.Key}: {string.Join(',', p.Value)}"))}";
+    public override string ToString() => $"{string.Join(" | ", database.Select(p => $"{p.Key}: {string.Join(',', p.Value)}"))}";
 }

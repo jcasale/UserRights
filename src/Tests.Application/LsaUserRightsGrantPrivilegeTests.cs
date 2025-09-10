@@ -26,7 +26,7 @@ public sealed class LsaUserRightsGrantPrivilegeTests : LsaUserRightsTestBase
     {
         var securityIdentifier = new SecurityIdentifier(Users);
 
-        if (this.InitialState.TryGetValue(SeMachineAccountPrivilege, out var initial))
+        if (InitialState.TryGetValue(SeMachineAccountPrivilege, out var initial))
         {
             Assert.DoesNotContain(securityIdentifier, initial);
         }
@@ -35,7 +35,7 @@ public sealed class LsaUserRightsGrantPrivilegeTests : LsaUserRightsTestBase
         policy.Connect();
         policy.LsaAddAccountRights(securityIdentifier, SeMachineAccountPrivilege);
 
-        var current = this.GetCurrentState();
+        var current = GetCurrentState();
 
         current.TryGetValue(SeMachineAccountPrivilege, out var collection);
 

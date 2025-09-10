@@ -26,7 +26,7 @@ public sealed class LsaUserRightsRevokePrivilegeTests : LsaUserRightsTestBase
     {
         var securityIdentifier = new SecurityIdentifier(BackupOperators);
 
-        this.InitialState.TryGetValue(SeBackupPrivilege, out var initial);
+        InitialState.TryGetValue(SeBackupPrivilege, out var initial);
 
         Assert.NotNull(initial);
         Assert.Contains(securityIdentifier, initial);
@@ -35,7 +35,7 @@ public sealed class LsaUserRightsRevokePrivilegeTests : LsaUserRightsTestBase
         policy.Connect();
         policy.LsaRemoveAccountRights(securityIdentifier, SeBackupPrivilege);
 
-        var current = this.GetCurrentState();
+        var current = GetCurrentState();
 
         if (current.TryGetValue(SeBackupPrivilege, out var collection))
         {

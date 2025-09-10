@@ -39,7 +39,7 @@ public sealed class MockLsaUserRights : ILsaUserRights, IUserRightsSerializable
     }
 
     /// <inheritdoc />
-    public void Connect(string? systemName = default)
+    public void Connect(string? systemName = null)
     {
         if (_connected)
         {
@@ -97,7 +97,7 @@ public sealed class MockLsaUserRights : ILsaUserRights, IUserRightsSerializable
     }
 
     /// <inheritdoc />
-    public SecurityIdentifier[] LsaEnumerateAccountsWithUserRight(string? userRight = default)
+    public SecurityIdentifier[] LsaEnumerateAccountsWithUserRight(string? userRight = null)
     {
         if (!_connected)
         {

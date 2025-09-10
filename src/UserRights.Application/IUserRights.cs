@@ -26,7 +26,7 @@ public interface IUserRights
     /// </summary>
     /// <param name="userRight">The name of a privilege.</param>
     /// <returns>The security identifier (SID) of each account that holds the specified privilege.</returns>
-    SecurityIdentifier[] LsaEnumerateAccountsWithUserRight(string? userRight = default);
+    SecurityIdentifier[] LsaEnumerateAccountsWithUserRight(string? userRight = null);
 
     /// <summary>
     /// Removes one or more privileges from an account.

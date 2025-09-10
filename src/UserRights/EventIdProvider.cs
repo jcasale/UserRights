@@ -30,7 +30,7 @@ public class EventIdProvider : IEventIdProvider
             // The EventId property was provided by Microsoft.Extensions.Logging.
             StructureValue structure => structure.Properties.FirstOrDefault(p => string.Equals("Id", p.Name, StringComparison.OrdinalIgnoreCase))?.Value.ToString(),
 
-            _ => default
+            _ => null
         };
 
         if (short.TryParse(id, NumberStyles.Any, CultureInfo.InvariantCulture, out var result))

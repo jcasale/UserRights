@@ -34,7 +34,7 @@ public class UserRightsManager : IUserRightsManager
         var entries = new List<UserRightEntry>();
         foreach (var principal in principals)
         {
-            string? accountName = default;
+            string? accountName = null;
             try
             {
                 accountName = principal.ToAccount().Value;

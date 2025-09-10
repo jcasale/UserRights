@@ -19,7 +19,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
     private LsaCloseSafeHandle? _handle;
 
     /// <inheritdoc />
-    public void Connect(string? systemName = default)
+    public void Connect(string? systemName = null)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
@@ -116,7 +116,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
             var psid = new PSID(b);
             using var ssid = new LsaCloseSafeHandle(psid);
 
-            LSA_UNICODE_STRING* userRights = default;
+            LSA_UNICODE_STRING* userRights = null;
             try
             {
                 var status = PInvoke.LsaEnumerateAccountRights(_handle, ssid, out userRights, out var count);
@@ -151,7 +151,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
     }
 
     /// <inheritdoc />
-    public unsafe SecurityIdentifier[] LsaEnumerateAccountsWithUserRight(string? userRight = default)
+    public unsafe SecurityIdentifier[] LsaEnumerateAccountsWithUserRight(string? userRight = null)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
@@ -180,7 +180,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
 
         SecurityIdentifier[] Method(LSA_UNICODE_STRING right)
         {
-            void* buffer = default;
+            void* buffer = null;
             try
             {
                 var status = PInvoke.LsaEnumerateAccountsWithUserRight(_handle, right, out buffer, out var count);
@@ -297,7 +297,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
     /// <param name="desiredAccess">The requested access rights.</param>
     /// <param name="systemName">The name of the target system.</param>
     /// <returns>A handle to the Policy object.</returns>
-    private unsafe LsaCloseSafeHandle LsaOpenPolicy(ref LSA_OBJECT_ATTRIBUTES objectAttributes, uint desiredAccess, string? systemName = default)
+    private unsafe LsaCloseSafeHandle LsaOpenPolicy(ref LSA_OBJECT_ATTRIBUTES objectAttributes, uint desiredAccess, string? systemName = null)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 

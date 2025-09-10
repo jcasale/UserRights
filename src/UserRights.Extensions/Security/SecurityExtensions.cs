@@ -15,10 +15,7 @@ public static class SecurityExtensions
     /// <returns>The security identifier (SID).</returns>
     public static SecurityIdentifier ToSecurityIdentifier(this string accountName)
     {
-        if (string.IsNullOrWhiteSpace(accountName))
-        {
-            throw new ArgumentException("Value cannot be null or whitespace.", nameof(accountName));
-        }
+        ArgumentException.ThrowIfNullOrWhiteSpace(accountName);
 
         try
         {

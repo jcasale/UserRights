@@ -125,11 +125,7 @@ public abstract class LsaUserRightsTestBase : IDisposable
     /// <param name="stateBackup">The map of privilege to security identifiers for the backup configuration file.</param>
     private static void CreateRestoreTemplate(string workingDirectory, IReadOnlyDictionary<string, IReadOnlyCollection<SecurityIdentifier>> stateBackup)
     {
-        if (string.IsNullOrWhiteSpace(workingDirectory))
-        {
-            throw new ArgumentException("Value cannot be null or whitespace.", nameof(workingDirectory));
-        }
-
+        ArgumentException.ThrowIfNullOrWhiteSpace(workingDirectory);
         ArgumentNullException.ThrowIfNull(stateBackup);
 
         // Load existing assignments.
@@ -173,10 +169,7 @@ public abstract class LsaUserRightsTestBase : IDisposable
     /// <param name="workingDirectory">The path to a directory where the backup files will be created.</param>
     private static void CreateSecurityDatabaseBackup(string workingDirectory)
     {
-        if (string.IsNullOrWhiteSpace(workingDirectory))
-        {
-            throw new ArgumentException("Value cannot be null or whitespace.", nameof(workingDirectory));
-        }
+        ArgumentException.ThrowIfNullOrWhiteSpace(workingDirectory);
 
         var arguments = string.Format(
             CultureInfo.InvariantCulture,
@@ -241,10 +234,7 @@ public abstract class LsaUserRightsTestBase : IDisposable
     /// <returns>A map of privilege to security identifiers.</returns>
     private static IReadOnlyDictionary<string, IReadOnlyCollection<SecurityIdentifier>> ReadSecurityDatabaseBackup(string workingDirectory)
     {
-        if (string.IsNullOrWhiteSpace(workingDirectory))
-        {
-            throw new ArgumentException("Value cannot be null or whitespace.", nameof(workingDirectory));
-        }
+        ArgumentException.ThrowIfNullOrWhiteSpace(workingDirectory);
 
         var path = Path.Combine(workingDirectory, ExportSecurityTemplateName);
 
@@ -289,10 +279,7 @@ public abstract class LsaUserRightsTestBase : IDisposable
     /// <param name="workingDirectory">The path to a directory where the backup files exist.</param>
     private static void RestoreSecurityDatabaseBackup(string workingDirectory)
     {
-        if (string.IsNullOrWhiteSpace(workingDirectory))
-        {
-            throw new ArgumentException("Value cannot be null or whitespace.", nameof(workingDirectory));
-        }
+        ArgumentException.ThrowIfNullOrWhiteSpace(workingDirectory);
 
         var arguments = string.Format(
             CultureInfo.InvariantCulture,

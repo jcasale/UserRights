@@ -93,10 +93,7 @@ public sealed class MockLsaUserRights : ILsaUserRights, IUserRightsSerializable
             throw new InvalidOperationException("A connection to the policy database is required.");
         }
 
-        return _database
-            .Where(p => p.Value.Contains(accountSid))
-            .Select(p => p.Key)
-            .ToArray();
+        return [.. _database.Where(p => p.Value.Contains(accountSid)).Select(p => p.Key)];
     }
 
     /// <inheritdoc />
@@ -109,7 +106,7 @@ public sealed class MockLsaUserRights : ILsaUserRights, IUserRightsSerializable
 
         if (string.IsNullOrWhiteSpace(userRight))
         {
-            return _database.Values.SelectMany(p => p).Distinct().ToArray();
+            return [.. _database.Values.SelectMany(p => p).Distinct()];
         }
 
         if (_database.TryGetValue(userRight, out var accountSids))
@@ -158,7 +155,7 @@ public sealed class MockLsaUserRights : ILsaUserRights, IUserRightsSerializable
         var items = info.GetValue<string[][]>(nameof(_database));
         foreach (var item in items)
         {
-            _database.Add(item[0], item[1..].Select(p => new SecurityIdentifier(p)).ToArray());
+            _database.Add(item[0], [.. item[1..].Select(p => new SecurityIdentifier(p))]);
         }
     }
 

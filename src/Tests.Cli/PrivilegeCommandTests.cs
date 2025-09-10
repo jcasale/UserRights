@@ -47,7 +47,7 @@ public sealed class PrivilegeCommandTests : CliTestBase
         Assert.Equal(new[] { Privilege1 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
         Assert.Equal(new[] { Privilege1, Privilege2 }.Order(StringComparer.OrdinalIgnoreCase), policy.LsaEnumerateAccountRights(PrincipalSid2).Order(StringComparer.OrdinalIgnoreCase));
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.Order(), policy.LsaEnumerateAccountsWithUserRight(Privilege1).Order());
-        Assert.Equal(new[] { PrincipalSid2 }, policy.LsaEnumerateAccountsWithUserRight(Privilege2));
+        Assert.Equal([PrincipalSid2], policy.LsaEnumerateAccountsWithUserRight(Privilege2));
 
         policy.ResetConnection();
 
@@ -75,7 +75,7 @@ public sealed class PrivilegeCommandTests : CliTestBase
         Assert.Equal(new[] { Privilege1, Privilege2 }.Order(StringComparer.OrdinalIgnoreCase), policy.LsaEnumerateAccountRights(PrincipalSid1).Order(StringComparer.OrdinalIgnoreCase));
         Assert.Equal(new[] { Privilege1 }, policy.LsaEnumerateAccountRights(PrincipalSid2));
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.Order(), policy.LsaEnumerateAccountsWithUserRight(Privilege1).Order());
-        Assert.Equal(new[] { PrincipalSid1 }, policy.LsaEnumerateAccountsWithUserRight(Privilege2));
+        Assert.Equal([PrincipalSid1], policy.LsaEnumerateAccountsWithUserRight(Privilege2));
     }
 
     /// <summary>
@@ -196,8 +196,8 @@ public sealed class PrivilegeCommandTests : CliTestBase
         Assert.Equal(0, rc);
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2, PrincipalSid3 }.Order(), policy.LsaEnumerateAccountsWithUserRight().Order());
         Assert.Equal(new[] { Privilege1, Privilege2 }.Order(StringComparer.OrdinalIgnoreCase), policy.LsaEnumerateAccountRights(PrincipalSid1).Order(StringComparer.OrdinalIgnoreCase));
-        Assert.Equal(new[] { Privilege1, Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid2).Order(StringComparer.OrdinalIgnoreCase));
-        Assert.Equal(new[] { Privilege1, Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid3).Order(StringComparer.OrdinalIgnoreCase));
+        Assert.Equal([Privilege1, Privilege2], policy.LsaEnumerateAccountRights(PrincipalSid2).Order(StringComparer.OrdinalIgnoreCase));
+        Assert.Equal([Privilege1, Privilege2], policy.LsaEnumerateAccountRights(PrincipalSid3).Order(StringComparer.OrdinalIgnoreCase));
     }
 
     /// <summary>
@@ -429,7 +429,7 @@ public sealed class PrivilegeCommandTests : CliTestBase
         Assert.Equal(0, rc);
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2, PrincipalSid3 }.Order(), policy.LsaEnumerateAccountsWithUserRight().Order());
         Assert.Equal(new[] { Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
-        Assert.Equal(new[] { Privilege1, Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid2).Order(StringComparer.OrdinalIgnoreCase));
-        Assert.Equal(new[] { Privilege1, Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid3).Order(StringComparer.OrdinalIgnoreCase));
+        Assert.Equal([Privilege1, Privilege2], policy.LsaEnumerateAccountRights(PrincipalSid2).Order(StringComparer.OrdinalIgnoreCase));
+        Assert.Equal([Privilege1, Privilege2], policy.LsaEnumerateAccountRights(PrincipalSid3).Order(StringComparer.OrdinalIgnoreCase));
     }
 }

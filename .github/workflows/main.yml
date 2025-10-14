@@ -30,7 +30,8 @@ jobs:
       - name: Set dotnet version
         id: dotnet-version
         run: |
-          $version = [version]::new('${{ steps.setup-dotnet.outputs.dotnet-version }}')
+          $str = '${{ steps.setup-dotnet.outputs.dotnet-version }}'.Split('-')[0]
+          $version = [version]::new($str)
           $label = 'net{0}{1}' -f $version.Major, $version.Minor
           echo $label
           

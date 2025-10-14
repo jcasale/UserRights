@@ -4,6 +4,7 @@
     <Product>Windows User Rights Assignment Utility</Product>
     <Description>Utility for managing user right assignments.</Description>
     <Copyright>Copyright © Joseph L. Casale 2022</Copyright>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 

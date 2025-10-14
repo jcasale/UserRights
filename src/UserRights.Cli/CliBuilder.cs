@@ -53,19 +53,12 @@ public class CliBuilder
 
         foreach (var option in rootCommand.Options)
         {
-            switch (option)
+            // Replace the default help action with one that adds examples.
+            if (option is HelpOption helpOption)
             {
-                // Replace the default help action with one that adds examples.
-                case HelpOption helpOption:
-                    helpOption.Action = new HelpExamplesAction((HelpAction)helpOption.Action!);
+                helpOption.Action = new HelpExamplesAction((HelpAction)helpOption.Action!);
 
-                    break;
-
-                // Replace the default version action with one that produces a shorter informational version.
-                case VersionOption versionOption:
-                    versionOption.Action = new VersionAction();
-
-                    break;
+                break;
             }
         }
 

@@ -1,0 +1,2 @@
+﻿[UserRightsManagerPrivilegeTests.cs]
+dotnet_diagnostic.MA0110.severity = none # Use the Regex source generator.

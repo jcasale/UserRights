@@ -1,0 +1,2 @@
+﻿[UserRightsManager.cs]
+dotnet_diagnostic.MA0015.severity = none # Use an overload of 'System.ArgumentException' with the parameter name.

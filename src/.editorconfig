@@ -92,30 +92,28 @@ resharper_object_creation_when_type_not_evident = target_typed
 resharper_redundant_name_qualifier_highlighting = none
 
 # Analyzer inspection severities
-dotnet_diagnostic.IDE0001.severity = none
-dotnet_diagnostic.IDE0003.severity = none # https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/style-rules/ide0003-ide0009
-dotnet_diagnostic.IDE0039.severity = none
-dotnet_diagnostic.IDE0046.severity = none
-dotnet_diagnostic.IDE0058.severity = none
+dotnet_diagnostic.IDE0001.severity = none # Simplify name.
+dotnet_diagnostic.IDE0003.severity = none # Remove this or Me qualification.
+dotnet_diagnostic.IDE0039.severity = none # Use local function instead of lambda.
+dotnet_diagnostic.IDE0046.severity = none # Use conditional expression for return.
+dotnet_diagnostic.IDE0058.severity = none # Remove unnecessary expression value.
 
-dotnet_diagnostic.CA1031.severity = none
-dotnet_diagnostic.CA1515.severity = none
-dotnet_diagnostic.CA1822.severity = none
-dotnet_diagnostic.CA1848.severity = none
+dotnet_diagnostic.CA1515.severity = none # Consider making public types internal.
+dotnet_diagnostic.CA1822.severity = none # Mark members as static.
+dotnet_diagnostic.CA1848.severity = none # Use the LoggerMessage delegates.
+dotnet_diagnostic.CA1873.severity = none # Evaluation of this argument may be expensive and unnecessary if logging is disabled.
 
-dotnet_diagnostic.MA0003.severity = none
-dotnet_diagnostic.MA0007.severity = none
-dotnet_diagnostic.MA0015.severity = none
-dotnet_diagnostic.MA0038.severity = none
-dotnet_diagnostic.MA0041.severity = none
-dotnet_diagnostic.MA0051.severity = none
+dotnet_diagnostic.MA0003.severity = none # Add parameter name to improve readability.
+dotnet_diagnostic.MA0007.severity = none # Add a comma after the last value.
+dotnet_diagnostic.MA0051.severity = none # Method is too long.
+dotnet_diagnostic.MA0177.severity = none # Use single-line XML comment syntax when possible.
 
-dotnet_diagnostic.SA1101.severity = none
-dotnet_diagnostic.SA1118.severity = none
-dotnet_diagnostic.SA1309.severity = none
-dotnet_diagnostic.SA1312.severity = none
-dotnet_diagnostic.SA1413.severity = none
-dotnet_diagnostic.SA1633.severity = none
+dotnet_diagnostic.SA1101.severity = none # Prefix local calls with this.
+dotnet_diagnostic.SA1118.severity = none # Parameter must not span multiple lines.
+dotnet_diagnostic.SA1309.severity = none # Field names must not begin with underscore.
+dotnet_diagnostic.SA1312.severity = none # Variable names must begin with lower case letter.
+dotnet_diagnostic.SA1413.severity = none # Use trailing commas in multi line initializers.
+dotnet_diagnostic.SA1633.severity = none # File must have header.
 
 #### C# Coding Conventions ####
 [*.cs]

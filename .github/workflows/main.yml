@@ -37,10 +37,10 @@ jobs:
           "label=$label" >> $env:GITHUB_OUTPUT
 
       - name: Run tests
-        run: dotnet.exe test .\src\UserRights.sln --configuration Release --runtime win-x64
+        run: dotnet.exe test .\src\UserRights.slnx --configuration Release --runtime win-x64
 
       - name: Clean solution
-        run: dotnet.exe clean .\src\UserRights.sln --configuration Release
+        run: dotnet.exe clean .\src\UserRights.slnx --configuration Release
 
       - name: Publish runtime-dependent release
         run: dotnet.exe publish .\src\UserRights\UserRights.csproj --configuration Release --runtime win-x64 --no-self-contained --output .\publish
@@ -58,7 +58,7 @@ jobs:
             if-no-files-found: error
 
       - name: Clean solution
-        run: dotnet.exe clean .\src\UserRights.sln --configuration Release
+        run: dotnet.exe clean .\src\UserRights.slnx --configuration Release
 
       - name: Publish self-contained release
         run: dotnet.exe publish .\src\UserRights\UserRights.csproj --configuration Release --runtime win-x64 --self-contained --output .\publish-packed -p:PublishSingleFile=true -p:PublishReadyToRun=true

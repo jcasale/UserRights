@@ -31,9 +31,9 @@ public sealed class ListSyntaxTests : CliTestBase
     public void CsvToStdoutShouldWork()
     {
         var args = new[] { "list" };
-        var configuration = _builder.Build();
+        var rootCommand = _builder.Build();
 
-        var rc = configuration.Parse(args).Validate().Invoke();
+        var rc = rootCommand.Parse(args).ThrowIfInvalid().Run();
 
         Assert.Equal(0, rc);
     }
@@ -45,9 +45,9 @@ public sealed class ListSyntaxTests : CliTestBase
     public void CsvToPathShouldWork()
     {
         var args = new[] { "list", "--path", "file.csv" };
-        var configuration = _builder.Build();
+        var rootCommand = _builder.Build();
 
-        var rc = configuration.Parse(args).Validate().Invoke();
+        var rc = rootCommand.Parse(args).ThrowIfInvalid().Run();
 
         Assert.Equal(0, rc);
     }
@@ -60,7 +60,7 @@ public sealed class ListSyntaxTests : CliTestBase
     [InlineData("list", "--path", "")]
     [InlineData("list", "--path", " ")]
     public void PathWithInvalidStringThrowsException(params string[] args)
-        => Assert.Throws<SyntaxException>(() => _builder.Build().Parse(args).Validate().Invoke());
+        => Assert.Throws<SyntaxException>(() => _builder.Build().Parse(args).ThrowIfInvalid().Run());
 
     /// <summary>
     /// Ensures an empty or whitespace system name is rejected.
@@ -70,7 +70,7 @@ public sealed class ListSyntaxTests : CliTestBase
     [InlineData("list", "--system-name", "")]
     [InlineData("list", "--system-name", " ")]
     public void SystemNameWithInvalidStringThrowsException(params string[] args)
-        => Assert.Throws<SyntaxException>(() => _builder.Build().Parse(args).Validate().Invoke());
+        => Assert.Throws<SyntaxException>(() => _builder.Build().Parse(args).ThrowIfInvalid().Run());
 
     /// <summary>
     /// Verifies list mode with JSON formatted output sent to STDOUT is parsed successfully.
@@ -79,9 +79,9 @@ public sealed class ListSyntaxTests : CliTestBase
     public void JsonToStdoutShouldWork()
     {
         var args = new[] { "list", "--json" };
-        var configuration = _builder.Build();
+        var rootCommand = _builder.Build();
 
-        var rc = configuration.Parse(args).Validate().Invoke();
+        var rc = rootCommand.Parse(args).ThrowIfInvalid().Run();
 
         Assert.Equal(0, rc);
     }
@@ -93,9 +93,9 @@ public sealed class ListSyntaxTests : CliTestBase
     public void JsonToPathShouldWork()
     {
         var args = new[] { "list", "--json", "--path", "file.csv" };
-        var configuration = _builder.Build();
+        var rootCommand = _builder.Build();
 
-        var rc = configuration.Parse(args).Validate().Invoke();
+        var rc = rootCommand.Parse(args).ThrowIfInvalid().Run();
 
         Assert.Equal(0, rc);
     }

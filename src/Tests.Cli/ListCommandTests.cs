@@ -63,7 +63,7 @@ public sealed class ListCommandTests : CliTestBase
 
         var builder = ServiceProvider.GetRequiredService<CliBuilder>();
 
-        var configuration = builder.Build();
+        var rootCommand = builder.Build();
 
         var file = Path.GetTempFileName();
         var args = new[]
@@ -78,7 +78,7 @@ public sealed class ListCommandTests : CliTestBase
         UserRightEntry[] actual;
         try
         {
-            rc = await configuration.Parse(args).Validate().InvokeAsync();
+            rc = await rootCommand.Parse(args).ThrowIfInvalid().RunAsync();
 
             await using var stream = File.OpenRead(file);
 
@@ -135,7 +135,7 @@ public sealed class ListCommandTests : CliTestBase
 
         var builder = ServiceProvider.GetRequiredService<CliBuilder>();
 
-        var configuration = builder.Build();
+        var rootCommand = builder.Build();
 
         var file = Path.GetTempFileName();
         var args = new[]
@@ -149,7 +149,7 @@ public sealed class ListCommandTests : CliTestBase
         UserRightEntry[] actual;
         try
         {
-            rc = await configuration.Parse(args).Validate().InvokeAsync();
+            rc = await rootCommand.Parse(args).ThrowIfInvalid().RunAsync();
 
             var csvConfiguration = new CsvConfiguration(CultureInfo.InvariantCulture)
             {

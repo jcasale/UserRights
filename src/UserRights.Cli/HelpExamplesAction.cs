@@ -26,6 +26,9 @@ public class HelpExamplesAction : SynchronousCommandLineAction
     }
 
     /// <inheritdoc />
+    public override bool ClearsParseErrors => true;
+
+    /// <inheritdoc />
     public override int Invoke(ParseResult parseResult)
     {
         ArgumentNullException.ThrowIfNull(parseResult);
@@ -97,6 +100,6 @@ public class HelpExamplesAction : SynchronousCommandLineAction
             stringBuilder.AppendLine(CultureInfo.InvariantCulture, $"  {ProgramInfo.Program} {example}");
         }
 
-        parseResult.Configuration.Output.WriteLine(stringBuilder.ToString().TrimEnd());
+        parseResult.InvocationConfiguration.Output.WriteLine(stringBuilder.ToString().TrimEnd());
     }
 }

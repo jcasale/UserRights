@@ -54,7 +54,7 @@ public sealed class PrincipalCommandTests : CliTestBase
 
         var builder = ServiceProvider.GetRequiredService<CliBuilder>();
 
-        var configuration = builder.Build();
+        var rootCommand = builder.Build();
 
         var args = new[]
         {
@@ -65,7 +65,7 @@ public sealed class PrincipalCommandTests : CliTestBase
             "--revoke-others"
         };
 
-        var rc = configuration.Parse(args).Validate().Invoke();
+        var rc = rootCommand.Parse(args).ThrowIfInvalid().Run();
 
         Assert.Equal(0, rc);
         Assert.Equal([PrincipalSid1, PrincipalSid2], policy.LsaEnumerateAccountsWithUserRight().Order());
@@ -111,7 +111,7 @@ public sealed class PrincipalCommandTests : CliTestBase
 
         var builder = ServiceProvider.GetRequiredService<CliBuilder>();
 
-        var configuration = builder.Build();
+        var rootCommand = builder.Build();
 
         var args = new[]
         {
@@ -123,7 +123,7 @@ public sealed class PrincipalCommandTests : CliTestBase
             Privilege1
         };
 
-        var rc = configuration.Parse(args).Validate().Invoke();
+        var rc = rootCommand.Parse(args).ThrowIfInvalid().Run();
 
         Assert.Equal(0, rc);
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.Order(), policy.LsaEnumerateAccountsWithUserRight().Order());
@@ -169,7 +169,7 @@ public sealed class PrincipalCommandTests : CliTestBase
 
         var builder = ServiceProvider.GetRequiredService<CliBuilder>();
 
-        var configuration = builder.Build();
+        var rootCommand = builder.Build();
 
         var args = new[]
         {
@@ -179,7 +179,7 @@ public sealed class PrincipalCommandTests : CliTestBase
             Privilege2
         };
 
-        var rc = configuration.Parse(args).Validate().Invoke();
+        var rc = rootCommand.Parse(args).ThrowIfInvalid().Run();
 
         Assert.Equal(0, rc);
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.Order(), policy.LsaEnumerateAccountsWithUserRight().Order());
@@ -226,7 +226,7 @@ public sealed class PrincipalCommandTests : CliTestBase
 
         var builder = ServiceProvider.GetRequiredService<CliBuilder>();
 
-        var configuration = builder.Build();
+        var rootCommand = builder.Build();
 
         var args = new[]
         {
@@ -235,7 +235,7 @@ public sealed class PrincipalCommandTests : CliTestBase
             "--revoke-all"
         };
 
-        var rc = configuration.Parse(args).Validate().Invoke();
+        var rc = rootCommand.Parse(args).ThrowIfInvalid().Run();
 
         Assert.Equal(0, rc);
         Assert.Empty(policy.LsaEnumerateAccountRights(PrincipalSid1));
@@ -281,7 +281,7 @@ public sealed class PrincipalCommandTests : CliTestBase
 
         var builder = ServiceProvider.GetRequiredService<CliBuilder>();
 
-        var configuration = builder.Build();
+        var rootCommand = builder.Build();
 
         var args = new[]
         {
@@ -291,7 +291,7 @@ public sealed class PrincipalCommandTests : CliTestBase
             Privilege2
         };
 
-        var rc = configuration.Parse(args).Validate().Invoke();
+        var rc = rootCommand.Parse(args).ThrowIfInvalid().Run();
 
         Assert.Equal(0, rc);
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.Order(), policy.LsaEnumerateAccountsWithUserRight().Order());

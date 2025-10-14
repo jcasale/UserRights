@@ -57,7 +57,7 @@ public sealed class PrivilegeCommandTests : CliTestBase
 
         var builder = ServiceProvider.GetRequiredService<CliBuilder>();
 
-        var configuration = builder.Build();
+        var rootCommand = builder.Build();
 
         var args = new[]
         {
@@ -68,7 +68,7 @@ public sealed class PrivilegeCommandTests : CliTestBase
             "--revoke-others"
         };
 
-        var rc = configuration.Parse(args).Validate().Invoke();
+        var rc = rootCommand.Parse(args).ThrowIfInvalid().Run();
 
         Assert.Equal(0, rc);
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.Order(), policy.LsaEnumerateAccountsWithUserRight().Order());
@@ -116,7 +116,7 @@ public sealed class PrivilegeCommandTests : CliTestBase
 
         var builder = ServiceProvider.GetRequiredService<CliBuilder>();
 
-        var configuration = builder.Build();
+        var rootCommand = builder.Build();
 
         var args = new[]
         {
@@ -128,7 +128,7 @@ public sealed class PrivilegeCommandTests : CliTestBase
             PrincipalName1
         };
 
-        var rc = configuration.Parse(args).Validate().Invoke();
+        var rc = rootCommand.Parse(args).ThrowIfInvalid().Run();
 
         Assert.Equal(0, rc);
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.Order(), policy.LsaEnumerateAccountsWithUserRight().Order());
@@ -179,7 +179,7 @@ public sealed class PrivilegeCommandTests : CliTestBase
 
         var builder = ServiceProvider.GetRequiredService<CliBuilder>();
 
-        var configuration = builder.Build();
+        var rootCommand = builder.Build();
 
         var args = new[]
         {
@@ -191,7 +191,7 @@ public sealed class PrivilegeCommandTests : CliTestBase
             "^S-1-5-21"
         };
 
-        var rc = configuration.Parse(args).Validate().Invoke();
+        var rc = rootCommand.Parse(args).ThrowIfInvalid().Run();
 
         Assert.Equal(0, rc);
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2, PrincipalSid3 }.Order(), policy.LsaEnumerateAccountsWithUserRight().Order());
@@ -237,7 +237,7 @@ public sealed class PrivilegeCommandTests : CliTestBase
 
         var builder = ServiceProvider.GetRequiredService<CliBuilder>();
 
-        var configuration = builder.Build();
+        var rootCommand = builder.Build();
 
         var args = new[]
         {
@@ -247,7 +247,7 @@ public sealed class PrivilegeCommandTests : CliTestBase
             PrincipalName1
         };
 
-        var rc = configuration.Parse(args).Validate().Invoke();
+        var rc = rootCommand.Parse(args).ThrowIfInvalid().Run();
 
         Assert.Equal(0, rc);
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.Order(), policy.LsaEnumerateAccountsWithUserRight().Order());
@@ -296,7 +296,7 @@ public sealed class PrivilegeCommandTests : CliTestBase
 
         var builder = ServiceProvider.GetRequiredService<CliBuilder>();
 
-        var configuration = builder.Build();
+        var rootCommand = builder.Build();
 
         var args = new[]
         {
@@ -305,7 +305,7 @@ public sealed class PrivilegeCommandTests : CliTestBase
             "--revoke-all"
         };
 
-        var rc = configuration.Parse(args).Validate().Invoke();
+        var rc = rootCommand.Parse(args).ThrowIfInvalid().Run();
 
         Assert.Equal(0, rc);
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.Order(), policy.LsaEnumerateAccountsWithUserRight().Order());
@@ -353,7 +353,7 @@ public sealed class PrivilegeCommandTests : CliTestBase
 
         var builder = ServiceProvider.GetRequiredService<CliBuilder>();
 
-        var configuration = builder.Build();
+        var rootCommand = builder.Build();
 
         var args = new[]
         {
@@ -363,7 +363,7 @@ public sealed class PrivilegeCommandTests : CliTestBase
             PrincipalName2
         };
 
-        var rc = configuration.Parse(args).Validate().Invoke();
+        var rc = rootCommand.Parse(args).ThrowIfInvalid().Run();
 
         Assert.Equal(0, rc);
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.Order(), policy.LsaEnumerateAccountsWithUserRight().Order());
@@ -414,7 +414,7 @@ public sealed class PrivilegeCommandTests : CliTestBase
 
         var builder = ServiceProvider.GetRequiredService<CliBuilder>();
 
-        var configuration = builder.Build();
+        var rootCommand = builder.Build();
 
         var args = new[]
         {
@@ -424,7 +424,7 @@ public sealed class PrivilegeCommandTests : CliTestBase
             "^S-1-5-21"
         };
 
-        var rc = configuration.Parse(args).Validate().Invoke();
+        var rc = rootCommand.Parse(args).ThrowIfInvalid().Run();
 
         Assert.Equal(0, rc);
         Assert.Equal(new[] { PrincipalSid1, PrincipalSid2, PrincipalSid3 }.Order(), policy.LsaEnumerateAccountsWithUserRight().Order());

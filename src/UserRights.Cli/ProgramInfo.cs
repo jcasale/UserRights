@@ -1,6 +1,5 @@
 ﻿namespace UserRights.Cli;
 
-using System;
 using System.Reflection;
 
 /// <summary>

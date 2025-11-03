@@ -1,6 +1,5 @@
 namespace Tests;
 
-using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 using UserRights.Application;

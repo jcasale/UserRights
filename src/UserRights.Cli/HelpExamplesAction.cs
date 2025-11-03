@@ -1,6 +1,5 @@
 namespace UserRights.Cli;
 
-using System;
 using System.CommandLine;
 using System.CommandLine.Help;
 using System.CommandLine.Invocation;

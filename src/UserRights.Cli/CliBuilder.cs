@@ -1,16 +1,10 @@
 namespace UserRights.Cli;
 
-using System;
-using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Help;
 using System.Globalization;
-using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
 
 using Microsoft.Extensions.Logging;
 

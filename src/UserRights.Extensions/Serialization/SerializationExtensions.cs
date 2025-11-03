@@ -1,13 +1,8 @@
 namespace UserRights.Extensions.Serialization;
 
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Text;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 
 using CsvHelper;
 using CsvHelper.Configuration;

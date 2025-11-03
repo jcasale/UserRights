@@ -1,7 +1,5 @@
 namespace UserRights.Application;
 
-using System;
-
 /// <summary>
 /// Represents an entry in the local security database.
 /// </summary>

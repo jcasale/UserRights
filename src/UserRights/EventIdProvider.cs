@@ -1,8 +1,6 @@
 namespace UserRights;
 
-using System;
 using System.Globalization;
-using System.Linq;
 
 using Serilog.Events;
 using Serilog.Sinks.EventLog;

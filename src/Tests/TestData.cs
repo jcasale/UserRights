@@ -1,6 +1,5 @@
 namespace Tests;
 
-using System;
 using System.Security.Principal;
 
 /// <summary>

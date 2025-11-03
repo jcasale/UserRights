@@ -1,6 +1,5 @@
 namespace UserRights.Application;
 
-using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 /// <summary>

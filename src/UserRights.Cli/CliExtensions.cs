@@ -1,11 +1,8 @@
 ﻿namespace UserRights.Cli;
 
-using System;
 using System.CommandLine;
 using System.Globalization;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 /// <summary>
 /// Represents extensions for parsing and invoking command line arguments.

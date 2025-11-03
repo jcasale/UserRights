@@ -1,7 +1,5 @@
 namespace UserRights.Extensions.Security;
 
-using System;
-
 /// <summary>
 /// Represents the exception thrown when an error occurs translating security contexts.
 /// </summary>

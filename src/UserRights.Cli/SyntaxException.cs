@@ -1,7 +1,5 @@
 namespace UserRights.Cli;
 
-using System;
-
 /// <summary>
 /// Represents the exception that is thrown when a syntax error occurs.
 /// </summary>

@@ -277,8 +277,9 @@ public class LsaUserRights : ILsaUserRights, IDisposable
         if (disposing)
         {
             _handle?.Dispose();
-            _disposed = true;
         }
+
+        _disposed = true;
     }
 
     /// <summary>

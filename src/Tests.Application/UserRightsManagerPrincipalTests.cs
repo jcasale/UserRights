@@ -2,70 +2,72 @@ namespace Tests.Application;
 
 using System.Security.Principal;
 
-using Microsoft.Extensions.DependencyInjection;
 using UserRights.Application;
-using Xunit;
 
 using static Tests.TestData;
 
 /// <summary>
 /// Represents tests for <see cref="IUserRightsManager"/> modify principal functionality.
 /// </summary>
-public sealed class UserRightsManagerPrincipalTests : UserRightsManagerTestBase
+[TestClass]
+public class UserRightsManagerPrincipalTests
 {
     /// <summary>
-    /// Generates invalid method arguments for the <see cref="IUserRightsManager.ModifyPrincipal"/> method.
+    /// Gets invalid method arguments for the <see cref="IUserRightsManager.ModifyPrincipal"/> unit test.
     /// </summary>
-    /// <returns>A sequence of method arguments.</returns>
-    public static TheoryData<IUserRightsSerializable, string, string[], string[], bool, bool, bool> InvalidArguments()
+    public static IEnumerable<(ILsaUserRights Policy, string Principal, string[] Grants, string[] Revocations, bool RevokeAll, bool RevokeOthers, bool DryRun)> InvalidArgumentData
     {
-        var policy = new MockLsaUserRights(
-            new Dictionary<string, ICollection<SecurityIdentifier>>(StringComparer.InvariantCultureIgnoreCase)
-            {
-                { "joey", new List<SecurityIdentifier> { PrincipalSid1 } }
-            });
-
-        return new()
+        get
         {
-            // Verify null policy instance.
-            { null!, PrincipalName1, [Privilege1], [], false, false, false },
+            var policy = new MockLsaUserRights(
+                new Dictionary<string, ICollection<SecurityIdentifier>>(StringComparer.InvariantCultureIgnoreCase)
+                {
+                    { "joey", new List<SecurityIdentifier> { PrincipalSid1 } }
+                });
 
-            // Verify null or empty principal.
-            { policy, null!, [Privilege1], [], false, false, false },
-            { policy, string.Empty, [Privilege1], [], false, false, false },
+            return
+            [
+                // Verify null policy instance.
+                new(null!, PrincipalName1, [Privilege1], [], false, false, false),
 
-            // Verify null grant collection.
-            { policy, PrincipalName1, null!, [Privilege1], false, false, false },
+                // Verify null or empty principal.
+                new(policy, null!, [Privilege1], [], false, false, false),
+                new(policy, string.Empty, [Privilege1], [], false, false, false),
 
-            // Verify null revocation collection.
-            { policy, PrincipalName1, [Privilege1], null!, false, false, false },
+                // Verify null grant collection.
+                new(policy, PrincipalName1, null!, [Privilege1], false, false, false),
 
-            // Verify RevokeAll requirements.
-            { policy, PrincipalName1, [Privilege1], [], true, false, false },
-            { policy, PrincipalName1, [], [Privilege1], true, false, false },
-            { policy, PrincipalName1, [], [], true, true, false },
+                // Verify null revocation collection.
+                new(policy, PrincipalName1, [Privilege1], null!, false, false, false),
 
-            // Verify RevokeOthers requirements.
-            { policy, PrincipalName1, [Privilege1], [], true, true, false },
-            { policy, PrincipalName1, [], [], false, true, false },
-            { policy, PrincipalName1, [Privilege1], [Privilege2], false, true, false },
+                // Verify RevokeAll requirements.
+                new(policy, PrincipalName1, [Privilege1], [], true, false, false),
+                new(policy, PrincipalName1, [], [Privilege1], true, false, false),
+                new(policy, PrincipalName1, [], [], true, true, false),
 
-            // Verify remaining requirements.
-            { policy, PrincipalName1, [], [], false, false, false },
+                // Verify RevokeOthers requirements.
+                new(policy, PrincipalName1, [Privilege1], [], true, true, false),
+                new(policy, PrincipalName1, [], [], false, true, false),
+                new(policy, PrincipalName1, [Privilege1], [Privilege2], false, true, false),
 
-            // Verify grant and revocation set restrictions.
-            { policy, PrincipalName1, [Privilege1], [Privilege1], false, false, false },
-            { policy, PrincipalName1, [Privilege1, Privilege1], [], false, false, false },
-            { policy, PrincipalName1, [], [Privilege1, Privilege1], false, false, false }
-        };
+                // Verify remaining requirements.
+                new(policy, PrincipalName1, [], [], false, false, false),
+
+                // Verify grant and revocation set restrictions.
+                new(policy, PrincipalName1, [Privilege1], [Privilege1], false, false, false),
+                new(policy, PrincipalName1, [Privilege1, Privilege1], [], false, false, false),
+                new(policy, PrincipalName1, [], [Privilege1, Privilege1], false, false, false)
+            ];
+        }
     }
 
     /// <summary>
-    /// Verifies a granting a privilege to a principal and revoking their other privileges is successful and does not modify other assignments.
+    /// Verifies granting a privilege to a principal and revoking their other privileges is successful and does not modify other assignments.
     /// </summary>
-    [Fact]
+    [TestMethod]
     public void GrantAndRevokeOthersShouldWork()
     {
+        // Arrange.
         var principals1 = new List<SecurityIdentifier>
         {
             PrincipalSid1
@@ -85,24 +87,28 @@ public sealed class UserRightsManagerPrincipalTests : UserRightsManagerTestBase
         var policy = new MockLsaUserRights(database);
         policy.Connect("SystemName");
 
-        Assert.Equal([PrincipalSid1, PrincipalSid2], policy.LsaEnumerateAccountsWithUserRight().Order());
-        Assert.Equal(new[] { Privilege1 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
-        Assert.Equal(new[] { Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid2));
+        CollectionAssert.AreEquivalent(new[] { PrincipalSid1, PrincipalSid2 }, policy.LsaEnumerateAccountsWithUserRight());
+        CollectionAssert.AreEqual(new[] { Privilege1 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
+        CollectionAssert.AreEqual(new[] { Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid2));
 
-        var manager = ServiceProvider.GetRequiredService<IUserRightsManager>();
-        manager.ModifyPrincipal(policy, PrincipalName1, [Privilege2], [], false, true, false);
+        using var fixture = new UserRightsManagerFixture();
 
-        Assert.Equal([PrincipalSid1, PrincipalSid2], policy.LsaEnumerateAccountsWithUserRight().Order());
-        Assert.Equal(new[] { Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
-        Assert.Equal(new[] { Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid2));
+        // Act.
+        fixture.UserRightsManager.ModifyPrincipal(policy, PrincipalName1, [Privilege2], [], false, true, false);
+
+        // Assert.
+        CollectionAssert.AreEquivalent(new[] { PrincipalSid1, PrincipalSid2 }, policy.LsaEnumerateAccountsWithUserRight());
+        CollectionAssert.AreEqual(new[] { Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
+        CollectionAssert.AreEqual(new[] { Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid2));
     }
 
     /// <summary>
     /// Verifies a single grant with a single revoke is successful and does not modify other assignments.
     /// </summary>
-    [Fact]
+    [TestMethod]
     public void GrantAndRevokeShouldWork()
     {
+        // Arrange.
         var principals1 = new List<SecurityIdentifier>
         {
             PrincipalSid1,
@@ -123,24 +129,28 @@ public sealed class UserRightsManagerPrincipalTests : UserRightsManagerTestBase
         var policy = new MockLsaUserRights(database);
         policy.Connect("SystemName");
 
-        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.Order(), policy.LsaEnumerateAccountsWithUserRight().Order());
-        Assert.Equal(new[] { Privilege1 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
-        Assert.Equal(new[] { Privilege1, Privilege2 }.Order(StringComparer.OrdinalIgnoreCase), policy.LsaEnumerateAccountRights(PrincipalSid2).Order(StringComparer.OrdinalIgnoreCase));
+        CollectionAssert.AreEquivalent(new[] { PrincipalSid1, PrincipalSid2 }, policy.LsaEnumerateAccountsWithUserRight());
+        CollectionAssert.AreEqual(new[] { Privilege1 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
+        CollectionAssert.AreEqual(new[] { Privilege1, Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid2));
 
-        var manager = ServiceProvider.GetRequiredService<IUserRightsManager>();
-        manager.ModifyPrincipal(policy, PrincipalName1, [Privilege2], [Privilege1], false, false, false);
+        using var fixture = new UserRightsManagerFixture();
 
-        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.Order(), policy.LsaEnumerateAccountsWithUserRight().Order());
-        Assert.Equal(new[] { Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
-        Assert.Equal(new[] { Privilege1, Privilege2 }.Order(StringComparer.OrdinalIgnoreCase), policy.LsaEnumerateAccountRights(PrincipalSid2).Order(StringComparer.OrdinalIgnoreCase));
+        // Act.
+        fixture.UserRightsManager.ModifyPrincipal(policy, PrincipalName1, [Privilege2], [Privilege1], false, false, false);
+
+        // Assert.
+        CollectionAssert.AreEquivalent(new[] { PrincipalSid1, PrincipalSid2 }, policy.LsaEnumerateAccountsWithUserRight());
+        CollectionAssert.AreEqual(new[] { Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
+        CollectionAssert.AreEqual(new[] { Privilege1, Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid2));
     }
 
     /// <summary>
     /// Verifies a single grant is successful and does not modify other assignments.
     /// </summary>
-    [Fact]
+    [TestMethod]
     public void GrantShouldWork()
     {
+        // Arrange.
         var principals1 = new List<SecurityIdentifier>
         {
             PrincipalSid1,
@@ -161,16 +171,19 @@ public sealed class UserRightsManagerPrincipalTests : UserRightsManagerTestBase
         var policy = new MockLsaUserRights(database);
         policy.Connect("SystemName");
 
-        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.Order(), policy.LsaEnumerateAccountsWithUserRight().Order());
-        Assert.Equal(new[] { Privilege1 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
-        Assert.Equal(new[] { Privilege1, Privilege2 }.Order(StringComparer.OrdinalIgnoreCase), policy.LsaEnumerateAccountRights(PrincipalSid2).Order(StringComparer.OrdinalIgnoreCase));
+        CollectionAssert.AreEquivalent(new[] { PrincipalSid1, PrincipalSid2 }, policy.LsaEnumerateAccountsWithUserRight());
+        CollectionAssert.AreEqual(new[] { Privilege1 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
+        CollectionAssert.AreEqual(new[] { Privilege1, Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid2));
 
-        var manager = ServiceProvider.GetRequiredService<IUserRightsManager>();
-        manager.ModifyPrincipal(policy, PrincipalName1, [Privilege2], [], false, false, false);
+        using var fixture = new UserRightsManagerFixture();
 
-        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.Order(), policy.LsaEnumerateAccountsWithUserRight().Order());
-        Assert.Equal(new[] { Privilege1, Privilege2 }.Order(StringComparer.OrdinalIgnoreCase), policy.LsaEnumerateAccountRights(PrincipalSid1).Order(StringComparer.OrdinalIgnoreCase));
-        Assert.Equal(new[] { Privilege1, Privilege2 }.Order(StringComparer.OrdinalIgnoreCase), policy.LsaEnumerateAccountRights(PrincipalSid2).Order(StringComparer.OrdinalIgnoreCase));
+        // Act.
+        fixture.UserRightsManager.ModifyPrincipal(policy, PrincipalName1, [Privilege2], [], false, false, false);
+
+        // Assert.
+        CollectionAssert.AreEquivalent(new[] { PrincipalSid1, PrincipalSid2 }, policy.LsaEnumerateAccountsWithUserRight());
+        CollectionAssert.AreEqual(new[] { Privilege1, Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
+        CollectionAssert.AreEqual(new[] { Privilege1, Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid2));
     }
 
     /// <summary>
@@ -183,21 +196,24 @@ public sealed class UserRightsManagerPrincipalTests : UserRightsManagerTestBase
     /// <param name="revokeAll">Revokes all privileges from the principal.</param>
     /// <param name="revokeOthers">Revokes all privileges from the principal excluding those being granted.</param>
     /// <param name="dryRun">Enables dry-run mode.</param>
-    [Theory]
-    [MemberData(nameof(InvalidArguments))]
-    public void InvalidArgumentsThrowsException(IUserRightsSerializable policy, string principal, string[] grants, string[] revocations, bool revokeAll, bool revokeOthers, bool dryRun)
+    [TestMethod]
+    [DynamicData(nameof(InvalidArgumentData))]
+    public void InvalidArgumentsThrowsException(ILsaUserRights policy, string principal, string[] grants, string[] revocations, bool revokeAll, bool revokeOthers, bool dryRun)
     {
-        var manager = ServiceProvider.GetRequiredService<IUserRightsManager>();
+        // Arrange.
+        using var fixture = new UserRightsManagerFixture();
 
-        Assert.ThrowsAny<ArgumentException>(() => manager.ModifyPrincipal(policy, principal, grants, revocations, revokeAll, revokeOthers, dryRun));
+        // Act & Assert.
+        Assert.Throws<ArgumentException>(() => fixture.UserRightsManager.ModifyPrincipal(policy, principal, grants, revocations, revokeAll, revokeOthers, dryRun));
     }
 
     /// <summary>
     /// Verifies a revoking all privileges for a principal is successful and does not modify other assignments.
     /// </summary>
-    [Fact]
+    [TestMethod]
     public void RevokeAllShouldWork()
     {
+        // Arrange.
         var principals1 = new List<SecurityIdentifier>
         {
             PrincipalSid1,
@@ -219,24 +235,28 @@ public sealed class UserRightsManagerPrincipalTests : UserRightsManagerTestBase
         var policy = new MockLsaUserRights(database);
         policy.Connect("SystemName");
 
-        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.Order(), policy.LsaEnumerateAccountsWithUserRight().Order());
-        Assert.Equal(new[] { Privilege1, Privilege2 }.Order(StringComparer.OrdinalIgnoreCase), policy.LsaEnumerateAccountRights(PrincipalSid1).Order(StringComparer.OrdinalIgnoreCase));
-        Assert.Equal(new[] { Privilege1, Privilege2 }.Order(StringComparer.OrdinalIgnoreCase), policy.LsaEnumerateAccountRights(PrincipalSid2).Order(StringComparer.OrdinalIgnoreCase));
+        CollectionAssert.AreEquivalent(new[] { PrincipalSid1, PrincipalSid2 }, policy.LsaEnumerateAccountsWithUserRight());
+        CollectionAssert.AreEquivalent(new[] { Privilege1, Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
+        CollectionAssert.AreEquivalent(new[] { Privilege1, Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid2));
 
-        var manager = ServiceProvider.GetRequiredService<IUserRightsManager>();
-        manager.ModifyPrincipal(policy, PrincipalName1, [], [], true, false, false);
+        using var fixture = new UserRightsManagerFixture();
 
-        Assert.Empty(policy.LsaEnumerateAccountRights(PrincipalSid1));
-        Assert.Equal([PrincipalSid2], policy.LsaEnumerateAccountsWithUserRight());
-        Assert.Equal(new[] { Privilege1, Privilege2 }.Order(StringComparer.OrdinalIgnoreCase), policy.LsaEnumerateAccountRights(PrincipalSid2).Order(StringComparer.OrdinalIgnoreCase));
+        // Act.
+        fixture.UserRightsManager.ModifyPrincipal(policy, PrincipalName1, [], [], true, false, false);
+
+        // Assert.
+        Assert.IsEmpty(policy.LsaEnumerateAccountRights(PrincipalSid1));
+        CollectionAssert.AreEqual(new[] { PrincipalSid2 }, policy.LsaEnumerateAccountsWithUserRight());
+        CollectionAssert.AreEquivalent(new[] { Privilege1, Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid2));
     }
 
     /// <summary>
     /// Verifies a single revocation is successful and does not modify other assignments.
     /// </summary>
-    [Fact]
+    [TestMethod]
     public void RevokeShouldWork()
     {
+        // Arrange.
         var principals1 = new List<SecurityIdentifier>
         {
             PrincipalSid1,
@@ -257,15 +277,18 @@ public sealed class UserRightsManagerPrincipalTests : UserRightsManagerTestBase
         var policy = new MockLsaUserRights(database);
         policy.Connect("SystemName");
 
-        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.Order(), policy.LsaEnumerateAccountsWithUserRight().Order());
-        Assert.Equal(new[] { Privilege1 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
-        Assert.Equal(new[] { Privilege1, Privilege2 }.Order(StringComparer.OrdinalIgnoreCase), policy.LsaEnumerateAccountRights(PrincipalSid2).Order(StringComparer.OrdinalIgnoreCase));
+        CollectionAssert.AreEquivalent(new[] { PrincipalSid1, PrincipalSid2 }, policy.LsaEnumerateAccountsWithUserRight());
+        CollectionAssert.AreEqual(new[] { Privilege1 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
+        CollectionAssert.AreEquivalent(new[] { Privilege1, Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid2));
 
-        var manager = ServiceProvider.GetRequiredService<IUserRightsManager>();
-        manager.ModifyPrincipal(policy, PrincipalName2, [], [Privilege2], false, false, false);
+        using var fixture = new UserRightsManagerFixture();
 
-        Assert.Equal(new[] { PrincipalSid1, PrincipalSid2 }.Order(), policy.LsaEnumerateAccountsWithUserRight().Order());
-        Assert.Equal(new[] { Privilege1 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
-        Assert.Equal(new[] { Privilege1 }, policy.LsaEnumerateAccountRights(PrincipalSid2));
+        // Act.
+        fixture.UserRightsManager.ModifyPrincipal(policy, PrincipalName2, [], [Privilege2], false, false, false);
+
+        // Assert.
+        CollectionAssert.AreEquivalent(new[] { PrincipalSid1, PrincipalSid2 }, policy.LsaEnumerateAccountsWithUserRight());
+        CollectionAssert.AreEqual(new[] { Privilege1 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
+        CollectionAssert.AreEqual(new[] { Privilege1 }, policy.LsaEnumerateAccountRights(PrincipalSid2));
     }
 }

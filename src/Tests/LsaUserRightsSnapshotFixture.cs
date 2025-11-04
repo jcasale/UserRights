@@ -1,4 +1,4 @@
-namespace Tests.Application;
+namespace Tests;
 
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -8,13 +8,16 @@ using System.Security.Principal;
 using System.Text;
 
 using Microsoft.Extensions.Configuration;
-using UserRights.Application;
+
 using UserRights.Extensions.Security;
 
 /// <summary>
-/// Represents the test base for <see cref="LsaUserRights"/> application.
+/// Represents a test fixture for preserving the state of the local security authority (LSA) database during test execution.
 /// </summary>
-public abstract class LsaUserRightsTestBase : IDisposable
+/// <remarks>
+/// This fixture creates a temporary directory and backs up the security database when instantiated, then restores it during disposal.
+/// </remarks>
+public abstract class LsaUserRightsSnapshotFixture : IDisposable
 {
     private const string ExportSecurityTemplateName = "export.ini";
     private const string ExportSecurityLogName = "export.log";
@@ -28,9 +31,9 @@ public abstract class LsaUserRightsTestBase : IDisposable
     private bool _disposed;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="LsaUserRightsTestBase"/> class.
+    /// Initializes a new instance of the <see cref="LsaUserRightsSnapshotFixture"/> class.
     /// </summary>
-    protected LsaUserRightsTestBase()
+    protected LsaUserRightsSnapshotFixture()
     {
         try
         {
@@ -90,9 +93,9 @@ public abstract class LsaUserRightsTestBase : IDisposable
 
                 _directory.Delete(true);
             }
-
-            _disposed = true;
         }
+
+        _disposed = true;
     }
 
     /// <summary>
@@ -149,7 +152,7 @@ public abstract class LsaUserRightsTestBase : IDisposable
                 continue;
             }
 
-            var entry = string.Format(CultureInfo.InvariantCulture, "{0} =", privilege);
+            var entry = string.Create(CultureInfo.InvariantCulture, $"{privilege} =");
             lines.Insert(index + 1, entry);
         }
 
@@ -167,11 +170,9 @@ public abstract class LsaUserRightsTestBase : IDisposable
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(workingDirectory);
 
-        var arguments = string.Format(
+        var arguments = string.Create(
             CultureInfo.InvariantCulture,
-            "/export /cfg {0} /areas user_rights /log {1}",
-            ExportSecurityTemplateName,
-            ExportSecurityLogName);
+            $"/export /cfg {ExportSecurityTemplateName} /areas user_rights /log {ExportSecurityLogName}");
 
         var stringBuilder = new StringBuilder();
 
@@ -190,15 +191,13 @@ public abstract class LsaUserRightsTestBase : IDisposable
 
         process.BeginErrorReadLine();
 
-        process.WaitForExit(5000);
+        process.WaitForExit();
 
         if (process.ExitCode != 0)
         {
-            var message = string.Format(
+            var message = string.Create(
                 CultureInfo.InvariantCulture,
-                "Failed to export the security database, exit code: {0}\r\n{1}",
-                process.ExitCode,
-                stringBuilder);
+                $"Failed to export the security database, exit code: {process.ExitCode}\r\n{stringBuilder}");
 
             throw new InvalidOperationException(message);
         }
@@ -277,12 +276,9 @@ public abstract class LsaUserRightsTestBase : IDisposable
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(workingDirectory);
 
-        var arguments = string.Format(
+        var arguments = string.Create(
             CultureInfo.InvariantCulture,
-            "/configure /db {0} /cfg {1} /areas user_rights /log {2}",
-            RestoreSecurityDatabaseName,
-            RestoreSecurityTemplateName,
-            RestoreSecurityLogName);
+            $"/configure /db {RestoreSecurityDatabaseName} /cfg {RestoreSecurityTemplateName} /areas user_rights /log {RestoreSecurityLogName}");
 
         var stringBuilder = new StringBuilder();
 
@@ -301,15 +297,13 @@ public abstract class LsaUserRightsTestBase : IDisposable
 
         process.BeginErrorReadLine();
 
-        process.WaitForExit(5000);
+        process.WaitForExit();
 
         if (process.ExitCode != 0)
         {
-            var message = string.Format(
+            var message = string.Create(
                 CultureInfo.InvariantCulture,
-                "Failed to restore the security database, exit code: {0}\r\n{1}",
-                process.ExitCode,
-                stringBuilder);
+                $"Failed to restore the security database, exit code: {process.ExitCode}\r\n{stringBuilder}");
 
             throw new InvalidOperationException(message);
         }

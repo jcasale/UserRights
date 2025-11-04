@@ -1,0 +1,22 @@
+﻿{
+  "codeCoverage": {
+    "Configuration": {
+      "Format": "cobertura",
+      "CodeCoverage": {
+        "EnableDynamicNativeInstrumentation": false,
+        "EnableStaticNativeInstrumentation": false,
+        "Attributes": {
+          "Exclude": [
+            "^System\\.CodeDom\\.Compiler\\.GeneratedCodeAttribute$"
+          ]
+        },
+        "Sources": {
+          "Exclude": [
+            ".*\\.g\\.cs$",
+            ".*\\\\Test.*\\.cs$"
+          ]
+        }
+      }
+    }
+  }
+}

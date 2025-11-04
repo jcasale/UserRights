@@ -1,0 +1,2 @@
+﻿[*.cs]
+dotnet_diagnostic.MSTEST0004.severity = none # Public types should be test classes.

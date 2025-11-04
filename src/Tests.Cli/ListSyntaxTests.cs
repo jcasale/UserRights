@@ -1,102 +1,98 @@
 namespace Tests.Cli;
 
-using Microsoft.Extensions.DependencyInjection;
-using UserRights.Application;
 using UserRights.Cli;
-using Xunit;
 
 /// <summary>
 /// Represents syntax tests for list functionality.
 /// </summary>
-public sealed class ListSyntaxTests : CliTestBase
+[TestClass]
+public sealed class ListSyntaxTests : CliBuilderFixture
 {
-    private readonly CliBuilder _builder;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ListSyntaxTests"/> class.
-    /// </summary>
-    public ListSyntaxTests()
-    {
-        ServiceCollection.AddSingleton<ILsaUserRights, MockLsaUserRights>();
-        ServiceCollection.AddSingleton<IUserRightsManager, MockUserRightsManager>();
-        ServiceCollection.AddSingleton<CliBuilder>();
-
-        _builder = ServiceProvider.GetRequiredService<CliBuilder>();
-    }
-
     /// <summary>
     /// Verifies list mode with CSV formatted output sent to STDOUT is parsed successfully.
     /// </summary>
-    [Fact]
+    [TestMethod]
     public void CsvToStdoutShouldWork()
     {
+        // Arrange.
         var args = new[] { "list" };
-        var rootCommand = _builder.Build();
+        var rootCommand = CliBuilder.Build();
 
+        // Act.
         var rc = rootCommand.Parse(args).ThrowIfInvalid().Run();
 
-        Assert.Equal(0, rc);
+        // Assert.
+        Assert.AreEqual(0, rc);
     }
 
     /// <summary>
     /// Verifies list mode with CSV formatted output sent to a file is parsed successfully.
     /// </summary>
-    [Fact]
+    [TestMethod]
     public void CsvToPathShouldWork()
     {
+        // Arrange.
         var args = new[] { "list", "--path", "file.csv" };
-        var rootCommand = _builder.Build();
+        var rootCommand = CliBuilder.Build();
 
+        // Act.
         var rc = rootCommand.Parse(args).ThrowIfInvalid().Run();
 
-        Assert.Equal(0, rc);
+        // Assert.
+        Assert.AreEqual(0, rc);
     }
 
     /// <summary>
     /// Ensures an empty or whitespace path is rejected.
     /// </summary>
     /// <param name="args">The test arguments.</param>
-    [Theory]
-    [InlineData("list", "--path", "")]
-    [InlineData("list", "--path", " ")]
+    [TestMethod]
+    [DataRow("list", "--path", "")]
+    [DataRow("list", "--path", " ")]
     public void PathWithInvalidStringThrowsException(params string[] args)
-        => Assert.Throws<SyntaxException>(() => _builder.Build().Parse(args).ThrowIfInvalid().Run());
+        => Assert.Throws<SyntaxException>(() => CliBuilder.Build().Parse(args).ThrowIfInvalid().Run());
 
     /// <summary>
     /// Ensures an empty or whitespace system name is rejected.
     /// </summary>
     /// <param name="args">The test arguments.</param>
-    [Theory]
-    [InlineData("list", "--system-name", "")]
-    [InlineData("list", "--system-name", " ")]
+    [TestMethod]
+    [DataRow("list", "--system-name", "")]
+    [DataRow("list", "--system-name", " ")]
     public void SystemNameWithInvalidStringThrowsException(params string[] args)
-        => Assert.Throws<SyntaxException>(() => _builder.Build().Parse(args).ThrowIfInvalid().Run());
+        => Assert.Throws<SyntaxException>(() => CliBuilder.Build().Parse(args).ThrowIfInvalid().Run());
 
     /// <summary>
     /// Verifies list mode with JSON formatted output sent to STDOUT is parsed successfully.
     /// </summary>
-    [Fact]
+    [TestMethod]
     public void JsonToStdoutShouldWork()
     {
+        // Arrange.
         var args = new[] { "list", "--json" };
-        var rootCommand = _builder.Build();
+        var rootCommand = CliBuilder.Build();
 
+        // Act.
         var rc = rootCommand.Parse(args).ThrowIfInvalid().Run();
 
-        Assert.Equal(0, rc);
+        // Assert.
+        Assert.AreEqual(0, rc);
     }
 
     /// <summary>
     /// Verifies list mode with JSON formatted output sent to a file is parsed successfully.
     /// </summary>
-    [Fact]
+    [TestMethod]
     public void JsonToPathShouldWork()
     {
-        var args = new[] { "list", "--json", "--path", "file.csv" };
-        var rootCommand = _builder.Build();
+        // Arrange.
+        var args = new[] { "list", "--json", "--path", "file.json" };
+        var rootCommand = CliBuilder.Build();
 
+        // Act.
         var rc = rootCommand.Parse(args).ThrowIfInvalid().Run();
 
-        Assert.Equal(0, rc);
+        // Assert.
+        Assert.AreEqual(0, rc);
     }
 }

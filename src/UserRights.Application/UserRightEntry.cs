@@ -38,4 +38,25 @@ public record UserRightEntry : IUserRightEntry
     /// The account name may be empty if the query was performed remotely due to the translation possibly not working.
     /// </remarks>
     public string? AccountName { get; }
+
+    /// <inheritdoc />
+    public virtual bool Equals(UserRightEntry? other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return string.Equals(Privilege, other.Privilege, StringComparison.Ordinal)
+               && string.Equals(SecurityId, other.SecurityId, StringComparison.Ordinal)
+               && string.Equals(AccountName, other.AccountName, StringComparison.Ordinal);
+    }
+
+    /// <inheritdoc />
+    public override int GetHashCode() => HashCode.Combine(Privilege, SecurityId, AccountName);
 }

@@ -3,7 +3,6 @@ namespace Tests.Application;
 using System.Security.Principal;
 
 using UserRights.Application;
-using Xunit;
 
 using static Tests.PrivilegeConstants;
 using static Tests.SecurityIdentifierConstants;
@@ -11,25 +10,27 @@ using static Tests.SecurityIdentifierConstants;
 /// <summary>
 /// Represents tests for <see cref="LsaUserRights"/> grant functionality.
 /// </summary>
-[Collection("lsa")]
-public sealed class LsaUserRightsGrantPrivilegeTests : LsaUserRightsTestBase
+[TestClass]
+[DoNotParallelize]
+public sealed class LsaUserRightsGrantPrivilegeTests : LsaUserRightsSnapshotFixture
 {
     /// <summary>
     /// Tests granting a privilege.
     /// </summary>
     /// <remarks>
-    /// We assume the BUILTIN\Users group is not granted the SeMachineAccountPrivilege privilege.
+    /// The test verifies that the BUILTIN\Users group is not assigned the SeTakeOwnershipPrivilege user right.
     /// </remarks>
-    [AdminOnlyFact]
+    [TestMethod]
+    [RunWhenElevated]
     public void GrantPrivilegeShouldWork()
     {
+        // Arrange.
         var securityIdentifier = new SecurityIdentifier(Users);
 
-        if (InitialState.TryGetValue(SeMachineAccountPrivilege, out var initial))
-        {
-            Assert.DoesNotContain(securityIdentifier, initial);
-        }
+        InitialState.TryGetValue(SeMachineAccountPrivilege, out var initial);
+        Assert.DoesNotContain(securityIdentifier, initial ?? []);
 
+        // Act.
         using var policy = new LsaUserRights();
         policy.Connect();
         policy.LsaAddAccountRights(securityIdentifier, SeMachineAccountPrivilege);
@@ -38,20 +39,25 @@ public sealed class LsaUserRightsGrantPrivilegeTests : LsaUserRightsTestBase
 
         current.TryGetValue(SeMachineAccountPrivilege, out var collection);
 
-        Assert.NotNull(collection);
+        // Assert.
+        Assert.IsNotNull(collection);
         Assert.Contains(securityIdentifier, collection);
     }
 
     /// <summary>
     /// Tests granting a privilege without connecting throws an exception.
     /// </summary>
-    [AdminOnlyFact]
+    [TestMethod]
+    [RunWhenElevated]
     public void GrantPrivilegeWithoutConnectingThrowsException()
     {
+        // Arrange.
         var securityIdentifier = new SecurityIdentifier(Users);
 
+        // Act.
         using var policy = new LsaUserRights();
 
+        // Assert.
         Assert.Throws<InvalidOperationException>(() => policy.LsaAddAccountRights(securityIdentifier, SeMachineAccountPrivilege));
     }
 }

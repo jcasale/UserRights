@@ -3,7 +3,6 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="coverlet.collector" Version="6.0.4" />
     <PackageVersion Include="CsvHelper" Version="33.1.0" />
     <PackageVersion Include="Meziantou.Analyzer" Version="2.0.253" />
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.0" />
@@ -11,7 +10,6 @@
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageVersion Include="Microsoft.Windows.CsWin32" Version="0.3.248" />
     <PackageVersion Include="Serilog" Version="4.3.0" />
     <PackageVersion Include="Serilog.Enrichers.Environment" Version="3.0.1" />
@@ -23,9 +21,5 @@
     <PackageVersion Include="Serilog.Sinks.EventLog" Version="4.0.0" />
     <PackageVersion Include="StyleCop.Analyzers.Unstable" Version="1.2.0.556" />
     <PackageVersion Include="System.CommandLine" Version="2.0.0" />
-    <PackageVersion Include="System.Linq.Async" Version="6.0.3" />
-    <PackageVersion Include="xunit" Version="2.9.3" />
-    <PackageVersion Include="xunit.abstractions" Version="2.0.3" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
   </ItemGroup>
 </Project>

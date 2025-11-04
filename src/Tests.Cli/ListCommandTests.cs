@@ -6,26 +6,32 @@ using System.Text.Json;
 
 using CsvHelper;
 using CsvHelper.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+
 using UserRights.Application;
 using UserRights.Cli;
 using UserRights.Extensions.Security;
-using Xunit;
 
 using static Tests.TestData;
 
 /// <summary>
 /// Represents integration tests for list functionality.
 /// </summary>
-public sealed class ListCommandTests : CliTestBase
+[TestClass]
+public class ListCommandTests
 {
+    /// <summary>
+    /// Gets or sets the unit test context.
+    /// </summary>
+    public required TestContext TestContext { get; set; }
+
     /// <summary>
     /// Verifies listing user rights to a JSON file.
     /// </summary>
     /// <returns>A task representing the asynchronous operation.</returns>
-    [Fact]
+    [TestMethod]
     public async Task PathAndJsonShouldWork()
     {
+        // Arrange.
         var principals1 = new List<SecurityIdentifier>
         {
             PrincipalSid1,
@@ -52,53 +58,48 @@ public sealed class ListCommandTests : CliTestBase
 
         var policy = new MockLsaUserRights(database);
 
-        ServiceCollection.AddSingleton<ILsaUserRights>(policy);
-        ServiceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
-        ServiceCollection.AddSingleton<CliBuilder>();
+        using var fixture = new CliBuilderFixture(policy);
 
-        var builder = ServiceProvider.GetRequiredService<CliBuilder>();
-
-        var rootCommand = builder.Build();
+        var rootCommand = fixture.CliBuilder.Build();
 
         var file = Path.GetTempFileName();
-        var args = new[]
-        {
-            "list",
-            "--json",
-            "--path",
-            file
-        };
+        var args = new[] { "list", "--json", "--path", file };
 
+        // Act.
         int rc;
         UserRightEntry[] actual;
         try
         {
-            rc = await rootCommand.Parse(args).ThrowIfInvalid().RunAsync();
+            rc = await rootCommand.Parse(args).ThrowIfInvalid().RunAsync(TestContext.CancellationToken).ConfigureAwait(false);
 
-            await using var stream = File.OpenRead(file);
-
-            var results = await JsonSerializer.DeserializeAsync<UserRightEntry[]>(stream);
-            actual = results
-                ?.OrderBy(p => p.Privilege, StringComparer.OrdinalIgnoreCase)
-                .ThenBy(p => p.SecurityId, StringComparer.OrdinalIgnoreCase)
-                .ToArray() ?? [];
+            var stream = File.OpenRead(file);
+            await using (stream.ConfigureAwait(false))
+            {
+                var results = await JsonSerializer.DeserializeAsync<UserRightEntry[]>(stream, cancellationToken: TestContext.CancellationToken).ConfigureAwait(false);
+                actual = results
+                    ?.OrderBy(p => p.Privilege, StringComparer.OrdinalIgnoreCase)
+                    .ThenBy(p => p.SecurityId, StringComparer.OrdinalIgnoreCase)
+                    .ToArray() ?? [];
+            }
         }
         finally
         {
             File.Delete(file);
         }
 
-        Assert.Equal(0, rc);
-        Assert.Equal(expected, actual, new UserRightEntryEqualityComparer());
+        // Assert.
+        Assert.AreEqual(0, rc);
+        CollectionAssert.AreEqual(expected, actual);
     }
 
     /// <summary>
     /// Verifies listing user rights to a CSV file.
     /// </summary>
     /// <returns>A task representing the asynchronous operation.</returns>
-    [Fact]
+    [TestMethod]
     public async Task PathShouldWork()
     {
+        // Arrange.
         var principals1 = new List<SecurityIdentifier>
         {
             PrincipalSid1,
@@ -124,27 +125,19 @@ public sealed class ListCommandTests : CliTestBase
             .ThenBy(p => p.SecurityId, StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
-        ServiceCollection.AddSingleton<ILsaUserRights>(policy);
-        ServiceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
-        ServiceCollection.AddSingleton<CliBuilder>();
+        using var fixture = new CliBuilderFixture(policy);
 
-        var builder = ServiceProvider.GetRequiredService<CliBuilder>();
-
-        var rootCommand = builder.Build();
+        var rootCommand = fixture.CliBuilder.Build();
 
         var file = Path.GetTempFileName();
-        var args = new[]
-        {
-            "list",
-            "--path",
-            file
-        };
+        var args = new[] { "list", "--path", file };
 
+        // Act.
         int rc;
         UserRightEntry[] actual;
         try
         {
-            rc = await rootCommand.Parse(args).ThrowIfInvalid().RunAsync();
+            rc = await rootCommand.Parse(args).ThrowIfInvalid().RunAsync(TestContext.CancellationToken).ConfigureAwait(false);
 
             var csvConfiguration = new CsvConfiguration(CultureInfo.InvariantCulture)
             {
@@ -154,17 +147,19 @@ public sealed class ListCommandTests : CliTestBase
             using var streamReader = new StreamReader(file);
             using var csvReader = new CsvReader(streamReader, csvConfiguration);
 
-            actual = await csvReader.GetRecordsAsync<UserRightEntry>()
+            actual = await csvReader.GetRecordsAsync<UserRightEntry>(TestContext.CancellationToken)
                 .OrderBy(p => p.Privilege, StringComparer.OrdinalIgnoreCase)
                 .ThenBy(p => p.SecurityId, StringComparer.OrdinalIgnoreCase)
-                .ToArrayAsync();
+                .ToArrayAsync(TestContext.CancellationToken)
+                .ConfigureAwait(false);
         }
         finally
         {
             File.Delete(file);
         }
 
-        Assert.Equal(0, rc);
-        Assert.Equal(expected, actual, new UserRightEntryEqualityComparer());
+        // Assert.
+        Assert.AreEqual(0, rc);
+        CollectionAssert.AreEqual(expected, actual);
     }
 }

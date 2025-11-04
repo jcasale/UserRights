@@ -3,7 +3,6 @@ namespace Tests.Application;
 using System.Security.Principal;
 
 using UserRights.Application;
-using Xunit;
 
 using static Tests.PrivilegeConstants;
 using static Tests.SecurityIdentifierConstants;
@@ -11,47 +10,55 @@ using static Tests.SecurityIdentifierConstants;
 /// <summary>
 /// Represents tests for <see cref="LsaUserRights"/> revoke functionality.
 /// </summary>
-[Collection("lsa")]
-public sealed class LsaUserRightsRevokePrivilegeTests : LsaUserRightsTestBase
+[TestClass]
+[DoNotParallelize]
+public sealed class LsaUserRightsRevokePrivilegeTests : LsaUserRightsSnapshotFixture
 {
     /// <summary>
     /// Tests revoking a privilege.
     /// </summary>
     /// <remarks>
-    /// We assume the BUILTIN\Backup Operators is granted the SeBackupPrivilege privilege.
+    /// The test requires that the BUILTIN\Backup Operators group is assigned the SeBackupPrivilege user right.
     /// </remarks>
-    [AdminOnlyFact]
+    [TestMethod]
+    [RunWhenElevated]
     public void RevokePrivilegeShouldWork()
     {
+        // Arrange.
         var securityIdentifier = new SecurityIdentifier(BackupOperators);
 
         InitialState.TryGetValue(SeBackupPrivilege, out var initial);
 
-        Assert.NotNull(initial);
+        Assert.IsNotNull(initial);
         Assert.Contains(securityIdentifier, initial);
 
+        // Act.
         using var policy = new LsaUserRights();
         policy.Connect();
         policy.LsaRemoveAccountRights(securityIdentifier, SeBackupPrivilege);
 
         var current = GetCurrentState();
 
-        if (current.TryGetValue(SeBackupPrivilege, out var collection))
-        {
-            Assert.DoesNotContain(securityIdentifier, collection);
-        }
+        current.TryGetValue(SeBackupPrivilege, out var collection);
+
+        // Assert.
+        Assert.DoesNotContain(securityIdentifier, collection ?? []);
     }
 
     /// <summary>
     /// Tests revoking a privilege without connecting throws an exception.
     /// </summary>
-    [AdminOnlyFact]
+    [TestMethod]
+    [RunWhenElevated]
     public void RevokePrivilegeWithoutConnectingThrowsException()
     {
+        // Arrange.
         var securityIdentifier = new SecurityIdentifier(BackupOperators);
 
+        // Act.
         using var policy = new LsaUserRights();
 
+        // Assert.
         Assert.Throws<InvalidOperationException>(() => policy.LsaRemoveAccountRights(securityIdentifier, SeBackupPrivilege));
     }
 }

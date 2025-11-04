@@ -38,7 +38,7 @@ public static class TestData
     public static readonly string PrincipalName2 = "BUILTIN\\Users";
 
     /// <summary>
-    /// Represents the security identity for the built in local users group.
+    /// Represents the security identity for the built-in local users group.
     /// </summary>
     public static readonly SecurityIdentifier PrincipalSid2 = new("S-1-5-32-545");
 
@@ -48,7 +48,7 @@ public static class TestData
     public static readonly string PrincipalName3 = "BUILTIN\\Guests";
 
     /// <summary>
-    /// Represents the security identity for the built in local guests group.
+    /// Represents the security identity for the built-in local guests group.
     /// </summary>
     public static readonly SecurityIdentifier PrincipalSid3 = new("S-1-5-32-546");
 }

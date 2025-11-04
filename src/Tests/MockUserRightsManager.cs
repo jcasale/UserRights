@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 using UserRights.Application;
 
 /// <summary>
-/// Represents a mock user rights manager with noop interface implementations.
+/// Represents a mock user rights manager with noop interface implementations for testing the CLI.
 /// </summary>
 public class MockUserRightsManager : IUserRightsManager
 {

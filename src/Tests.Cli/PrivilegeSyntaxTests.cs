@@ -1,294 +1,320 @@
 namespace Tests.Cli;
 
-using Microsoft.Extensions.DependencyInjection;
-using UserRights.Application;
 using UserRights.Cli;
-using Xunit;
 
 /// <summary>
 /// Represents syntax tests for privilege functionality.
 /// </summary>
-public sealed class PrivilegeSyntaxTests : CliTestBase
+[TestClass]
+public sealed class PrivilegeSyntaxTests : CliBuilderFixture
 {
-    private readonly CliBuilder _builder;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="PrivilegeSyntaxTests"/> class.
-    /// </summary>
-    public PrivilegeSyntaxTests()
-    {
-        ServiceCollection.AddSingleton<ILsaUserRights, MockLsaUserRights>();
-        ServiceCollection.AddSingleton<IUserRightsManager, MockUserRightsManager>();
-        ServiceCollection.AddSingleton<CliBuilder>();
-
-        _builder = ServiceProvider.GetRequiredService<CliBuilder>();
-    }
-
     /// <summary>
     /// Ensures granting a context and revoking a different context is accepted.
     /// </summary>
-    [Fact]
+    [TestMethod]
     public void GrantAndRevokeShouldWork()
     {
+        // Arrange.
         var args = new[] { "privilege", "SeServiceLogonRight", "--grant", "DOMAIN\\User", "--revoke", "DOMAIN\\Group" };
-        var rootCommand = _builder.Build();
+        var rootCommand = CliBuilder.Build();
 
+        // Act.
         var rc = rootCommand.Parse(args).ThrowIfInvalid().Run();
 
-        Assert.Equal(0, rc);
+        // Assert.
+        Assert.AreEqual(0, rc);
     }
 
     /// <summary>
     /// Ensures granting multiple contexts is accepted.
     /// </summary>
-    [Fact]
+    [TestMethod]
     public void GrantMultipleShouldWork()
     {
+        // Arrange.
         var args = new[] { "privilege", "SeServiceLogonRight", "--grant", "DOMAIN\\User", "--grant", "DOMAIN\\Group" };
-        var rootCommand = _builder.Build();
+        var rootCommand = CliBuilder.Build();
 
+        // Act.
         var rc = rootCommand.Parse(args).ThrowIfInvalid().Run();
 
-        Assert.Equal(0, rc);
+        // Assert.
+        Assert.AreEqual(0, rc);
     }
 
     /// <summary>
     /// Ensures granting a context is accepted.
     /// </summary>
-    [Fact]
+    [TestMethod]
     public void GrantShouldWork()
     {
+        // Arrange.
         var args = new[] { "privilege", "SeServiceLogonRight", "--grant", "DOMAIN\\User" };
-        var rootCommand = _builder.Build();
+        var rootCommand = CliBuilder.Build();
 
+        // Act.
         var rc = rootCommand.Parse(args).ThrowIfInvalid().Run();
 
-        Assert.Equal(0, rc);
+        // Assert.
+        Assert.AreEqual(0, rc);
     }
 
     /// <summary>
     /// Ensures an empty or whitespace grant is rejected.
     /// </summary>
     /// <param name="args">The test arguments.</param>
-    [Theory]
-    [InlineData("privilege", "SeServiceLogonRight", "--grant", "")]
-    [InlineData("privilege", "SeServiceLogonRight", "--grant", " ")]
+    [TestMethod]
+    [DataRow("privilege", "SeServiceLogonRight", "--grant", "")]
+    [DataRow("privilege", "SeServiceLogonRight", "--grant", " ")]
     public void GrantWithInvalidStringThrowsException(params string[] args)
-        => Assert.Throws<SyntaxException>(() => _builder.Build().Parse(args).ThrowIfInvalid().Run());
+        => Assert.Throws<SyntaxException>(() => CliBuilder.Build().Parse(args).ThrowIfInvalid().Run());
 
     /// <summary>
     /// Ensures granting a context and revoking all contexts is rejected.
     /// </summary>
-    [Fact]
+    [TestMethod]
     public void GrantWithRevokeAllThrowsException()
     {
+        // Arrange.
         var args = new[] { "privilege", "SeServiceLogonRight", "--grant", "DOMAIN\\User", "--revoke-all" };
-        var rootCommand = _builder.Build();
+        var rootCommand = CliBuilder.Build();
 
+        // Act & Assert.
         Assert.Throws<SyntaxException>(() => rootCommand.Parse(args).ThrowIfInvalid().Run());
     }
 
     /// <summary>
     /// Ensures specifying no options is rejected.
     /// </summary>
-    [Fact]
+    [TestMethod]
     public void NoOptionsThrowsException()
     {
+        // Arrange.
         var args = new[] { "privilege" };
-        var rootCommand = _builder.Build();
+        var rootCommand = CliBuilder.Build();
 
+        // Act & Assert.
         Assert.Throws<SyntaxException>(() => rootCommand.Parse(args).ThrowIfInvalid().Run());
     }
 
     /// <summary>
-    /// Ensures overlapping or duplicate contexts is rejected.
+    /// Ensures overlapping or duplicate contexts are rejected.
     /// </summary>
     /// <param name="args">The test arguments.</param>
-    [Theory]
-    [InlineData("privilege", "SeServiceLogonRight", "--grant", "DOMAIN\\UserOrGroup", "--revoke", "DOMAIN\\UserOrGroup")]
-    [InlineData("privilege", "SeServiceLogonRight", "--grant", "DOMAIN\\UserOrGroup", "--grant", "DOMAIN\\UserOrGroup")]
-    [InlineData("privilege", "SeServiceLogonRight", "--revoke", "DOMAIN\\UserOrGroup", "--revoke", "DOMAIN\\UserOrGroup")]
+    [TestMethod]
+    [DataRow("privilege", "SeServiceLogonRight", "--grant", "DOMAIN\\UserOrGroup", "--revoke", "DOMAIN\\UserOrGroup")]
+    [DataRow("privilege", "SeServiceLogonRight", "--grant", "DOMAIN\\UserOrGroup", "--grant", "DOMAIN\\UserOrGroup")]
+    [DataRow("privilege", "SeServiceLogonRight", "--revoke", "DOMAIN\\UserOrGroup", "--revoke", "DOMAIN\\UserOrGroup")]
     public void OverlappingGrantsAndRevokesThrowsException(params string[] args)
-        => Assert.Throws<SyntaxException>(() => _builder.Build().Parse(args).ThrowIfInvalid().Run());
+        => Assert.Throws<SyntaxException>(() => CliBuilder.Build().Parse(args).ThrowIfInvalid().Run());
 
     /// <summary>
     /// Ensures an empty or whitespace principal is rejected.
     /// </summary>
     /// <param name="args">The test arguments.</param>
-    [Theory]
-    [InlineData("privilege", "", "--grant", "DOMAIN\\UserOrGroup")]
-    [InlineData("privilege", " ", "--grant", "DOMAIN\\UserOrGroup")]
+    [TestMethod]
+    [DataRow("privilege", "", "--grant", "DOMAIN\\UserOrGroup")]
+    [DataRow("privilege", " ", "--grant", "DOMAIN\\UserOrGroup")]
     public void PrivilegeWithInvalidStringThrowsException(params string[] args)
-        => Assert.Throws<SyntaxException>(() => _builder.Build().Parse(args).ThrowIfInvalid().Run());
+        => Assert.Throws<SyntaxException>(() => CliBuilder.Build().Parse(args).ThrowIfInvalid().Run());
 
     /// <summary>
     /// Ensures revoking all contexts is accepted.
     /// </summary>
-    [Fact]
+    [TestMethod]
     public void RevokeAllShouldWork()
     {
+        // Arrange.
         var args = new[] { "privilege", "SeServiceLogonRight", "--revoke-all" };
-        var rootCommand = _builder.Build();
+        var rootCommand = CliBuilder.Build();
 
-        int? rc = null;
-        var exception = Record.Exception(() => rc = rootCommand.Parse(args).ThrowIfInvalid().Run());
+        // Act.
+        var rc = rootCommand.Parse(args).ThrowIfInvalid().Run();
 
-        Assert.Null(exception);
-        Assert.Equal(0, rc);
+        // Assert.
+        Assert.AreEqual(0, rc);
     }
 
     /// <summary>
     /// Ensures granting a context and revoking all contexts is rejected.
     /// </summary>
-    [Fact]
+    [TestMethod]
     public void RevokeAllWithGrantsThrowsException()
     {
+        // Arrange.
         var args = new[] { "privilege", "SeServiceLogonRight", "--revoke-all", "--grant", "DOMAIN\\UserOrGroup" };
-        var rootCommand = _builder.Build();
+        var rootCommand = CliBuilder.Build();
 
+        // Act & Assert.
         Assert.Throws<SyntaxException>(() => rootCommand.Parse(args).ThrowIfInvalid().Run());
     }
 
     /// <summary>
     /// Ensures revoking a context and revoking all contexts is rejected.
     /// </summary>
-    [Fact]
+    [TestMethod]
     public void RevokeAllWithRevocationsThrowsException()
     {
+        // Arrange.
         var args = new[] { "privilege", "SeServiceLogonRight", "--revoke-all", "--revoke", "DOMAIN\\UserOrGroup" };
-        var rootCommand = _builder.Build();
+        var rootCommand = CliBuilder.Build();
 
+        // Act & Assert.
         Assert.Throws<SyntaxException>(() => rootCommand.Parse(args).ThrowIfInvalid().Run());
     }
 
     /// <summary>
     /// Ensures revoking all contexts and revoking other contexts is rejected.
     /// </summary>
-    [Fact]
+    [TestMethod]
     public void RevokeAllWithRevokeOthersThrowsException()
     {
+        // Arrange.
         var args = new[] { "privilege", "SeServiceLogonRight", "--revoke-all", "--revoke-others" };
-        var rootCommand = _builder.Build();
+        var rootCommand = CliBuilder.Build();
 
+        // Act & Assert.
         Assert.Throws<SyntaxException>(() => rootCommand.Parse(args).ThrowIfInvalid().Run());
     }
 
     /// <summary>
     /// Ensures revoking multiple contexts is accepted.
     /// </summary>
-    [Fact]
+    [TestMethod]
     public void RevokeMultipleShouldWork()
     {
+        // Arrange.
         var args = new[] { "privilege", "SeServiceLogonRight", "--revoke", "DOMAIN\\User", "--revoke", "DOMAIN\\Group" };
-        var rootCommand = _builder.Build();
+        var rootCommand = CliBuilder.Build();
 
+        // Act.
         var rc = rootCommand.Parse(args).ThrowIfInvalid().Run();
 
-        Assert.Equal(0, rc);
+        // Assert.
+        Assert.AreEqual(0, rc);
     }
 
     /// <summary>
     /// Ensures revoke other contexts without granting a context is rejected.
     /// </summary>
-    [Fact]
+    [TestMethod]
     public void RevokeOthersWithOutGrantsThrowsException()
     {
+        // Arrange.
         var args = new[] { "privilege", "SeServiceLogonRight", "--revoke-others" };
-        var rootCommand = _builder.Build();
+        var rootCommand = CliBuilder.Build();
 
+        // Act & Assert.
         Assert.Throws<SyntaxException>(() => rootCommand.Parse(args).ThrowIfInvalid().Run());
     }
 
     /// <summary>
     /// Ensures revoke other contexts with revoking a context is rejected.
     /// </summary>
-    [Fact]
+    [TestMethod]
     public void RevokeOthersWithRevocationsThrowsException()
     {
+        // Arrange.
         var args = new[] { "privilege", "SeServiceLogonRight", "--revoke-others", "--revoke", "DOMAIN\\UserOrGroup" };
-        var rootCommand = _builder.Build();
+        var rootCommand = CliBuilder.Build();
 
+        // Act & Assert.
         Assert.Throws<SyntaxException>(() => rootCommand.Parse(args).ThrowIfInvalid().Run());
     }
 
     /// <summary>
     /// Ensures revoking a valid pattern is accepted.
     /// </summary>
-    [Fact]
+    [TestMethod]
     public void RevokePatternShouldWork()
     {
+        // Arrange.
         var args = new[] { "privilege", "SeServiceLogonRight", "--revoke-pattern", "^S-1-5-21-" };
-        var rootCommand = _builder.Build();
+        var rootCommand = CliBuilder.Build();
 
+        // Act.
         var rc = rootCommand.Parse(args).ThrowIfInvalid().Run();
 
-        Assert.Equal(0, rc);
+        // Assert.
+        Assert.AreEqual(0, rc);
     }
 
     /// <summary>
     /// Ensures granting a context and revoking a valid pattern is accepted.
     /// </summary>
-    [Fact]
+    [TestMethod]
     public void RevokePatternWithGrantShouldWork()
     {
+        // Arrange.
         var args = new[] { "privilege", "SeServiceLogonRight", "--grant", "DOMAIN\\UserOrGroup", "--revoke-pattern", "^S-1-5-21-" };
-        var rootCommand = _builder.Build();
+        var rootCommand = CliBuilder.Build();
 
+        // Act.
         var rc = rootCommand.Parse(args).ThrowIfInvalid().Run();
 
-        Assert.Equal(0, rc);
+        // Assert.
+        Assert.AreEqual(0, rc);
     }
 
     /// <summary>
     /// Ensures revoking a valid regex is accepted.
     /// </summary>
     /// <param name="args">The test arguments.</param>
-    [Theory]
-    [InlineData("privilege", "SeServiceLogonRight", "--revoke-pattern", "^xyz.*")]
-    [InlineData("privilege", "SeServiceLogonRight", "--revoke-pattern", "^S-1-5-21-")]
-    [InlineData("privilege", "SeServiceLogonRight", "--revoke-pattern", "(?i)^[A-Z]+")]
+    [TestMethod]
+    [DataRow("privilege", "SeServiceLogonRight", "--revoke-pattern", "^xyz.*")]
+    [DataRow("privilege", "SeServiceLogonRight", "--revoke-pattern", "^S-1-5-21-")]
+    [DataRow("privilege", "SeServiceLogonRight", "--revoke-pattern", "(?i)^[A-Z]+")]
     public void RevokePatternWithValidRegexShouldWork(params string[] args)
     {
-        var rootCommand = _builder.Build();
+        // Arrange.
+        var rootCommand = CliBuilder.Build();
 
+        // Act.
         var rc = rootCommand.Parse(args).ThrowIfInvalid().Run();
 
-        Assert.Equal(0, rc);
+        // Assert.
+        Assert.AreEqual(0, rc);
     }
 
     /// <summary>
     /// Ensures revoking a pattern and revoking all contexts is rejected.
     /// </summary>
-    [Fact]
+    [TestMethod]
     public void RevokePatternWithRevokeAllThrowsException()
     {
+        // Arrange.
         var args = new[] { "privilege", "SeServiceLogonRight", "--revoke-pattern", "^S-1-5-21-", "--revoke-all" };
-        var rootCommand = _builder.Build();
+        var rootCommand = CliBuilder.Build();
 
+        // Act & Assert.
         Assert.Throws<SyntaxException>(() => rootCommand.Parse(args).ThrowIfInvalid().Run());
     }
 
     /// <summary>
     /// Ensures revoking a pattern and revoking other contexts is rejected.
     /// </summary>
-    [Fact]
+    [TestMethod]
     public void RevokePatternWithRevokeOthersThrowsException()
     {
+        // Arrange.
         var args = new[] { "privilege", "SeServiceLogonRight", "--revoke-pattern", "^S-1-5-21-", "--revoke-others" };
-        var rootCommand = _builder.Build();
+        var rootCommand = CliBuilder.Build();
 
+        // Act & Assert.
         Assert.Throws<SyntaxException>(() => rootCommand.Parse(args).ThrowIfInvalid().Run());
     }
 
     /// <summary>
     /// Ensures revoking a pattern and revoking a context is rejected.
     /// </summary>
-    [Fact]
+    [TestMethod]
     public void RevokePatternWithRevokeThrowsException()
     {
+        // Arrange.
         var args = new[] { "privilege", "SeServiceLogonRight", "--revoke-pattern", "^S-1-5-21-", "--revoke", "DOMAIN\\UserOrGroup" };
-        var rootCommand = _builder.Build();
+        var rootCommand = CliBuilder.Build();
 
+        // Act & Assert.
         Assert.Throws<SyntaxException>(() => rootCommand.Parse(args).ThrowIfInvalid().Run());
     }
 
@@ -296,53 +322,56 @@ public sealed class PrivilegeSyntaxTests : CliTestBase
     /// Ensures revoking an invalid regex is rejected.
     /// </summary>
     /// <param name="args">The test arguments.</param>
-    [Theory]
-    [InlineData("privilege", "SeServiceLogonRight", "--revoke-pattern", "[0-9]{3,1}")]
-    [InlineData("privilege", "SeServiceLogonRight", "--revoke-pattern", "^[S-1-5-21-")]
+    [TestMethod]
+    [DataRow("privilege", "SeServiceLogonRight", "--revoke-pattern", "[0-9]{3,1}")]
+    [DataRow("privilege", "SeServiceLogonRight", "--revoke-pattern", "^[S-1-5-21-")]
     public void RevokePatternWithInvalidRegexThrowsException(params string[] args)
-        => Assert.Throws<SyntaxException>(() => _builder.Build().Parse(args).ThrowIfInvalid().Run());
+        => Assert.Throws<SyntaxException>(() => CliBuilder.Build().Parse(args).ThrowIfInvalid().Run());
 
     /// <summary>
     /// Ensures an empty or whitespace revocation pattern is rejected.
     /// </summary>
     /// <param name="args">The test arguments.</param>
-    [Theory]
-    [InlineData("privilege", "SeServiceLogonRight", "--revoke-pattern", "")]
-    [InlineData("privilege", "SeServiceLogonRight", "--revoke-pattern", " ")]
+    [TestMethod]
+    [DataRow("privilege", "SeServiceLogonRight", "--revoke-pattern", "")]
+    [DataRow("privilege", "SeServiceLogonRight", "--revoke-pattern", " ")]
     public void RevokePatternWithInvalidStringThrowsException(params string[] args)
-        => Assert.Throws<SyntaxException>(() => _builder.Build().Parse(args).ThrowIfInvalid().Run());
+        => Assert.Throws<SyntaxException>(() => CliBuilder.Build().Parse(args).ThrowIfInvalid().Run());
 
     /// <summary>
     /// Ensures revoking a context is accepted.
     /// </summary>
-    [Fact]
+    [TestMethod]
     public void RevokeShouldWork()
     {
+        // Arrange.
         var args = new[] { "privilege", "SeServiceLogonRight", "--revoke", "DOMAIN\\UserOrGroup" };
-        var rootCommand = _builder.Build();
+        var rootCommand = CliBuilder.Build();
 
+        // Act.
         var rc = rootCommand.Parse(args).ThrowIfInvalid().Run();
 
-        Assert.Equal(0, rc);
+        // Assert.
+        Assert.AreEqual(0, rc);
     }
 
     /// <summary>
     /// Ensures an empty or whitespace revocation is rejected.
     /// </summary>
     /// <param name="args">The test arguments.</param>
-    [Theory]
-    [InlineData("privilege", "SeServiceLogonRight", "--revoke", "")]
-    [InlineData("privilege", "SeServiceLogonRight", "--revoke", " ")]
+    [TestMethod]
+    [DataRow("privilege", "SeServiceLogonRight", "--revoke", "")]
+    [DataRow("privilege", "SeServiceLogonRight", "--revoke", " ")]
     public void RevokeWithInvalidStringThrowsException(params string[] args)
-        => Assert.Throws<SyntaxException>(() => _builder.Build().Parse(args).ThrowIfInvalid().Run());
+        => Assert.Throws<SyntaxException>(() => CliBuilder.Build().Parse(args).ThrowIfInvalid().Run());
 
     /// <summary>
     /// Ensures an empty or whitespace system name is rejected.
     /// </summary>
     /// <param name="args">The test arguments.</param>
-    [Theory]
-    [InlineData("privilege", "SeServiceLogonRight", "--grant", "DOMAIN\\UserOrGroup", "--system-name", "")]
-    [InlineData("privilege", "SeServiceLogonRight", "--grant", "DOMAIN\\UserOrGroup", "--system-name", " ")]
+    [TestMethod]
+    [DataRow("privilege", "SeServiceLogonRight", "--grant", "DOMAIN\\UserOrGroup", "--system-name", "")]
+    [DataRow("privilege", "SeServiceLogonRight", "--grant", "DOMAIN\\UserOrGroup", "--system-name", " ")]
     public void SystemNameWithInvalidStringThrowsException(params string[] args)
-        => Assert.Throws<SyntaxException>(() => _builder.Build().Parse(args).ThrowIfInvalid().Run());
+        => Assert.Throws<SyntaxException>(() => CliBuilder.Build().Parse(args).ThrowIfInvalid().Run());
 }

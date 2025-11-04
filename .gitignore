@@ -1,5 +1,6 @@
 .idea/
 .vs/
+src/TestResults/**
 **/bin/
 **/obj/
 *.user

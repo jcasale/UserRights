@@ -55,11 +55,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
 
         ArgumentNullException.ThrowIfNull(accountSid);
         ArgumentNullException.ThrowIfNull(userRights);
-
-        if (userRights.Length == 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(userRights), "Value cannot be an empty collection.");
-        }
+        ArgumentOutOfRangeException.ThrowIfZero(userRights.Length, nameof(userRights));
 
         var bytes = new byte[accountSid.BinaryLength];
         accountSid.GetBinaryForm(bytes, 0);
@@ -230,11 +226,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
 
         ArgumentNullException.ThrowIfNull(accountSid);
         ArgumentNullException.ThrowIfNull(userRights);
-
-        if (userRights.Length == 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(userRights), "Value cannot be an empty collection.");
-        }
+        ArgumentOutOfRangeException.ThrowIfZero(userRights.Length, nameof(userRights));
 
         var bytes = new byte[accountSid.BinaryLength];
         accountSid.GetBinaryForm(bytes, 0);

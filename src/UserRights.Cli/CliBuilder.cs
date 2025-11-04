@@ -259,7 +259,7 @@ public class CliBuilder
             }
         });
 
-        // Ensure the revocations do not overlap with revocations or contain duplicates.
+        // Ensure the revocations do not overlap with grants or contain duplicates.
         revocationsOption.Validators.Add(result =>
         {
             var grantsCollection = result.GetValue(grantsOption) ?? [];
@@ -469,7 +469,7 @@ public class CliBuilder
             }
         });
 
-        // Ensure the revocations do not overlap with revocations or contain duplicates.
+        // Ensure the revocations do not overlap with grants or contain duplicates.
         revocationsOption.Validators.Add(result =>
         {
             var grantsCollection = result.GetValue(grantsOption) ?? [];
@@ -535,7 +535,8 @@ public class CliBuilder
                 }
                 catch (RegexParseException e)
                 {
-                    result.AddError(string.Format(CultureInfo.InvariantCulture, "Revoke pattern must be a valid regular expression. {0}", e.Message));
+                    var error = string.Create(CultureInfo.InvariantCulture, $"Revoke pattern must be a valid regular expression. {e.Message}");
+                    result.AddError(error);
                 }
             }
         });

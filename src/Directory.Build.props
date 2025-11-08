@@ -25,11 +25,13 @@
     </Exec>
 
     <PropertyGroup>
-      <PatternGitTag>^v((.+)-(\d+)-g(.+))</PatternGitTag>
-      <AssemblyVersion>$([System.Text.RegularExpressions.Regex]::Match($(GitTag), $(PatternGitTag)).Groups[2].Value)</AssemblyVersion>
-      <FileVersion>$([System.Text.RegularExpressions.Regex]::Match($(GitTag), $(PatternGitTag)).Groups[2].Value)</FileVersion>
-      <Version>$([System.Text.RegularExpressions.Regex]::Match($(GitTag), $(PatternGitTag)).Groups[2].Value)</Version>
-      <InformationalVersion>$([System.Text.RegularExpressions.Regex]::Match($(GitTag), $(PatternGitTag)).Groups[1].Value)</InformationalVersion>
+      <PatternGitTag>^v(((\d+\.\d+\.\d+\.\d+)(?:-[a-z]+\.\d+)?)-(\d+-g.+))</PatternGitTag>
+      <AssemblyVersion>$([System.Text.RegularExpressions.Regex]::Match($(GitTag), $(PatternGitTag)).Groups[3].Value)</AssemblyVersion>
+      <FileVersion>$([System.Text.RegularExpressions.Regex]::Match($(GitTag), $(PatternGitTag)).Groups[3].Value)</FileVersion>
+      <Version>$([System.Text.RegularExpressions.Regex]::Match($(GitTag), $(PatternGitTag)).Groups[3].Value)</Version>
+      <FullVersion>$([System.Text.RegularExpressions.Regex]::Match($(GitTag), $(PatternGitTag)).Groups[2].Value)</FullVersion>
+      <GitCommitInfo>$([System.Text.RegularExpressions.Regex]::Match($(GitTag), $(PatternGitTag)).Groups[4].Value)</GitCommitInfo>
+      <InformationalVersion>$(FullVersion)+$(GitCommitInfo)</InformationalVersion>
     </PropertyGroup>
 
     <Message Text="*** InformationalVersion $(InformationalVersion)" Importance="high" />

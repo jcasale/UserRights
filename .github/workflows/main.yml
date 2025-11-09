@@ -45,7 +45,7 @@ jobs:
       - name: Run Application tests
         run: |
           cd .\src
-          dotnet.exe test --project .\Tests.Application\Tests.Application.csproj --configuration Debug --runtime win-x64 --output Detailed --max-parallel-test-modules 1
+          dotnet.exe test --project .\Tests.Application\Tests.Application.csproj --configuration Debug --runtime win-x64 --output Detailed
 
       - name: Clean solution
         run: dotnet.exe clean .\src\UserRights.slnx --configuration Debug

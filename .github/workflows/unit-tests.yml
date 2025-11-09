@@ -59,8 +59,7 @@ jobs:
             --diagnostic-output-directory diags `
             --report-trx `
             --coverage `
-            --coverage-settings .\testconfig.json `
-            --max-parallel-test-modules 1
+            --coverage-settings .\testconfig.json
 
       - name: Run report generator
         if: always()

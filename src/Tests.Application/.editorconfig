@@ -1,5 +1,5 @@
-﻿[LsaUserRightsDisposeTests.cs]
-dotnet_diagnostic.CA1031.severity = none # Do not catch general exception types.
+﻿[*.cs]
+dotnet_diagnostic.CA1707.severity = none # Identifiers should not contain underscores.
 
 [UserRightsManagerPrincipalTests.cs]
 dotnet_diagnostic.SA1515.severity = none # Single-line comment should be preceded by blank line.

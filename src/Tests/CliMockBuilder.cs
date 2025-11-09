@@ -1,9 +1,11 @@
 namespace Tests;
 
-using System.Security.Principal;
+using System.Text.RegularExpressions;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+
+using Moq;
 
 using UserRights.Application;
 using UserRights.Cli;
@@ -11,41 +13,76 @@ using UserRights.Cli;
 /// <summary>
 /// Represents a test fixture with a <see cref="CliBuilder"/> implementation for testing the CLI.
 /// </summary>
-public class CliBuilderFixture : IDisposable
+public class CliMockBuilder : IDisposable
 {
     private readonly ServiceProvider _serviceProvider;
 
     private bool _disposed;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="CliBuilderFixture"/> class.
+    /// Initializes a new instance of the <see cref="CliMockBuilder"/> class.
     /// </summary>
     /// <remarks>
-    /// Creates a fixture with an empty, mock <see cref="ILsaUserRights"/> implementation, and a mock <see cref="IUserRightsManager"/> implementation.
+    /// Creates a CLI with an empty, mock <see cref="ILsaUserRights"/> implementation, and a mock <see cref="IUserRightsManager"/> implementation.
     /// </remarks>
-    public CliBuilderFixture()
+    public CliMockBuilder()
     {
+        var repository = new MockRepository(MockBehavior.Strict);
+
+        // Mock the LSA user rights interface.
+        var lsaUserRights = repository.Create<ILsaUserRights>();
+
+        // Only calls to Connect are expected.
+        lsaUserRights.Setup(x => x.Connect(It.IsAny<string>()));
+
+        // Mock the user rights manager interface.
+        var userRightsManager = repository.Create<IUserRightsManager>();
+        userRightsManager
+            .Setup(x => x.GetUserRights(It.IsAny<IUserRights>()))
+            .Returns([]);
+
+        userRightsManager
+            .Setup(x => x.ModifyPrincipal(
+                It.IsAny<IUserRights>(),
+                It.IsAny<string>(),
+                It.IsAny<string[]>(),
+                It.IsAny<string[]>(),
+                It.IsAny<bool>(),
+                It.IsAny<bool>(),
+                It.IsAny<bool>()));
+
+        userRightsManager
+            .Setup(x => x.ModifyPrivilege(
+                It.IsAny<IUserRights>(),
+                It.IsAny<string>(),
+                It.IsAny<string[]>(),
+                It.IsAny<string[]>(),
+                It.IsAny<bool>(),
+                It.IsAny<bool>(),
+                It.IsAny<Regex?>(),
+                It.IsAny<bool>()));
+
         var serviceCollection = new ServiceCollection()
             .AddLogging(builder => builder
                 .ClearProviders()
                 .SetMinimumLevel(LogLevel.Trace)
                 .AddDebug());
 
-        serviceCollection.AddSingleton<ILsaUserRights, MockLsaUserRights>();
-        serviceCollection.AddSingleton<IUserRightsManager, MockUserRightsManager>();
+        serviceCollection.AddSingleton(lsaUserRights.Object);
+        serviceCollection.AddSingleton(userRightsManager.Object);
         serviceCollection.AddSingleton<CliBuilder>();
 
         _serviceProvider = serviceCollection.BuildServiceProvider();
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="CliBuilderFixture"/> class.
+    /// Initializes a new instance of the <see cref="CliMockBuilder"/> class.
     /// </summary>
     /// <param name="policy">The existing LSA user rights implementation.</param>
     /// <remarks>
-    /// Creates a fixture with a user-supplied <see cref="ILsaUserRights"/> implementation, and a complete instance of a <see cref="IUserRightsManager"/> implementation.
+    /// Creates a CLI with a user-supplied <see cref="ILsaUserRights"/> implementation, and a complete instance of a <see cref="IUserRightsManager"/> implementation.
     /// </remarks>
-    public CliBuilderFixture(ILsaUserRights policy)
+    public CliMockBuilder(ILsaUserRights policy)
     {
         ArgumentNullException.ThrowIfNull(policy);
 
@@ -56,34 +93,6 @@ public class CliBuilderFixture : IDisposable
                 .AddDebug());
 
         serviceCollection.AddSingleton(policy);
-        serviceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
-        serviceCollection.AddSingleton<CliBuilder>();
-
-        _serviceProvider = serviceCollection.BuildServiceProvider();
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="CliBuilderFixture"/> class.
-    /// </summary>
-    /// <param name="database">The entries to include in the mock policy database.</param>
-    /// <param name="systemName">The remote system name to execute the task on (default localhost).</param>
-    /// <remarks>
-    /// Creates a fixture with user-supplied, existing policy entries, and mock instances of a <see cref="ILsaUserRights"/> and <see cref="IUserRightsManager"/> implementations.
-    /// </remarks>
-    public CliBuilderFixture(IDictionary<string, ICollection<SecurityIdentifier>> database, string? systemName = null)
-    {
-        ArgumentNullException.ThrowIfNull(database);
-
-        var serviceCollection = new ServiceCollection()
-            .AddLogging(builder => builder
-                .ClearProviders()
-                .SetMinimumLevel(LogLevel.Trace)
-                .AddDebug());
-
-        var policy = new MockLsaUserRights(database);
-        policy.Connect(systemName);
-
-        serviceCollection.AddSingleton<ILsaUserRights>(policy);
         serviceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
         serviceCollection.AddSingleton<CliBuilder>();
 

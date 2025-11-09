@@ -17,7 +17,7 @@ using UserRights.Extensions.Security;
 /// <remarks>
 /// This fixture creates a temporary directory and backs up the security database when instantiated, then restores it during disposal.
 /// </remarks>
-public abstract class LsaUserRightsSnapshotFixture : IDisposable
+public class LsaUserRightsSnapshotFixture : IDisposable
 {
     private const string ExportSecurityTemplateName = "export.ini";
     private const string ExportSecurityLogName = "export.log";
@@ -25,7 +25,15 @@ public abstract class LsaUserRightsSnapshotFixture : IDisposable
     private const string RestoreSecurityTemplateName = "restore.ini";
     private const string RestoreSecurityLogName = "restore.log";
 
-    private readonly DirectoryInfo? _directory = CreateTempDirectory();
+    private readonly string _exportSecurityArguments = string.Create(
+        CultureInfo.InvariantCulture,
+        $"/export /cfg {ExportSecurityTemplateName} /areas user_rights /log {ExportSecurityLogName}");
+
+    private readonly string _restoreSecurityArguments = string.Create(
+        CultureInfo.InvariantCulture,
+        $"/configure /db {RestoreSecurityDatabaseName} /cfg {RestoreSecurityTemplateName} /areas user_rights /log {RestoreSecurityLogName}");
+
+    private readonly DirectoryInfo? _directory;
     private readonly IReadOnlyDictionary<string, IReadOnlyCollection<SecurityIdentifier>> _initialState;
 
     private bool _disposed;
@@ -33,12 +41,14 @@ public abstract class LsaUserRightsSnapshotFixture : IDisposable
     /// <summary>
     /// Initializes a new instance of the <see cref="LsaUserRightsSnapshotFixture"/> class.
     /// </summary>
-    protected LsaUserRightsSnapshotFixture()
+    public LsaUserRightsSnapshotFixture()
     {
+        _directory = CreateTempDirectory();
+
         try
         {
             // Create a backup to restore during disposal.
-            CreateSecurityDatabaseBackup(_directory.FullName);
+            RunSecurityEditor(_exportSecurityArguments, _directory.FullName);
 
             // Load the contents of the backup for use as initial state.
             _initialState = ReadSecurityDatabaseBackup(_directory.FullName);
@@ -48,6 +58,7 @@ public abstract class LsaUserRightsSnapshotFixture : IDisposable
         }
         catch
         {
+            // Prevent disposal from restoring the backup or deleting the temporary directory if initialization fails.
             _directory = null;
 
             throw;
@@ -57,13 +68,34 @@ public abstract class LsaUserRightsSnapshotFixture : IDisposable
     /// <summary>
     /// Gets the initial state of user rights assignments before they are modified through test execution.
     /// </summary>
-    protected IReadOnlyDictionary<string, IReadOnlyCollection<SecurityIdentifier>> InitialState
+    public IReadOnlyDictionary<string, IReadOnlyCollection<SecurityIdentifier>> InitialState
     {
         get
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
 
             return _initialState;
+        }
+    }
+
+    /// <summary>
+    /// Gets the current state of the security database.
+    /// </summary>
+    /// <returns>A map of privilege to security identifiers.</returns>
+    public IReadOnlyDictionary<string, IReadOnlyCollection<SecurityIdentifier>> GetCurrentState()
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        var directoryInfo = CreateTempDirectory();
+        try
+        {
+            RunSecurityEditor(_exportSecurityArguments, directoryInfo.FullName);
+
+            return ReadSecurityDatabaseBackup(directoryInfo.FullName);
+        }
+        finally
+        {
+            directoryInfo.Delete(true);
         }
     }
 
@@ -89,32 +121,13 @@ public abstract class LsaUserRightsSnapshotFixture : IDisposable
         {
             if (_directory is not null)
             {
-                RestoreSecurityDatabaseBackup(_directory.FullName);
+                RunSecurityEditor(_restoreSecurityArguments, _directory.FullName);
 
                 _directory.Delete(true);
             }
         }
 
         _disposed = true;
-    }
-
-    /// <summary>
-    /// Gets the current state of the security database.
-    /// </summary>
-    /// <returns>A map of privilege to security identifiers.</returns>
-    protected IReadOnlyDictionary<string, IReadOnlyCollection<SecurityIdentifier>> GetCurrentState()
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-
-        var directoryInfo = CreateTempDirectory();
-
-        CreateSecurityDatabaseBackup(directoryInfo.FullName);
-
-        var results = ReadSecurityDatabaseBackup(directoryInfo.FullName);
-
-        directoryInfo.Delete(true);
-
-        return results;
     }
 
     /// <summary>
@@ -163,64 +176,10 @@ public abstract class LsaUserRightsSnapshotFixture : IDisposable
     }
 
     /// <summary>
-    /// Creates a backup of the security database.
-    /// </summary>
-    /// <param name="workingDirectory">The path to a directory where the backup files will be created.</param>
-    private static void CreateSecurityDatabaseBackup(string workingDirectory)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(workingDirectory);
-
-        var arguments = string.Create(
-            CultureInfo.InvariantCulture,
-            $"/export /cfg {ExportSecurityTemplateName} /areas user_rights /log {ExportSecurityLogName}");
-
-        var stringBuilder = new StringBuilder();
-
-        using var process = new Process();
-
-        process.StartInfo.FileName = "secedit.exe";
-        process.StartInfo.Arguments = arguments;
-        process.StartInfo.WorkingDirectory = workingDirectory;
-        process.StartInfo.CreateNoWindow = true;
-        process.StartInfo.UseShellExecute = false;
-        process.StartInfo.RedirectStandardError = true;
-
-        process.ErrorDataReceived += (_, args) => stringBuilder.AppendLine(args.Data);
-
-        process.Start();
-
-        process.BeginErrorReadLine();
-
-        process.WaitForExit();
-
-        if (process.ExitCode != 0)
-        {
-            var message = string.Create(
-                CultureInfo.InvariantCulture,
-                $"Failed to export the security database, exit code: {process.ExitCode}\r\n{stringBuilder}");
-
-            throw new InvalidOperationException(message);
-        }
-    }
-
-    /// <summary>
     /// Creates a temporary directory.
     /// </summary>
     /// <returns>The temporary directory info instance.</returns>
-    private static DirectoryInfo CreateTempDirectory()
-    {
-        var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-        var directoryInfo = new DirectoryInfo(path);
-
-        if (directoryInfo.Exists)
-        {
-            throw new InvalidOperationException("Failed to create temporary directory.");
-        }
-
-        directoryInfo.Create();
-
-        return directoryInfo;
-    }
+    private static DirectoryInfo CreateTempDirectory() => Directory.CreateTempSubdirectory("userrights-");
 
     /// <summary>
     /// Reads a backup of the security database.
@@ -269,16 +228,14 @@ public abstract class LsaUserRightsSnapshotFixture : IDisposable
     }
 
     /// <summary>
-    /// Restores a backup of the security database.
+    /// Executes the security editor utility.
     /// </summary>
+    /// <param name="arguments">The command line arguments to pass to the security editor utility.</param>
     /// <param name="workingDirectory">The path to a directory where the backup files exist.</param>
-    private static void RestoreSecurityDatabaseBackup(string workingDirectory)
+    private static void RunSecurityEditor(string arguments, string workingDirectory)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(workingDirectory);
-
-        var arguments = string.Create(
-            CultureInfo.InvariantCulture,
-            $"/configure /db {RestoreSecurityDatabaseName} /cfg {RestoreSecurityTemplateName} /areas user_rights /log {RestoreSecurityLogName}");
+        ArgumentException.ThrowIfNullOrWhiteSpace(workingDirectory);
 
         var stringBuilder = new StringBuilder();
 
@@ -303,7 +260,7 @@ public abstract class LsaUserRightsSnapshotFixture : IDisposable
         {
             var message = string.Create(
                 CultureInfo.InvariantCulture,
-                $"Failed to restore the security database, exit code: {process.ExitCode}\r\n{stringBuilder}");
+                $"Failed to execute the security editor utility, exit code: {process.ExitCode}\r\n{stringBuilder}");
 
             throw new InvalidOperationException(message);
         }

@@ -1,6 +1,5 @@
 namespace UserRights.Extensions.Security;
 
-using System;
 using System.Security.Principal;
 
 /// <summary>

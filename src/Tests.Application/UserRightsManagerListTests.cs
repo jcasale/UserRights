@@ -1,162 +1,40 @@
 namespace Tests.Application;
 
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Security.Principal;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
-
-using CsvHelper;
-using CsvHelper.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using UserRights.Application;
-using UserRights.Extensions.Security;
-using UserRights.Extensions.Serialization;
-using Xunit;
 
 using static Tests.TestData;
 
 /// <summary>
-/// Represents tests for <see cref="IUserRightsManager"/> list functionality.
+/// Represents tests for enumerating all user rights.
 /// </summary>
-public sealed class UserRightsManagerListTests : UserRightsManagerTestBase
+[TestClass]
+public class UserRightsManagerListTests
 {
     /// <summary>
-    /// Verifies invalid arguments throw an instance of <see cref="ArgumentException"/>.
+    /// Verifies enumerating all user rights works as expected.
     /// </summary>
-    [Fact]
-    public void InvalidArgumentsThrowsException()
+    [TestMethod]
+    public void GetUserRights_ShouldWork()
     {
-        var manager = ServiceProvider.GetRequiredService<IUserRightsManager>();
+        // Arrange.
+        UserRightEntry[] expected =
+        [
+            new(Privilege1, PrincipalSid1.Value, PrincipalName1),
+            new(Privilege1, PrincipalSid2.Value, PrincipalName2),
+            new(Privilege2, PrincipalSid2.Value, PrincipalName2),
+            new(Privilege2, PrincipalSid3.Value, PrincipalName3)
+        ];
 
-        Assert.ThrowsAny<ArgumentException>(() => manager.GetUserRights(null!));
-    }
+        var lsaUserRights = LsaUserRightsMockBuilder.CreateBuilder()
+            .WithGrant(expected)
+            .Build();
 
-    /// <summary>
-    /// Verifies listing user rights and serializing the output to a CSV.
-    /// </summary>
-    /// <returns>A task that represents the asynchronous write operation.</returns>
-    [Fact]
-    public async Task SerializingToCsvShouldWork()
-    {
-        var principals1 = new List<SecurityIdentifier>
-        {
-            PrincipalSid1,
-            PrincipalSid2
-        };
+        using var fixture = new UserRightsManagerFixture();
 
-        var principals2 = new List<SecurityIdentifier>
-        {
-            PrincipalSid1,
-            PrincipalSid2
-        };
+        // Act.
+        var actual = fixture.UserRightsManager.GetUserRights(lsaUserRights.Object).ToArray();
 
-        var database = new Dictionary<string, ICollection<SecurityIdentifier>>(StringComparer.Ordinal)
-        {
-            { Privilege1, principals1 },
-            { Privilege2, principals2 }
-        };
-
-        var expected = database
-            .SelectMany(kvp => kvp.Value.Select(p => new UserRightEntry(kvp.Key, p.Value, p.ToAccount().Value)))
-            .OrderBy(p => p.Privilege, StringComparer.OrdinalIgnoreCase)
-            .ThenBy(p => p.SecurityId, StringComparer.OrdinalIgnoreCase)
-            .ToArray();
-
-        var policy = new MockLsaUserRights(database);
-        policy.Connect("SystemName");
-
-        Assert.Equal([PrincipalSid1, PrincipalSid2], policy.LsaEnumerateAccountsWithUserRight().Order());
-        Assert.Equal([Privilege1, Privilege2], policy.LsaEnumerateAccountRights(PrincipalSid1));
-        Assert.Equal([Privilege1, Privilege2], policy.LsaEnumerateAccountRights(PrincipalSid2));
-
-        var manager = ServiceProvider.GetRequiredService<IUserRightsManager>();
-        var userRights = manager.GetUserRights(policy).ToArray();
-
-        Assert.Equal(expected, userRights, new UserRightEntryEqualityComparer());
-
-        using var stream = new MemoryStream();
-        await userRights.ToCsv(stream).ConfigureAwait(true);
-        stream.Position = 0;
-        using var reader = new StreamReader(stream, Encoding.UTF8);
-        var serialized = await reader.ReadToEndAsync().ConfigureAwait(true);
-
-        var configuration = new CsvConfiguration(CultureInfo.InvariantCulture)
-        {
-            PrepareHeaderForMatch = a => a.Header.ToUpperInvariant() ?? throw new InvalidOperationException()
-        };
-
-        using var stringReader = new StringReader(serialized);
-        using var csvReader = new CsvReader(stringReader, configuration);
-
-        var records = csvReader.GetRecordsAsync<UserRightEntry>();
-        var actual = await records
-            .OrderBy(p => p.Privilege, StringComparer.OrdinalIgnoreCase)
-            .ThenBy(p => p.SecurityId, StringComparer.OrdinalIgnoreCase)
-            .ToArrayAsync()
-            .ConfigureAwait(true);
-
-        Assert.Equal(expected, actual, new UserRightEntryEqualityComparer());
-    }
-
-    /// <summary>
-    /// Verifies listing user rights and serializing the output to a JSON.
-    /// </summary>
-    /// <returns>A task that represents the asynchronous write operation.</returns>
-    [Fact]
-    public async Task SerializingToJsonShouldWork()
-    {
-        var principals1 = new List<SecurityIdentifier>
-        {
-            PrincipalSid1,
-            PrincipalSid2
-        };
-
-        var principals2 = new List<SecurityIdentifier>
-        {
-            PrincipalSid1,
-            PrincipalSid2
-        };
-
-        var database = new Dictionary<string, ICollection<SecurityIdentifier>>(StringComparer.Ordinal)
-        {
-            { Privilege1, principals1 },
-            { Privilege2, principals2 }
-        };
-
-        var expected = database
-            .SelectMany(kvp => kvp.Value.Select(p => new UserRightEntry(kvp.Key, p.Value, p.ToAccount().Value)))
-            .OrderBy(p => p.Privilege, StringComparer.OrdinalIgnoreCase)
-            .ThenBy(p => p.SecurityId, StringComparer.OrdinalIgnoreCase)
-            .ToArray();
-
-        var policy = new MockLsaUserRights(database);
-        policy.Connect("SystemName");
-
-        Assert.Equal([PrincipalSid1, PrincipalSid2], policy.LsaEnumerateAccountsWithUserRight().Order());
-        Assert.Equal(new[] { Privilege1, Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid1));
-        Assert.Equal(new[] { Privilege1, Privilege2 }, policy.LsaEnumerateAccountRights(PrincipalSid2));
-
-        var manager = ServiceProvider.GetRequiredService<IUserRightsManager>();
-        var userRights = manager.GetUserRights(policy).ToArray();
-
-        Assert.Equal(expected, userRights, new UserRightEntryEqualityComparer());
-
-        using var stream = new MemoryStream();
-        await userRights.ToJson(stream).ConfigureAwait(true);
-        stream.Position = 0;
-        using var reader = new StreamReader(stream, Encoding.UTF8);
-        var serialized = await reader.ReadToEndAsync().ConfigureAwait(true);
-
-        var actual = JsonSerializer.Deserialize<UserRightEntry[]>(serialized)
-            ?.OrderBy(p => p.Privilege, StringComparer.OrdinalIgnoreCase)
-            .ThenBy(p => p.SecurityId, StringComparer.OrdinalIgnoreCase)
-            .ToArray() ?? [];
-
-        Assert.Equal(expected, actual, new UserRightEntryEqualityComparer());
+        // Assert.
+        CollectionAssert.AreEquivalent(expected, actual);
     }
 }

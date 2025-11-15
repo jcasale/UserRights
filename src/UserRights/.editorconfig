@@ -1,0 +1,2 @@
+﻿[Program.cs]
+dotnet_diagnostic.CA1031.severity = none # Modify 'Main' to catch a more specific allowed exception type, or rethrow the exception.

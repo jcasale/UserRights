@@ -1,15 +1,10 @@
 namespace UserRights.Cli;
 
-using System;
-using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Help;
 using System.Globalization;
-using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 using Microsoft.Extensions.Logging;
 
@@ -39,10 +34,10 @@ public class CliBuilder
     }
 
     /// <summary>
-    /// Builds the command line parser.
+    /// Builds the command line parser root command.
     /// </summary>
-    /// <returns>A configured command line parser.</returns>
-    public CommandLineConfiguration Build()
+    /// <returns>A configured command line parser root command.</returns>
+    public RootCommand Build()
     {
         var rootCommand = new RootCommand("Windows User Rights Assignment Utility")
         {
@@ -53,29 +48,16 @@ public class CliBuilder
 
         foreach (var option in rootCommand.Options)
         {
-            switch (option)
+            // Replace the default help action with one that adds examples.
+            if (option is HelpOption helpOption)
             {
-                // Replace the default help action with one that adds examples.
-                case HelpOption helpOption:
-                    helpOption.Action = new HelpExamplesAction((HelpAction)helpOption.Action!);
+                helpOption.Action = new HelpExamplesAction((HelpAction)helpOption.Action!);
 
-                    break;
-
-                // Replace the default version action with one that produces a shorter informational version.
-                case VersionOption versionOption:
-                    versionOption.Action = new VersionAction();
-
-                    break;
+                break;
             }
         }
 
-        var configuration = new CommandLineConfiguration(rootCommand)
-        {
-            // Disable the default exception handler to allow logging errors to the event log.
-            EnableDefaultExceptionHandler = false
-        };
-
-        return configuration;
+        return rootCommand;
     }
 
     /// <summary>
@@ -97,7 +79,9 @@ public class CliBuilder
         // Ensure the path is a valid string.
         pathOption.Validators.Add(result =>
         {
-            if (string.IsNullOrWhiteSpace(result.GetValue(pathOption)))
+            var path = result.GetValue(pathOption);
+
+            if (string.IsNullOrWhiteSpace(path))
             {
                 result.AddError("Path cannot be empty or whitespace.");
             }
@@ -111,7 +95,9 @@ public class CliBuilder
         // Ensure the system name is a valid string.
         systemNameOption.Validators.Add(result =>
         {
-            if (string.IsNullOrWhiteSpace(result.GetValue(systemNameOption)))
+            var systemName = result.GetValue(systemNameOption);
+
+            if (string.IsNullOrWhiteSpace(systemName))
             {
                 result.AddError("System name cannot be empty or whitespace.");
             }
@@ -125,7 +111,7 @@ public class CliBuilder
 
         command.SetAction(async (parseResult, cancellationToken) =>
         {
-            _logger.LogInformation(OperationId.ListMode, "{Program:l} v{Version} executing in {Mode:l} mode.", ProgramInfo.Program, ProgramInfo.Version, command.Name);
+            _logger.LogInformation(OperationId.ListMode, "{Program:l} v{Version} executing in {Mode:l} mode.", ProgramInfo.Program, ProgramInfo.InformationalVersion, command.Name);
 
             var json = parseResult.GetValue(jsonOption);
             var path = parseResult.GetValue(pathOption);
@@ -135,8 +121,11 @@ public class CliBuilder
 
             var results = _manager.GetUserRights(_policy);
 
+            Func<Stream, CancellationToken, Task> writeAsync = json ? results.ToJson : results.ToCsv;
+
             if (string.IsNullOrWhiteSpace(path))
             {
+                // The invocation configuration's output stream in the parse result is unusable because its encoding cannot be changed.
                 var stream = Console.OpenStandardOutput();
                 var encoding = Console.OutputEncoding;
 
@@ -144,14 +133,7 @@ public class CliBuilder
                 {
                     Console.OutputEncoding = Encoding.UTF8;
 
-                    if (json)
-                    {
-                        await results.ToJson(stream, cancellationToken).ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        await results.ToCsv(stream, cancellationToken).ConfigureAwait(false);
-                    }
+                    await writeAsync(stream, cancellationToken).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -160,17 +142,10 @@ public class CliBuilder
             }
             else
             {
-                var stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: true);
+                var stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true);
                 await using (stream.ConfigureAwait(false))
                 {
-                    if (json)
-                    {
-                        await results.ToJson(stream, cancellationToken).ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        await results.ToCsv(stream, cancellationToken).ConfigureAwait(false);
-                    }
+                    await writeAsync(stream, cancellationToken).ConfigureAwait(false);
                 }
             }
         });
@@ -222,7 +197,9 @@ public class CliBuilder
         // Ensure the principal is a valid string.
         principalArgument.Validators.Add(result =>
         {
-            if (string.IsNullOrWhiteSpace(result.GetValue(principalArgument)))
+            var principal = result.GetValue(principalArgument);
+
+            if (string.IsNullOrWhiteSpace(principal))
             {
                 result.AddError("Principal cannot be empty or whitespace.");
             }
@@ -231,9 +208,11 @@ public class CliBuilder
         // Ensure principal mode is used with at least one of grant, revoke, or revoke all.
         principalArgument.Validators.Add(result =>
         {
-            if (result.GetValue(grantsOption) is not { Length: > 0 }
-                && result.GetValue(revocationsOption) is not { Length: > 0 }
-                && !result.GetValue(revokeAllOption))
+            var grants = result.GetValue(grantsOption);
+            var revocations = result.GetValue(revocationsOption);
+            var revokeAll = result.GetValue(revokeAllOption);
+
+            if (grants is not { Length: > 0 } && revocations is not { Length: > 0 } && !revokeAll)
             {
                 result.AddError("At least one option is required.");
             }
@@ -242,8 +221,9 @@ public class CliBuilder
         // Ensure the grants are valid strings.
         grantsOption.Validators.Add(result =>
         {
-            var grantsCollection = result.GetValue(grantsOption) ?? [];
-            if (grantsCollection.Any(string.IsNullOrWhiteSpace))
+            var grantsCollection = result.GetValue(grantsOption);
+
+            if (grantsCollection?.Any(string.IsNullOrWhiteSpace) is true)
             {
                 result.AddError("Grants cannot be empty or whitespace.");
             }
@@ -271,13 +251,15 @@ public class CliBuilder
         // Ensure the revocations are valid strings.
         revocationsOption.Validators.Add(result =>
         {
-            if (result.Tokens.Any(p => string.IsNullOrWhiteSpace(p.Value)))
+            var revocations = result.GetValue(revocationsOption);
+
+            if (revocations?.Any(string.IsNullOrWhiteSpace) is true)
             {
                 result.AddError("Revocations cannot be empty or whitespace.");
             }
         });
 
-        // Ensure the revocations do not overlap with revocations or contain duplicates.
+        // Ensure the revocations do not overlap with grants or contain duplicates.
         revocationsOption.Validators.Add(result =>
         {
             var grantsCollection = result.GetValue(grantsOption) ?? [];
@@ -299,9 +281,12 @@ public class CliBuilder
         // Ensure revoke all is not used with any other option.
         revokeAllOption.Validators.Add(result =>
         {
-            if (result.GetValue(revokeOthersOption)
-                || result.GetValue(grantsOption) is { Length: > 0 }
-                || result.GetValue(revocationsOption) is { Length: > 0 })
+            var grants = result.GetValue(grantsOption);
+            var revocations = result.GetValue(revocationsOption);
+            var revokeAll = result.GetValue(revokeAllOption);
+            var revokeOthers = result.GetValue(revokeOthersOption);
+
+            if (revokeAll && (revokeOthers || grants is { Length: > 0 } || revocations is { Length: > 0 }))
             {
                 result.AddError("Revoke all cannot be used with any other option.");
             }
@@ -310,9 +295,12 @@ public class CliBuilder
         // Ensure revoke others is only used with grant.
         revokeOthersOption.Validators.Add(result =>
         {
-            if (result.GetValue(revokeAllOption)
-                || result.GetValue(grantsOption) is not { Length: > 0 }
-                || result.GetValue(revocationsOption) is { Length: > 0 })
+            var grants = result.GetValue(grantsOption);
+            var revocations = result.GetValue(revocationsOption);
+            var revokeAll = result.GetValue(revokeAllOption);
+            var revokeOthers = result.GetValue(revokeOthersOption);
+
+            if (revokeOthers && (revokeAll || grants is not { Length: > 0 } || revocations is { Length: > 0 }))
             {
                 result.AddError("Revoke others is only valid with grants.");
             }
@@ -321,7 +309,9 @@ public class CliBuilder
         // Ensure the system name is a valid string.
         systemNameOption.Validators.Add(result =>
         {
-            if (string.IsNullOrWhiteSpace(result.GetValue(systemNameOption)))
+            var systemName = result.GetValue(systemNameOption);
+
+            if (string.IsNullOrWhiteSpace(systemName))
             {
                 result.AddError("System name cannot be empty or whitespace.");
             }
@@ -350,7 +340,7 @@ public class CliBuilder
 
             _logger.BeginScope(new Dictionary<string, object>(StringComparer.Ordinal) { { "DryRun", dryRun } });
 
-            _logger.LogInformation(OperationId.PrincipalMode, "{Program:l} v{Version} executing in {Mode:l} mode.", ProgramInfo.Program, ProgramInfo.Version, command.Name);
+            _logger.LogInformation(OperationId.PrincipalMode, "{Program:l} v{Version} executing in {Mode:l} mode.", ProgramInfo.Program, ProgramInfo.InformationalVersion, command.Name);
 
             _policy.Connect(systemName);
 
@@ -416,7 +406,9 @@ public class CliBuilder
         // Ensure the principal is a valid string.
         privilegeArgument.Validators.Add(result =>
         {
-            if (string.IsNullOrWhiteSpace(result.GetValue(privilegeArgument)))
+            var privilege = result.GetValue(privilegeArgument);
+
+            if (string.IsNullOrWhiteSpace(privilege))
             {
                 result.AddError("Privilege cannot be empty or whitespace.");
             }
@@ -425,10 +417,12 @@ public class CliBuilder
         // Ensure privilege mode is used with at least one of grant, revoke, revoke all, or revoke pattern.
         privilegeArgument.Validators.Add(result =>
         {
-            if (result.GetValue(grantsOption) is not { Length: > 0 }
-                && result.GetValue(revocationsOption) is not { Length: > 0 }
-                && !result.GetValue(revokeAllOption)
-                && result.GetValue(revokePatternOption) is null)
+            var grants = result.GetValue(grantsOption);
+            var revocations = result.GetValue(revocationsOption);
+            var revokeAll = result.GetValue(revokeAllOption);
+            var revokePattern = result.GetValue(revokePatternOption);
+
+            if (grants is not { Length: > 0 } && revocations is not { Length: > 0 } && !revokeAll && revokePattern is null)
             {
                 result.AddError("At least one option is required.");
             }
@@ -437,7 +431,9 @@ public class CliBuilder
         // Ensure the grants are valid strings.
         grantsOption.Validators.Add(result =>
         {
-            if (result.Tokens.Any(p => string.IsNullOrWhiteSpace(p.Value)))
+            var grants = result.GetValue(grantsOption);
+
+            if (grants?.Any(string.IsNullOrWhiteSpace) is true)
             {
                 result.AddError("Grants cannot be empty or whitespace.");
             }
@@ -465,13 +461,15 @@ public class CliBuilder
         // Ensure the revocations are valid strings.
         revocationsOption.Validators.Add(result =>
         {
-            if (result.Tokens.Any(p => string.IsNullOrWhiteSpace(p.Value)))
+            var revocations = result.GetValue(revocationsOption);
+
+            if (revocations?.Any(string.IsNullOrWhiteSpace) is true)
             {
                 result.AddError("Revocations cannot be empty or whitespace.");
             }
         });
 
-        // Ensure the revocations do not overlap with revocations or contain duplicates.
+        // Ensure the revocations do not overlap with grants or contain duplicates.
         revocationsOption.Validators.Add(result =>
         {
             var grantsCollection = result.GetValue(grantsOption) ?? [];
@@ -493,10 +491,13 @@ public class CliBuilder
         // Ensure revoke all is not used with any other option.
         revokeAllOption.Validators.Add(result =>
         {
-            if (result.GetValue(grantsOption) is { Length: > 0 }
-                || result.GetValue(revocationsOption) is { Length: > 0 }
-                || result.GetValue(revokeOthersOption)
-                || result.GetValue(revokePatternOption) is not null)
+            var grants = result.GetValue(grantsOption);
+            var revocations = result.GetValue(revocationsOption);
+            var revokeAll = result.GetValue(revokeAllOption);
+            var revokeOthers = result.GetValue(revokeOthersOption);
+            var revokePattern = result.GetValue(revokePatternOption);
+
+            if (revokeAll && (grants is { Length: > 0 } || revocations is { Length: > 0 } || revokeOthers || revokePattern is not null))
             {
                 result.AddError("Revoke all cannot be used with any other option.");
             }
@@ -505,10 +506,13 @@ public class CliBuilder
         // Ensure revoke others is only used with grant.
         revokeOthersOption.Validators.Add(result =>
         {
-            if (result.GetValue(grantsOption) is not { Length: > 0 }
-                || result.GetValue(revocationsOption) is { Length: > 0 }
-                || result.GetValue(revokeAllOption)
-                || result.GetValue(revokePatternOption) is not null)
+            var grants = result.GetValue(grantsOption);
+            var revocations = result.GetValue(revocationsOption);
+            var revokeAll = result.GetValue(revokeAllOption);
+            var revokeOthers = result.GetValue(revokeOthersOption);
+            var revokePattern = result.GetValue(revokePatternOption);
+
+            if (revokeOthers && (grants is not { Length: > 0 } || revocations is { Length: > 0 } || revokeAll || revokePattern is not null))
             {
                 result.AddError("Revoke others is only valid when used with grants.");
             }
@@ -518,6 +522,7 @@ public class CliBuilder
         revokePatternOption.Validators.Add(result =>
         {
             var revokePattern = result.GetValue(revokePatternOption);
+
             if (string.IsNullOrWhiteSpace(revokePattern))
             {
                 result.AddError("Revoke pattern cannot be empty or whitespace.");
@@ -530,7 +535,8 @@ public class CliBuilder
                 }
                 catch (RegexParseException e)
                 {
-                    result.AddError(string.Format(CultureInfo.InvariantCulture, "Revoke pattern must be a valid regular expression. {0}", e.Message));
+                    var error = string.Create(CultureInfo.InvariantCulture, $"Revoke pattern must be a valid regular expression. {e.Message}");
+                    result.AddError(error);
                 }
             }
         });
@@ -538,9 +544,11 @@ public class CliBuilder
         // Ensure revoke pattern is not used with revoke, revoke all, or revoke others.
         revokePatternOption.Validators.Add(result =>
         {
-            if (result.GetValue(revocationsOption) is { Length: > 0 }
-                || result.GetValue(revokeAllOption)
-                || result.GetValue(revokeOthersOption))
+            var revocations = result.GetValue(revocationsOption);
+            var revokeAll = result.GetValue(revokeAllOption);
+            var revokeOthers = result.GetValue(revokeOthersOption);
+
+            if (revocations is { Length: > 0 } || revokeAll || revokeOthers)
             {
                 result.AddError("Revoke pattern is only valid when used alone or with grants.");
             }
@@ -549,7 +557,9 @@ public class CliBuilder
         // Ensure the system name is a valid string.
         systemNameOption.Validators.Add(result =>
         {
-            if (string.IsNullOrWhiteSpace(result.GetValue(systemNameOption)))
+            var systemName = result.GetValue(systemNameOption);
+
+            if (string.IsNullOrWhiteSpace(systemName))
             {
                 result.AddError("System name cannot be empty or whitespace.");
             }
@@ -579,7 +589,7 @@ public class CliBuilder
 
             _logger.BeginScope(new Dictionary<string, object>(StringComparer.Ordinal) { { "DryRun", dryRun } });
 
-            _logger.LogInformation(OperationId.PrivilegeMode, "{Program:l} v{Version} executing in {Mode:l} mode.", ProgramInfo.Program, ProgramInfo.Version, command.Name);
+            _logger.LogInformation(OperationId.PrivilegeMode, "{Program:l} v{Version} executing in {Mode:l} mode.", ProgramInfo.Program, ProgramInfo.InformationalVersion, command.Name);
 
             var revokeRegex = string.IsNullOrWhiteSpace(revokePattern)
                 ? null

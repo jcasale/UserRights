@@ -1,18 +1,32 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="MSTest.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0-windows</TargetFramework>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <AnalysisLevel>latest-All</AnalysisLevel>
+    <MSTestAnalysisMode>All</MSTestAnalysisMode>
+    <IsTestApplication>false</IsTestApplication>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="xunit.abstractions" Version="2.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Ini" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" />
+    <PackageReference Include="Moq" />
+    <PackageReference Include="Moq.Analyzers">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\UserRights.Application\UserRights.Application.csproj" />
+    <ProjectReference Include="..\UserRights.Cli\UserRights.Cli.csproj" />
   </ItemGroup>
 
 </Project>

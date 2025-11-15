@@ -30,17 +30,25 @@ jobs:
       - name: Set dotnet version
         id: dotnet-version
         run: |
-          $version = [version]::new('${{ steps.setup-dotnet.outputs.dotnet-version }}')
+          $str = '${{ steps.setup-dotnet.outputs.dotnet-version }}'.Split('-')[0]
+          $version = [version]::new($str)
           $label = 'net{0}{1}' -f $version.Major, $version.Minor
           echo $label
           
           "label=$label" >> $env:GITHUB_OUTPUT
 
-      - name: Run tests
-        run: dotnet.exe test .\src\UserRights.sln --configuration Release --runtime win-x64
+      - name: Run CLI tests
+        run: |
+          cd .\src
+          dotnet.exe test --project .\Tests.Cli\Tests.Cli.csproj --configuration Debug --runtime win-x64 --output Detailed
+
+      - name: Run Application tests
+        run: |
+          cd .\src
+          dotnet.exe test --project .\Tests.Application\Tests.Application.csproj --configuration Debug --runtime win-x64 --output Detailed
 
       - name: Clean solution
-        run: dotnet.exe clean .\src\UserRights.sln --configuration Release
+        run: dotnet.exe clean .\src\UserRights.slnx --configuration Debug
 
       - name: Publish runtime-dependent release
         run: dotnet.exe publish .\src\UserRights\UserRights.csproj --configuration Release --runtime win-x64 --no-self-contained --output .\publish
@@ -58,7 +66,7 @@ jobs:
             if-no-files-found: error
 
       - name: Clean solution
-        run: dotnet.exe clean .\src\UserRights.sln --configuration Release
+        run: dotnet.exe clean .\src\UserRights.slnx --configuration Release
 
       - name: Publish self-contained release
         run: dotnet.exe publish .\src\UserRights\UserRights.csproj --configuration Release --runtime win-x64 --self-contained --output .\publish-packed -p:PublishSingleFile=true -p:PublishReadyToRun=true

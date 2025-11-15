@@ -1,17 +1,17 @@
 namespace UserRights;
 
-using System;
 using System.Globalization;
 using System.Text;
-using System.Threading.Tasks;
 
 using Microsoft.Extensions.DependencyInjection;
+
 using Serilog;
 using Serilog.Context;
 using Serilog.Core;
 using Serilog.Events;
 using Serilog.Templates;
 using Serilog.Templates.Themes;
+
 using UserRights.Application;
 using UserRights.Cli;
 
@@ -144,14 +144,15 @@ internal static class Program
 
         var builder = serviceProvider.GetRequiredService<CliBuilder>();
 
-        var configuration = builder.Build();
+        var rootCommand = builder.Build();
 
-        var parseResult = configuration.Parse(args);
+        var parseResult = rootCommand.Parse(args).ThrowIfInvalid();
+
         if (!string.Equals(parseResult.CommandResult.Command.Name, "list", StringComparison.Ordinal))
         {
             levelSwitch.MinimumLevel = LogEventLevel.Verbose;
         }
 
-        return await parseResult.Validate().InvokeAsync().ConfigureAwait(false);
+        return await parseResult.RunAsync().ConfigureAwait(false);
     }
 }

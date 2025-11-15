@@ -1,6 +1,5 @@
 ﻿namespace UserRights.Cli;
 
-using System;
 using System.Reflection;
 
 /// <summary>
@@ -24,15 +23,7 @@ public static class ProgramInfo
             Version = assembly.GetName().Version?.ToString() ?? string.Empty;
 
             var assemblyVersionAttribute = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
-            if (assemblyVersionAttribute is null)
-            {
-                InformationalVersion = Version;
-            }
-            else
-            {
-                var parts = assemblyVersionAttribute.InformationalVersion.Split('+');
-                InformationalVersion = parts.Length > 1 ? parts[0] : Version;
-            }
+            InformationalVersion = assemblyVersionAttribute is null ? Version : assemblyVersionAttribute.InformationalVersion;
         }
     }
 

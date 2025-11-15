@@ -1,7 +1,5 @@
 namespace UserRights.Extensions.Serialization;
 
-using System;
-
 /// <summary>
 /// Represents the exception thrown when an error occurs serializing data.
 /// </summary>

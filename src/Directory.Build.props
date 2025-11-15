@@ -4,15 +4,16 @@
     <Product>Windows User Rights Assignment Utility</Product>
     <Description>Utility for managing user right assignments.</Description>
     <Copyright>Copyright © Joseph L. Casale 2022</Copyright>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Meziantou.Analyzer" Version="2.0.217">
+    <PackageReference Include="Meziantou.Analyzer">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="StyleCop.Analyzers.Unstable" Version="1.2.0.556">
+    <PackageReference Include="StyleCop.Analyzers.Unstable">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -24,11 +25,13 @@
     </Exec>
 
     <PropertyGroup>
-      <PatternGitTag>^v((.+)-(\d+)-g(.+))</PatternGitTag>
-      <AssemblyVersion>$([System.Text.RegularExpressions.Regex]::Match($(GitTag), $(PatternGitTag)).Groups[2].Value)</AssemblyVersion>
-      <FileVersion>$([System.Text.RegularExpressions.Regex]::Match($(GitTag), $(PatternGitTag)).Groups[2].Value)</FileVersion>
-      <Version>$([System.Text.RegularExpressions.Regex]::Match($(GitTag), $(PatternGitTag)).Groups[2].Value)</Version>
-      <InformationalVersion>$([System.Text.RegularExpressions.Regex]::Match($(GitTag), $(PatternGitTag)).Groups[1].Value)</InformationalVersion>
+      <PatternGitTag>^v(((\d+\.\d+\.\d+\.\d+)(?:-[a-z]+\.\d+)?)-(\d+-g.+))</PatternGitTag>
+      <AssemblyVersion>$([System.Text.RegularExpressions.Regex]::Match($(GitTag), $(PatternGitTag)).Groups[3].Value)</AssemblyVersion>
+      <FileVersion>$([System.Text.RegularExpressions.Regex]::Match($(GitTag), $(PatternGitTag)).Groups[3].Value)</FileVersion>
+      <Version>$([System.Text.RegularExpressions.Regex]::Match($(GitTag), $(PatternGitTag)).Groups[3].Value)</Version>
+      <FullVersion>$([System.Text.RegularExpressions.Regex]::Match($(GitTag), $(PatternGitTag)).Groups[2].Value)</FullVersion>
+      <GitCommitInfo>$([System.Text.RegularExpressions.Regex]::Match($(GitTag), $(PatternGitTag)).Groups[4].Value)</GitCommitInfo>
+      <InformationalVersion>$(FullVersion)+$(GitCommitInfo)</InformationalVersion>
     </PropertyGroup>
 
     <Message Text="*** InformationalVersion $(InformationalVersion)" Importance="high" />

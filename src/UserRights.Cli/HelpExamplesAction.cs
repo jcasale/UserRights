@@ -1,6 +1,5 @@
 namespace UserRights.Cli;
 
-using System;
 using System.CommandLine;
 using System.CommandLine.Help;
 using System.CommandLine.Invocation;
@@ -24,6 +23,9 @@ public class HelpExamplesAction : SynchronousCommandLineAction
 
         _helpAction = helpAction;
     }
+
+    /// <inheritdoc />
+    public override bool ClearsParseErrors => true;
 
     /// <inheritdoc />
     public override int Invoke(ParseResult parseResult)
@@ -97,6 +99,6 @@ public class HelpExamplesAction : SynchronousCommandLineAction
             stringBuilder.AppendLine(CultureInfo.InvariantCulture, $"  {ProgramInfo.Program} {example}");
         }
 
-        parseResult.Configuration.Output.WriteLine(stringBuilder.ToString().TrimEnd());
+        parseResult.InvocationConfiguration.Output.WriteLine(stringBuilder.ToString().TrimEnd());
     }
 }

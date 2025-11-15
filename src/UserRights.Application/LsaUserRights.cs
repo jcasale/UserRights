@@ -1,6 +1,5 @@
 namespace UserRights.Application;
 
-using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
@@ -56,19 +55,13 @@ public class LsaUserRights : ILsaUserRights, IDisposable
 
         ArgumentNullException.ThrowIfNull(accountSid);
         ArgumentNullException.ThrowIfNull(userRights);
-
-        if (userRights.Length == 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(userRights), "Value cannot be an empty collection.");
-        }
+        ArgumentOutOfRangeException.ThrowIfZero(userRights.Length, nameof(userRights));
 
         var bytes = new byte[accountSid.BinaryLength];
         accountSid.GetBinaryForm(bytes, 0);
         fixed (byte* b = bytes)
         {
             var psid = new PSID(b);
-            using var ssid = new LsaCloseSafeHandle(psid);
-
             Span<LSA_UNICODE_STRING> rights = stackalloc LSA_UNICODE_STRING[userRights.Length];
             for (var i = 0; i < userRights.Length; i++)
             {
@@ -87,12 +80,11 @@ public class LsaUserRights : ILsaUserRights, IDisposable
                 }
             }
 
-            var status = PInvoke.LsaAddAccountRights(_handle, ssid, rights);
-            var error = PInvoke.LsaNtStatusToWinError(status);
-
-            if ((WIN32_ERROR)error != WIN32_ERROR.ERROR_SUCCESS)
+            var status = PInvoke.LsaAddAccountRights(_handle, psid, rights);
+            if (status != NTSTATUS.STATUS_SUCCESS)
             {
-                throw new Win32Exception((int)error);
+                var error = PInvoke.LsaNtStatusToWinError(status);
+                throw new Win32Exception(unchecked((int)error), "Failed to add the account right.");
             }
         }
     }
@@ -114,17 +106,15 @@ public class LsaUserRights : ILsaUserRights, IDisposable
         fixed (byte* b = bytes)
         {
             var psid = new PSID(b);
-            using var ssid = new LsaCloseSafeHandle(psid);
 
             LSA_UNICODE_STRING* userRights = null;
             try
             {
-                var status = PInvoke.LsaEnumerateAccountRights(_handle, ssid, out userRights, out var count);
-                var error = (WIN32_ERROR)PInvoke.LsaNtStatusToWinError(status);
-
-                if (error != WIN32_ERROR.ERROR_SUCCESS)
+                var status = PInvoke.LsaEnumerateAccountRights(_handle, psid, out userRights, out var count);
+                if (status != NTSTATUS.STATUS_SUCCESS)
                 {
-                    throw new Win32Exception((int)error);
+                    var error = PInvoke.LsaNtStatusToWinError(status);
+                    throw new Win32Exception(unchecked((int)error), "Failed to enumerate account rights.");
                 }
 
                 var results = new string[count];
@@ -142,10 +132,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
             }
             finally
             {
-                if (userRights is not null)
-                {
-                    PInvoke.LsaFreeMemory(userRights);
-                }
+                PInvoke.LsaFreeMemory(userRights);
             }
         }
     }
@@ -193,7 +180,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
 
                 if (error != WIN32_ERROR.ERROR_SUCCESS)
                 {
-                    throw new Win32Exception((int)error);
+                    throw new Win32Exception(unchecked((int)error), "Failed to enumerate accounts with right.");
                 }
 
                 var results = new SecurityIdentifier[count];
@@ -211,10 +198,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
             }
             finally
             {
-                if (buffer is not null)
-                {
-                    PInvoke.LsaFreeMemory(buffer);
-                }
+                PInvoke.LsaFreeMemory(buffer);
             }
         }
     }
@@ -231,19 +215,13 @@ public class LsaUserRights : ILsaUserRights, IDisposable
 
         ArgumentNullException.ThrowIfNull(accountSid);
         ArgumentNullException.ThrowIfNull(userRights);
-
-        if (userRights.Length == 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(userRights), "Value cannot be an empty collection.");
-        }
+        ArgumentOutOfRangeException.ThrowIfZero(userRights.Length, nameof(userRights));
 
         var bytes = new byte[accountSid.BinaryLength];
         accountSid.GetBinaryForm(bytes, 0);
         fixed (byte* b = bytes)
         {
             var psid = new PSID(b);
-            using var ssid = new LsaCloseSafeHandle(psid);
-
             Span<LSA_UNICODE_STRING> rights = stackalloc LSA_UNICODE_STRING[userRights.Length];
             for (var i = 0; i < userRights.Length; i++)
             {
@@ -262,12 +240,11 @@ public class LsaUserRights : ILsaUserRights, IDisposable
                 }
             }
 
-            var status = PInvoke.LsaRemoveAccountRights(_handle, ssid, false, rights);
-            var error = PInvoke.LsaNtStatusToWinError(status);
-
-            if ((WIN32_ERROR)error != WIN32_ERROR.ERROR_SUCCESS)
+            var status = PInvoke.LsaRemoveAccountRights(_handle, psid, false, rights);
+            if (status != NTSTATUS.STATUS_SUCCESS)
             {
-                throw new Win32Exception((int)error);
+                var error = PInvoke.LsaNtStatusToWinError(status);
+                throw new Win32Exception(unchecked((int)error), "Failed to remove the account right.");
             }
         }
     }
@@ -286,8 +263,9 @@ public class LsaUserRights : ILsaUserRights, IDisposable
         if (disposing)
         {
             _handle?.Dispose();
-            _disposed = true;
         }
+
+        _disposed = true;
     }
 
     /// <summary>
@@ -327,11 +305,10 @@ public class LsaUserRights : ILsaUserRights, IDisposable
         static LsaCloseSafeHandle Method(LSA_UNICODE_STRING name, ref LSA_OBJECT_ATTRIBUTES attributes, uint access)
         {
             var status = PInvoke.LsaOpenPolicy(name, attributes, access, out var policyHandle);
-            var error = PInvoke.LsaNtStatusToWinError(status);
-
-            if ((WIN32_ERROR)error != WIN32_ERROR.ERROR_SUCCESS)
+            if (status != NTSTATUS.STATUS_SUCCESS)
             {
-                throw new Win32Exception((int)error);
+                var error = PInvoke.LsaNtStatusToWinError(status);
+                throw new Win32Exception(unchecked((int)error), "Failed to open the policy database.");
             }
 
             return policyHandle;

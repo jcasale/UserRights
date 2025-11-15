@@ -1,8 +1,6 @@
 namespace UserRights;
 
-using System;
 using System.Globalization;
-using System.Linq;
 
 using Serilog.Events;
 using Serilog.Sinks.EventLog;
@@ -25,10 +23,10 @@ public class EventIdProvider : IEventIdProvider
         var id = property switch
         {
             // The EventId property was provided by Serilog directly.
-            ScalarValue scalar => scalar.ToString(),
+            ScalarValue scalar => scalar.ToString("G", NumberFormatInfo.InvariantInfo),
 
             // The EventId property was provided by Microsoft.Extensions.Logging.
-            StructureValue structure => structure.Properties.FirstOrDefault(p => string.Equals("Id", p.Name, StringComparison.OrdinalIgnoreCase))?.Value.ToString(),
+            StructureValue structure => structure.Properties.FirstOrDefault(p => string.Equals("Id", p.Name, StringComparison.OrdinalIgnoreCase))?.Value.ToString("G", NumberFormatInfo.InvariantInfo),
 
             _ => null
         };

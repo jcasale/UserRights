@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Product>Windows User Rights Assignment Utility</Product>
     <Description>Utility for managing user right assignments.</Description>
-    <Copyright>Copyright © Joseph L. Casale 2022</Copyright>
+    <Copyright>Copyright (c) 2026 Joseph L. Casale</Copyright>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
@@ -34,7 +34,7 @@
       <InformationalVersion>$(FullVersion)+$(GitCommitInfo)</InformationalVersion>
     </PropertyGroup>
 
-    <Message Text="*** InformationalVersion $(InformationalVersion)" Importance="high" />
+    <Message Text="InformationalVersion $(InformationalVersion)" Importance="high" />
   </Target>
 
 </Project>

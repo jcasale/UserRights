@@ -15,6 +15,9 @@ env:
 jobs:
   build:
     runs-on: windows-latest
+    permissions:
+      contents: write
+    timeout-minutes: 10
 
     steps:
       - uses: actions/checkout@v6
@@ -100,5 +103,4 @@ jobs:
           Framework-dependent release for Windows x64
           '@ |gh.exe release create ${{ github.ref }} --title ${{ github.ref_name }} --notes-file - UserRights-${{ steps.dotnet-version.outputs.label }}-x64.zip UserRights-${{ steps.dotnet-version.outputs.label }}-x64-self-contained.zip
         env:
-          # Requires a personal access token with a fine-grained permission of contents:read/write.
-          GH_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

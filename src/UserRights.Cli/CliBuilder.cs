@@ -28,9 +28,9 @@ public class CliBuilder
     /// <param name="manager">The user rights application instance.</param>
     public CliBuilder(ILogger<CliBuilder> logger, ILsaUserRights policy, IUserRightsManager manager)
     {
-        _logger = logger;
-        _policy = policy;
-        _manager = manager;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _policy = policy ?? throw new ArgumentNullException(nameof(policy));
+        _manager = manager ?? throw new ArgumentNullException(nameof(manager));
     }
 
     /// <summary>

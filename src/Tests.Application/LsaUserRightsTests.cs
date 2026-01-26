@@ -12,6 +12,7 @@ using static Tests.SecurityIdentifierConstants;
 /// Represents tests for interacting with the local security authority (LSA) database.
 /// </summary>
 [TestClass]
+[DoNotParallelize]
 public class LsaUserRightsTests
 {
     /// <summary>
@@ -84,7 +85,6 @@ public class LsaUserRightsTests
     /// </summary>
     [TestMethod]
     [RunWhenElevated]
-    [DoNotParallelize]
     public void LsaEnumerateAccountsWithUserRight_ShouldWork()
     {
         // Arrange.

@@ -13,8 +13,8 @@ public record UserRightEntry : IUserRightEntry
     /// <param name="accountName">The account name of the principal.</param>
     public UserRightEntry(string privilege, string securityId, string? accountName)
     {
-        ArgumentException.ThrowIfNullOrEmpty(privilege);
-        ArgumentException.ThrowIfNullOrEmpty(securityId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(privilege);
+        ArgumentException.ThrowIfNullOrWhiteSpace(securityId);
 
         Privilege = privilege;
         SecurityId = securityId;

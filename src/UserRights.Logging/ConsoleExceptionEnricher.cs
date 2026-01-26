@@ -1,4 +1,4 @@
-namespace UserRights;
+namespace UserRights.Logging;
 
 using System.Globalization;
 using System.Text;
@@ -7,7 +7,7 @@ using Serilog.Core;
 using Serilog.Events;
 
 /// <summary>
-/// Represents a exception formatter for console log events.
+/// Represents an exception formatter for console log events.
 /// </summary>
 public class ConsoleExceptionEnricher : ILogEventEnricher
 {

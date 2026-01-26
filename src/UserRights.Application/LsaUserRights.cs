@@ -138,7 +138,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
                     var ptr = nint.Add((nint)userRights, offset);
                     var result = Marshal.PtrToStructure<LSA_UNICODE_STRING>(ptr);
 
-                    results[i] = new(result.Buffer.Value);
+                    results[i] = new(result.Buffer.Value, 0, result.Length / sizeof(char));
                 }
 
                 return results;

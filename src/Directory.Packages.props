@@ -4,13 +4,13 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="CsvHelper" Version="33.1.0" />
-    <PackageVersion Include="Meziantou.Analyzer" Version="2.0.279" />
+    <PackageVersion Include="Meziantou.Analyzer" Version="2.0.287" />
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.2" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Ini" Version="10.0.2" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.2" />
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.2" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="10.0.2" />
-    <PackageVersion Include="Microsoft.Windows.CsWin32" Version="0.3.264" />
+    <PackageVersion Include="Microsoft.Windows.CsWin32" Version="0.3.269" />
     <PackageVersion Include="Moq" Version="4.20.72" />
     <PackageVersion Include="Moq.Analyzers" Version="0.4.0" />
     <PackageVersion Include="Serilog" Version="4.3.0" />

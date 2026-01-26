@@ -236,12 +236,15 @@ public class LsaUserRights : ILsaUserRights, IDisposable
         {
             var psid = new PSID(b);
             Span<LSA_UNICODE_STRING> rights = stackalloc LSA_UNICODE_STRING[userRights.Length];
-            for (var i = 0; i < userRights.Length; i++)
-            {
-                var privilege = userRights[i];
+            var handles = new GCHandle[userRights.Length];
 
-                fixed (char* p = privilege)
+            try
+            {
+                for (var i = 0; i < userRights.Length; i++)
                 {
+                    var privilege = userRights[i];
+                    handles[i] = GCHandle.Alloc(privilege, GCHandleType.Pinned);
+                    var p = (char*)handles[i].AddrOfPinnedObject();
                     var length = checked((ushort)(privilege.Length * sizeof(char)));
 
                     rights[i] = new()
@@ -251,13 +254,23 @@ public class LsaUserRights : ILsaUserRights, IDisposable
                         Buffer = p
                     };
                 }
-            }
 
-            var status = PInvoke.LsaRemoveAccountRights(_handle, psid, false, rights);
-            if (status != NTSTATUS.STATUS_SUCCESS)
+                var status = PInvoke.LsaRemoveAccountRights(_handle, psid, false, rights);
+                if (status != NTSTATUS.STATUS_SUCCESS)
+                {
+                    var error = PInvoke.LsaNtStatusToWinError(status);
+                    throw new Win32Exception(unchecked((int)error), "Failed to remove the account right.");
+                }
+            }
+            finally
             {
-                var error = PInvoke.LsaNtStatusToWinError(status);
-                throw new Win32Exception(unchecked((int)error), "Failed to remove the account right.");
+                foreach (var handle in handles)
+                {
+                    if (handle.IsAllocated)
+                    {
+                        handle.Free();
+                    }
+                }
             }
         }
     }

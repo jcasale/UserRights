@@ -11,6 +11,8 @@ using Microsoft.Extensions.Logging;
 using UserRights.Application;
 using UserRights.Extensions.Serialization;
 
+using static UserRights.Logging.OperationId;
+
 /// <summary>
 /// Represents the command line parser builder.
 /// </summary>
@@ -111,7 +113,7 @@ public class CliBuilder
 
         command.SetAction(async (parseResult, cancellationToken) =>
         {
-            _logger.LogInformation(OperationId.ListMode, "{Program:l} v{Version} executing in {Mode:l} mode.", ProgramInfo.Program, ProgramInfo.InformationalVersion, command.Name);
+            _logger.LogInformation(ListMode, "{Program:l} v{Version} executing in {Mode:l} mode.", ProgramInfo.Program, ProgramInfo.InformationalVersion, command.Name);
 
             var json = parseResult.GetValue(jsonOption);
             var path = parseResult.GetValue(pathOption);
@@ -340,7 +342,7 @@ public class CliBuilder
 
             _logger.BeginScope(new Dictionary<string, object>(StringComparer.Ordinal) { { "DryRun", dryRun } });
 
-            _logger.LogInformation(OperationId.PrincipalMode, "{Program:l} v{Version} executing in {Mode:l} mode.", ProgramInfo.Program, ProgramInfo.InformationalVersion, command.Name);
+            _logger.LogInformation(PrincipalMode, "{Program:l} v{Version} executing in {Mode:l} mode.", ProgramInfo.Program, ProgramInfo.InformationalVersion, command.Name);
 
             _policy.Connect(systemName);
 
@@ -589,7 +591,7 @@ public class CliBuilder
 
             _logger.BeginScope(new Dictionary<string, object>(StringComparer.Ordinal) { { "DryRun", dryRun } });
 
-            _logger.LogInformation(OperationId.PrivilegeMode, "{Program:l} v{Version} executing in {Mode:l} mode.", ProgramInfo.Program, ProgramInfo.InformationalVersion, command.Name);
+            _logger.LogInformation(PrivilegeMode, "{Program:l} v{Version} executing in {Mode:l} mode.", ProgramInfo.Program, ProgramInfo.InformationalVersion, command.Name);
 
             var revokeRegex = string.IsNullOrWhiteSpace(revokePattern)
                 ? null

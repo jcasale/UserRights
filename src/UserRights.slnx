@@ -11,5 +11,6 @@
   <Project Path="UserRights.Application/UserRights.Application.csproj" />
   <Project Path="UserRights.Cli/UserRights.Cli.csproj" />
   <Project Path="UserRights.Extensions/UserRights.Extensions.csproj" />
+  <Project Path="UserRights.Logging/UserRights.Logging.csproj" />
   <Project Path="UserRights/UserRights.csproj" />
 </Solution>

@@ -1,7 +1,5 @@
 namespace UserRights.Application;
 
-using System.Text.RegularExpressions;
-
 /// <summary>
 /// Represents the interface to the user rights application.
 /// </summary>
@@ -90,5 +88,5 @@ public interface IUserRightsManager
     /// </item>
     /// </list>
     /// </remarks>
-    void ModifyPrivilege(IUserRights policy, string privilege, string[] grants, string[] revocations, bool revokeAll, bool revokeOthers, Regex? revokePattern, bool dryRun);
+    void ModifyPrivilege(IUserRights policy, string privilege, string[] grants, string[] revocations, bool revokeAll, bool revokeOthers, string? revokePattern, bool dryRun);
 }

@@ -1,10 +1,10 @@
 namespace Tests.Application;
 
 using System.Security.Principal;
-using System.Text.RegularExpressions;
 
 using Moq;
 
+using static Tests.OptionsTestData;
 using static Tests.TestData;
 
 /// <summary>
@@ -14,60 +14,10 @@ using static Tests.TestData;
 public class UserRightsManagerPrivilegeTests
 {
     /// <summary>
-    /// Gets invalid method arguments for the modify privilege unit test.
-    /// </summary>
-    /// <returns>A sequence of method arguments.</returns>
-    public static IEnumerable<(string Privilege, string[] Grants, string[] Revocations, bool RevokeAll, bool RevokeOthers, string? RevokePattern, bool DryRun)> InvalidArgumentData
-    {
-        get
-        {
-            const string pattern = ".*";
-
-            return
-            [
-                // Verify null or empty privilege.
-                new(null!, [PrincipalName1], [], false, false, null, false),
-                new(string.Empty, [PrincipalName1], [], false, false, null, false),
-
-                // Verify null grant collection.
-                new(Privilege1, null!, [PrincipalName1], false, false, null, false),
-
-                // Verify null revocation collection.
-                new(Privilege1, [PrincipalName1], null!, false, false, null, false),
-
-                // Verify RevokeAll requirements.
-                new(Privilege1, [PrincipalName1], [], true, false, null, false),
-                new(Privilege1, [], [PrincipalName1], true, false, null, false),
-                new(Privilege1, [], [], true, true, null, false),
-                new(Privilege1, [], [], true, false, pattern, false),
-
-                // Verify RevokeOthers requirements.
-                new(Privilege1, [], [], false, true, null, false),
-                new(Privilege1, [PrincipalName1], [PrincipalName2], false, true, null, false),
-                new(Privilege2, [], [], true, true, null, false),
-                new(Privilege1, [], [], false, true, pattern, false),
-
-                // Verify RevokePattern requirements.
-                new(Privilege1, [], [PrincipalName1], false, false, pattern, false),
-                new(Privilege2, [], [], true, false, pattern, false),
-                new(Privilege2, [], [], false, true, pattern, false),
-
-                // Verify remaining requirements.
-                new(Privilege1, [], [], false, false, null, false),
-
-                // Verify grant and revocation set restrictions.
-                new(Privilege1, [PrincipalName1], [PrincipalName1], false, false, null, false),
-                new(Privilege1, [PrincipalName1, PrincipalName1], [], false, false, null, false),
-                new(Privilege1, [], [PrincipalName1, PrincipalName1], false, false, null, false)
-            ];
-        }
-    }
-
-    /// <summary>
     /// Verifies modifying a privilege with a null policy argument throws an exception.
     /// </summary>
     [TestMethod]
-    public void ModifyPrivilege_WithInvalidArguments_ThrowsException()
+    public void ModifyPrivilege_WithNullPolicy_ThrowsException()
     {
         // Arrange.
         var lsaUserRights = LsaUserRightsMockBuilder.CreateBuilder().Build();
@@ -75,6 +25,38 @@ public class UserRightsManagerPrivilegeTests
 
         // Act & Assert.
         Assert.Throws<ArgumentException>(() => fixture.UserRightsManager.ModifyPrivilege(null!, Privilege1, [PrincipalName1], [], false, false, null, false));
+
+        lsaUserRights.VerifyNoOtherCalls();
+    }
+
+    /// <summary>
+    /// Verifies modifying a privilege with null grants throws an exception.
+    /// </summary>
+    [TestMethod]
+    public void ModifyPrivilege_WithNullGrants_ThrowsException()
+    {
+        // Arrange.
+        var lsaUserRights = LsaUserRightsMockBuilder.CreateBuilder().Build();
+        using var fixture = new UserRightsManagerFixture();
+
+        // Act & Assert.
+        Assert.Throws<ArgumentException>(() => fixture.UserRightsManager.ModifyPrivilege(lsaUserRights.Object, Privilege1, null!, [], false, false, null, false));
+
+        lsaUserRights.VerifyNoOtherCalls();
+    }
+
+    /// <summary>
+    /// Verifies modifying a privilege with null revocations throws an exception.
+    /// </summary>
+    [TestMethod]
+    public void ModifyPrivilege_WithNullRevocations_ThrowsException()
+    {
+        // Arrange.
+        var lsaUserRights = LsaUserRightsMockBuilder.CreateBuilder().Build();
+        using var fixture = new UserRightsManagerFixture();
+
+        // Act & Assert.
+        Assert.Throws<ArgumentException>(() => fixture.UserRightsManager.ModifyPrivilege(lsaUserRights.Object, Privilege1, [], null!, false, false, null, false));
 
         lsaUserRights.VerifyNoOtherCalls();
     }
@@ -88,18 +70,19 @@ public class UserRightsManagerPrivilegeTests
     /// <param name="revokeAll">Revokes all principals from the privilege.</param>
     /// <param name="revokeOthers">Revokes all principals from the privilege excluding those being granted.</param>
     /// <param name="revokePattern">Revokes all principals whose SID matches the regular expression excluding those being granted.</param>
-    /// <param name="dryRun">Enables dry-run mode.</param>
+    /// <param name="description">The test case description.</param>
     [TestMethod]
-    [DynamicData(nameof(InvalidArgumentData))]
-    public void ModifyPrivilege_WithInvalidArguments_ThrowsException(string privilege, string[] grants, string[] revocations, bool revokeAll, bool revokeOthers, string revokePattern, bool dryRun)
+    [DynamicData(nameof(PrivilegeInvalidArgumentData), typeof(OptionsTestData))]
+    public void ModifyPrivilege_WithInvalidArguments_ThrowsException(string privilege, string[] grants, string[] revocations, bool revokeAll, bool revokeOthers, string revokePattern, string description)
     {
         // Arrange.
         var lsaUserRights = LsaUserRightsMockBuilder.CreateBuilder().Build();
         using var fixture = new UserRightsManagerFixture();
-        var regex = string.IsNullOrWhiteSpace(revokePattern) ? null : new Regex(revokePattern, RegexOptions.None, TimeSpan.FromSeconds(1));
 
         // Act & Assert.
-        Assert.Throws<ArgumentException>(() => fixture.UserRightsManager.ModifyPrivilege(lsaUserRights.Object, privilege, grants, revocations, revokeAll, revokeOthers, regex, dryRun));
+        Assert.Throws<ArgumentException>(
+            () => fixture.UserRightsManager.ModifyPrivilege(lsaUserRights.Object, privilege, grants, revocations, revokeAll, revokeOthers, revokePattern, false),
+            description);
 
         lsaUserRights.VerifyNoOtherCalls();
     }
@@ -286,7 +269,7 @@ public class UserRightsManagerPrivilegeTests
             .Build();
 
         using var fixture = new UserRightsManagerFixture();
-        var pattern = new Regex("^S-1-5-21", RegexOptions.None, TimeSpan.FromSeconds(1));
+        const string pattern = "^S-1-5-21";
 
         // Act.
         fixture.UserRightsManager.ModifyPrivilege(lsaUserRights.Object, Privilege1, [PrincipalName1], [], false, false, pattern, false);
@@ -319,7 +302,7 @@ public class UserRightsManagerPrivilegeTests
             .Build();
 
         using var fixture = new UserRightsManagerFixture();
-        var pattern = new Regex("^S-1-5-21", RegexOptions.None, TimeSpan.FromSeconds(1));
+        const string pattern = "^S-1-5-21";
 
         // Act.
         fixture.UserRightsManager.ModifyPrivilege(lsaUserRights.Object, Privilege1, [PrincipalName1], [], false, false, pattern, true);
@@ -461,7 +444,7 @@ public class UserRightsManagerPrivilegeTests
             .Build();
 
         using var fixture = new UserRightsManagerFixture();
-        var pattern = new Regex("^S-1-5-21", RegexOptions.None, TimeSpan.FromSeconds(1));
+        const string pattern = "^S-1-5-21";
 
         // Act.
         fixture.UserRightsManager.ModifyPrivilege(lsaUserRights.Object, Privilege1, [], [], false, false, pattern, false);
@@ -493,7 +476,7 @@ public class UserRightsManagerPrivilegeTests
             .Build();
 
         using var fixture = new UserRightsManagerFixture();
-        var pattern = new Regex("^S-1-5-21", RegexOptions.None, TimeSpan.FromSeconds(1));
+        const string pattern = "^S-1-5-21";
 
         // Act.
         fixture.UserRightsManager.ModifyPrivilege(lsaUserRights.Object, Privilege1, [], [], false, false, pattern, true);

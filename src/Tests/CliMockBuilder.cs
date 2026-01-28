@@ -1,7 +1,5 @@
 namespace Tests;
 
-using System.Text.RegularExpressions;
-
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -59,7 +57,7 @@ public class CliMockBuilder : IDisposable
                 It.IsAny<string[]>(),
                 It.IsAny<bool>(),
                 It.IsAny<bool>(),
-                It.IsAny<Regex?>(),
+                It.IsAny<string?>(),
                 It.IsAny<bool>()));
 
         var serviceCollection = new ServiceCollection()

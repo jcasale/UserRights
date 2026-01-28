@@ -4,6 +4,7 @@ using System.Security.Principal;
 
 using Moq;
 
+using static Tests.OptionsTestData;
 using static Tests.TestData;
 
 /// <summary>
@@ -12,40 +13,6 @@ using static Tests.TestData;
 [TestClass]
 public class UserRightsManagerPrincipalTests
 {
-    /// <summary>
-    /// Gets invalid method arguments for the modify principal unit test.
-    /// </summary>
-    public static IEnumerable<(string Principal, string[] Grants, string[] Revocations, bool RevokeAll, bool RevokeOthers, bool DryRun)> InvalidArgumentData =>
-    [
-        // Verify null or empty principal.
-        new(null!, [Privilege1], [], false, false, false),
-        new(string.Empty, [Privilege1], [], false, false, false),
-
-        // Verify null grant collection.
-        new(PrincipalName1, null!, [Privilege1], false, false, false),
-
-        // Verify null revocation collection.
-        new(PrincipalName1, [Privilege1], null!, false, false, false),
-
-        // Verify RevokeAll requirements.
-        new(PrincipalName1, [Privilege1], [], true, false, false),
-        new(PrincipalName1, [], [Privilege1], true, false, false),
-        new(PrincipalName1, [], [], true, true, false),
-
-        // Verify RevokeOthers requirements.
-        new(PrincipalName1, [Privilege1], [], true, true, false),
-        new(PrincipalName1, [], [], false, true, false),
-        new(PrincipalName1, [Privilege1], [Privilege2], false, true, false),
-
-        // Verify remaining requirements.
-        new(PrincipalName1, [], [], false, false, false),
-
-        // Verify grant and revocation set restrictions.
-        new(PrincipalName1, [Privilege1], [Privilege1], false, false, false),
-        new(PrincipalName1, [Privilege1, Privilege1], [], false, false, false),
-        new(PrincipalName1, [], [Privilege1, Privilege1], false, false, false)
-    ];
-
     /// <summary>
     /// Verifies granting a privilege works as expected.
     /// </summary>
@@ -217,13 +184,45 @@ public class UserRightsManagerPrincipalTests
     /// Verifies modifying a principal with a null policy argument throws an exception.
     /// </summary>
     [TestMethod]
-    public void ModifyPrincipal_WithInvalidArguments_ThrowsException()
+    public void ModifyPrincipal_WithNullPolicy_ThrowsException()
     {
         // Arrange.
         using var fixture = new UserRightsManagerFixture();
 
         // Act & Assert.
         Assert.Throws<ArgumentException>(() => fixture.UserRightsManager.ModifyPrincipal(null!, PrincipalName1, [Privilege1], [], false, false, false));
+    }
+
+    /// <summary>
+    /// Verifies modifying a principal with null grants throws an exception.
+    /// </summary>
+    [TestMethod]
+    public void ModifyPrincipal_WithNullGrants_ThrowsException()
+    {
+        // Arrange.
+        var lsaUserRights = LsaUserRightsMockBuilder.CreateBuilder().Build();
+        using var fixture = new UserRightsManagerFixture();
+
+        // Act & Assert.
+        Assert.Throws<ArgumentException>(() => fixture.UserRightsManager.ModifyPrincipal(lsaUserRights.Object, PrincipalName1, null!, [], false, false, false));
+
+        lsaUserRights.VerifyNoOtherCalls();
+    }
+
+    /// <summary>
+    /// Verifies modifying a principal with null revocations throws an exception.
+    /// </summary>
+    [TestMethod]
+    public void ModifyPrincipal_WithNullRevocations_ThrowsException()
+    {
+        // Arrange.
+        var lsaUserRights = LsaUserRightsMockBuilder.CreateBuilder().Build();
+        using var fixture = new UserRightsManagerFixture();
+
+        // Act & Assert.
+        Assert.Throws<ArgumentException>(() => fixture.UserRightsManager.ModifyPrincipal(lsaUserRights.Object, PrincipalName1, [], null!, false, false, false));
+
+        lsaUserRights.VerifyNoOtherCalls();
     }
 
     /// <summary>
@@ -234,10 +233,10 @@ public class UserRightsManagerPrincipalTests
     /// <param name="revocations">The privileges to revoke from the principal.</param>
     /// <param name="revokeAll">Revokes all privileges from the principal.</param>
     /// <param name="revokeOthers">Revokes all privileges from the principal excluding those being granted.</param>
-    /// <param name="dryRun">Enables dry-run mode.</param>
+    /// <param name="description">The test case description.</param>
     [TestMethod]
-    [DynamicData(nameof(InvalidArgumentData))]
-    public void ModifyPrincipal_WithInvalidArguments_ThrowsException(string principal, string[] grants, string[] revocations, bool revokeAll, bool revokeOthers, bool dryRun)
+    [DynamicData(nameof(PrincipalInvalidArgumentData), typeof(OptionsTestData))]
+    public void ModifyPrincipal_WithInvalidArguments_ThrowsException(string principal, string[] grants, string[] revocations, bool revokeAll, bool revokeOthers, string description)
     {
         // Arrange.
         var lsaUserRights = LsaUserRightsMockBuilder.CreateBuilder().Build();
@@ -245,7 +244,9 @@ public class UserRightsManagerPrincipalTests
         using var fixture = new UserRightsManagerFixture();
 
         // Act & Assert.
-        Assert.Throws<ArgumentException>(() => fixture.UserRightsManager.ModifyPrincipal(lsaUserRights.Object, principal, grants, revocations, revokeAll, revokeOthers, dryRun));
+        Assert.Throws<ArgumentException>(
+            () => fixture.UserRightsManager.ModifyPrincipal(lsaUserRights.Object, principal, grants, revocations, revokeAll, revokeOthers, false),
+            description);
 
         lsaUserRights.VerifyNoOtherCalls();
     }

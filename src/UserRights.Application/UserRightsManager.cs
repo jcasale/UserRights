@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using UserRights.Extensions.Security;
 
+using static OptionsValidator;
 using static UserRights.Logging.OperationId;
 
 /// <summary>
@@ -68,44 +69,20 @@ public class UserRightsManager : IUserRightsManager
         ArgumentNullException.ThrowIfNull(grants);
         ArgumentNullException.ThrowIfNull(revocations);
 
-        if (revokeAll && (revokeOthers || grants.Length > 0 || revocations.Length > 0))
+        var error = ValidatePrincipalOptions(principal, grants, revocations, revokeAll, revokeOthers).FirstOrDefault();
+        if (error is not null)
         {
-            throw new ArgumentException($"The {nameof(revokeAll)} parameter cannot be used with any other option.", nameof(revokeAll));
+            throw new ArgumentException(error);
         }
 
-        if (revokeOthers && (revokeAll || grants.Length == 0 || revocations.Length > 0))
-        {
-            throw new ArgumentException($"The {nameof(revokeOthers)} parameter is only valid with {nameof(grants)}.", nameof(revokeAll));
-        }
-
-        if (grants.Length == 0 && revocations.Length == 0 && !revokeAll)
-        {
-            throw new ArgumentException("The parameter combination is invalid.");
-        }
+        // Convert the principal to a security identifier.
+        var securityIdentifier = principal.ToSecurityIdentifier();
 
         // Convert the grants to a set.
         var grantSet = grants.ToHashSet(StringComparer.InvariantCultureIgnoreCase);
 
         // Convert the revocations to a set.
         var revocationSet = revocations.ToHashSet(StringComparer.InvariantCultureIgnoreCase);
-
-        if (grantSet.Overlaps(revocationSet))
-        {
-            throw new ArgumentException("The grants and revocations cannot overlap.");
-        }
-
-        if (grants.Length != grantSet.Count)
-        {
-            throw new ArgumentException("The grants cannot contain duplicates.", nameof(grants));
-        }
-
-        if (revocations.Length != revocationSet.Count)
-        {
-            throw new ArgumentException("The revocations cannot contain duplicates.", nameof(revocations));
-        }
-
-        // Convert the principal to a security identifier.
-        var securityIdentifier = principal.ToSecurityIdentifier();
 
         // Get the privileges currently assigned to the principal.
         var privileges = policy.LsaEnumerateAccountRights(securityIdentifier).ToHashSet(StringComparer.InvariantCultureIgnoreCase);
@@ -152,31 +129,17 @@ public class UserRightsManager : IUserRightsManager
     }
 
     /// <inheritdoc />
-    public void ModifyPrivilege(IUserRights policy, string privilege, string[] grants, string[] revocations, bool revokeAll, bool revokeOthers, Regex? revokePattern, bool dryRun)
+    public void ModifyPrivilege(IUserRights policy, string privilege, string[] grants, string[] revocations, bool revokeAll, bool revokeOthers, string? revokePattern, bool dryRun)
     {
         ArgumentNullException.ThrowIfNull(policy);
         ArgumentException.ThrowIfNullOrWhiteSpace(privilege);
         ArgumentNullException.ThrowIfNull(grants);
         ArgumentNullException.ThrowIfNull(revocations);
 
-        if (revokeAll && (grants.Length > 0 || revocations.Length > 0 || revokeOthers || revokePattern is not null))
+        var error = ValidatePrivilegeOptions(privilege, grants, revocations, revokeAll, revokeOthers, revokePattern).FirstOrDefault();
+        if (error is not null)
         {
-            throw new ArgumentException($"The {nameof(revokeAll)} parameter cannot be used with any other option.", nameof(revokeAll));
-        }
-
-        if (revokeOthers && (grants.Length == 0 || revocations.Length > 0 || revokeAll || revokePattern is not null))
-        {
-            throw new ArgumentException($"The {nameof(revokeOthers)} parameter is only valid with {nameof(grants)}.", nameof(revokeOthers));
-        }
-
-        if (revokePattern is not null && (revocations.Length > 0 || revokeAll || revokeOthers))
-        {
-            throw new ArgumentException($"The {nameof(revokePattern)} parameter cannot be used with {nameof(revocations)}, {nameof(revokeAll)}, or {nameof(revokeOthers)}.", nameof(revokePattern));
-        }
-
-        if (grants.Length == 0 && revocations.Length == 0 && !revokeAll && revokePattern is null)
-        {
-            throw new ArgumentException("The parameter combination is invalid.");
+            throw new ArgumentException(error);
         }
 
         // Translate the principal for each grant to a security identifier.
@@ -184,21 +147,6 @@ public class UserRightsManager : IUserRightsManager
 
         // Translate the principal for each revocation to a security identifier.
         var revocationSet = revocations.Select(p => p.ToSecurityIdentifier()).ToHashSet();
-
-        if (grantSet.Overlaps(revocationSet))
-        {
-            throw new ArgumentException("The grants and revocations cannot overlap.");
-        }
-
-        if (grants.Length != grantSet.Count)
-        {
-            throw new ArgumentException("The grants cannot contain duplicates.", nameof(grants));
-        }
-
-        if (revocations.Length != revocationSet.Count)
-        {
-            throw new ArgumentException("The revocations cannot contain duplicates.", nameof(revocations));
-        }
 
         // Get the principals with the privilege currently assigned.
         var principals = policy.LsaEnumerateAccountsWithUserRight(privilege).ToHashSet();
@@ -234,7 +182,8 @@ public class UserRightsManager : IUserRightsManager
         // Perform a revocation of the privilege from each principal matching the regex pattern if required.
         if (revokePattern is not null)
         {
-            var matches = principals.Where(p => !grantSet.Contains(p) && revokePattern.IsMatch(p.Value));
+            var regex = new Regex(revokePattern, RegexOptions.None, TimeSpan.FromSeconds(1));
+            var matches = principals.Where(p => !grantSet.Contains(p) && regex.IsMatch(p.Value));
             foreach (var principal in matches)
             {
                 RevokePrivilege(policy, principal, privilege, dryRun);

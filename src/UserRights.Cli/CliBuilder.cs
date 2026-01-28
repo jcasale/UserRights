@@ -2,15 +2,14 @@ namespace UserRights.Cli;
 
 using System.CommandLine;
 using System.CommandLine.Help;
-using System.Globalization;
 using System.Text;
-using System.Text.RegularExpressions;
 
 using Microsoft.Extensions.Logging;
 
 using UserRights.Application;
 using UserRights.Extensions.Serialization;
 
+using static UserRights.Application.OptionsValidator;
 using static UserRights.Logging.OperationId;
 
 /// <summary>
@@ -101,7 +100,7 @@ public class CliBuilder
 
             if (string.IsNullOrWhiteSpace(systemName))
             {
-                result.AddError("System name cannot be empty or whitespace.");
+                result.AddError("The system name cannot be empty or whitespace.");
             }
         });
 
@@ -196,115 +195,19 @@ public class CliBuilder
             Description = "The name of the remote system to execute on (default localhost)."
         };
 
-        // Ensure the principal is a valid string.
+        // Validate principal mode options.
         principalArgument.Validators.Add(result =>
         {
             var principal = result.GetValue(principalArgument);
-
-            if (string.IsNullOrWhiteSpace(principal))
-            {
-                result.AddError("Principal cannot be empty or whitespace.");
-            }
-        });
-
-        // Ensure principal mode is used with at least one of grant, revoke, or revoke all.
-        principalArgument.Validators.Add(result =>
-        {
-            var grants = result.GetValue(grantsOption);
-            var revocations = result.GetValue(revocationsOption);
-            var revokeAll = result.GetValue(revokeAllOption);
-
-            if (grants is not { Length: > 0 } && revocations is not { Length: > 0 } && !revokeAll)
-            {
-                result.AddError("At least one option is required.");
-            }
-        });
-
-        // Ensure the grants are valid strings.
-        grantsOption.Validators.Add(result =>
-        {
-            var grantsCollection = result.GetValue(grantsOption);
-
-            if (grantsCollection?.Any(string.IsNullOrWhiteSpace) is true)
-            {
-                result.AddError("Grants cannot be empty or whitespace.");
-            }
-        });
-
-        // Ensure the grants do not overlap with revocations or contain duplicates.
-        grantsOption.Validators.Add(result =>
-        {
-            var grantsCollection = result.GetValue(grantsOption) ?? [];
-            var revocationsCollection = result.GetValue(revocationsOption) ?? [];
-
-            var grantsSet = grantsCollection.ToHashSet(StringComparer.InvariantCultureIgnoreCase);
-            var revocationsSet = revocationsCollection.ToHashSet(StringComparer.InvariantCultureIgnoreCase);
-
-            if (grantsSet.Overlaps(revocationsSet))
-            {
-                result.AddError("The grants and revocations cannot overlap.");
-            }
-            else if (grantsSet.Count != grantsCollection.Length)
-            {
-                result.AddError("The grants cannot contain duplicates.");
-            }
-        });
-
-        // Ensure the revocations are valid strings.
-        revocationsOption.Validators.Add(result =>
-        {
-            var revocations = result.GetValue(revocationsOption);
-
-            if (revocations?.Any(string.IsNullOrWhiteSpace) is true)
-            {
-                result.AddError("Revocations cannot be empty or whitespace.");
-            }
-        });
-
-        // Ensure the revocations do not overlap with grants or contain duplicates.
-        revocationsOption.Validators.Add(result =>
-        {
-            var grantsCollection = result.GetValue(grantsOption) ?? [];
-            var revocationsCollection = result.GetValue(revocationsOption) ?? [];
-
-            var grantsSet = grantsCollection.ToHashSet(StringComparer.InvariantCultureIgnoreCase);
-            var revocationsSet = revocationsCollection.ToHashSet(StringComparer.InvariantCultureIgnoreCase);
-
-            if (grantsSet.Overlaps(revocationsSet))
-            {
-                result.AddError("The grants and revocations cannot overlap.");
-            }
-            else if (revocationsSet.Count != revocationsCollection.Length)
-            {
-                result.AddError("The revocations cannot contain duplicates.");
-            }
-        });
-
-        // Ensure revoke all is not used with any other option.
-        revokeAllOption.Validators.Add(result =>
-        {
             var grants = result.GetValue(grantsOption);
             var revocations = result.GetValue(revocationsOption);
             var revokeAll = result.GetValue(revokeAllOption);
             var revokeOthers = result.GetValue(revokeOthersOption);
 
-            if (revokeAll && (revokeOthers || grants is { Length: > 0 } || revocations is { Length: > 0 }))
+            var errors = ValidatePrincipalOptions(principal, grants, revocations, revokeAll, revokeOthers);
+            foreach (var error in errors)
             {
-                result.AddError("Revoke all cannot be used with any other option.");
-            }
-        });
-
-        // Ensure revoke others is only used with grant.
-        revokeOthersOption.Validators.Add(result =>
-        {
-            var grants = result.GetValue(grantsOption);
-            var revocations = result.GetValue(revocationsOption);
-            var revokeAll = result.GetValue(revokeAllOption);
-            var revokeOthers = result.GetValue(revokeOthersOption);
-
-            if (revokeOthers && (revokeAll || grants is not { Length: > 0 } || revocations is { Length: > 0 }))
-            {
-                result.AddError("Revoke others is only valid with grants.");
+                result.AddError(error);
             }
         });
 
@@ -405,154 +308,20 @@ public class CliBuilder
             Description = "The name of the remote system to execute on (default localhost)."
         };
 
-        // Ensure the principal is a valid string.
+        // Validate privilege mode options.
         privilegeArgument.Validators.Add(result =>
         {
             var privilege = result.GetValue(privilegeArgument);
-
-            if (string.IsNullOrWhiteSpace(privilege))
-            {
-                result.AddError("Privilege cannot be empty or whitespace.");
-            }
-        });
-
-        // Ensure privilege mode is used with at least one of grant, revoke, revoke all, or revoke pattern.
-        privilegeArgument.Validators.Add(result =>
-        {
-            var grants = result.GetValue(grantsOption);
-            var revocations = result.GetValue(revocationsOption);
-            var revokeAll = result.GetValue(revokeAllOption);
-            var revokePattern = result.GetValue(revokePatternOption);
-
-            if (grants is not { Length: > 0 } && revocations is not { Length: > 0 } && !revokeAll && revokePattern is null)
-            {
-                result.AddError("At least one option is required.");
-            }
-        });
-
-        // Ensure the grants are valid strings.
-        grantsOption.Validators.Add(result =>
-        {
-            var grants = result.GetValue(grantsOption);
-
-            if (grants?.Any(string.IsNullOrWhiteSpace) is true)
-            {
-                result.AddError("Grants cannot be empty or whitespace.");
-            }
-        });
-
-        // Ensure the grants do not overlap with revocations or contain duplicates.
-        grantsOption.Validators.Add(result =>
-        {
-            var grantsCollection = result.GetValue(grantsOption) ?? [];
-            var revocationsCollection = result.GetValue(revocationsOption) ?? [];
-
-            var grantsSet = grantsCollection.ToHashSet(StringComparer.InvariantCultureIgnoreCase);
-            var revocationsSet = revocationsCollection.ToHashSet(StringComparer.InvariantCultureIgnoreCase);
-
-            if (grantsSet.Overlaps(revocationsSet))
-            {
-                result.AddError("Grants and revocations cannot overlap.");
-            }
-            else if (grantsSet.Count != grantsCollection.Length)
-            {
-                result.AddError("Grants cannot contain duplicates.");
-            }
-        });
-
-        // Ensure the revocations are valid strings.
-        revocationsOption.Validators.Add(result =>
-        {
-            var revocations = result.GetValue(revocationsOption);
-
-            if (revocations?.Any(string.IsNullOrWhiteSpace) is true)
-            {
-                result.AddError("Revocations cannot be empty or whitespace.");
-            }
-        });
-
-        // Ensure the revocations do not overlap with grants or contain duplicates.
-        revocationsOption.Validators.Add(result =>
-        {
-            var grantsCollection = result.GetValue(grantsOption) ?? [];
-            var revocationsCollection = result.GetValue(revocationsOption) ?? [];
-
-            var grantsSet = grantsCollection.ToHashSet(StringComparer.InvariantCultureIgnoreCase);
-            var revocationsSet = revocationsCollection.ToHashSet(StringComparer.InvariantCultureIgnoreCase);
-
-            if (grantsSet.Overlaps(revocationsSet))
-            {
-                result.AddError("Grants and revocations cannot overlap.");
-            }
-            else if (revocationsSet.Count != revocationsCollection.Length)
-            {
-                result.AddError("Revocations cannot contain duplicates.");
-            }
-        });
-
-        // Ensure revoke all is not used with any other option.
-        revokeAllOption.Validators.Add(result =>
-        {
             var grants = result.GetValue(grantsOption);
             var revocations = result.GetValue(revocationsOption);
             var revokeAll = result.GetValue(revokeAllOption);
             var revokeOthers = result.GetValue(revokeOthersOption);
             var revokePattern = result.GetValue(revokePatternOption);
 
-            if (revokeAll && (grants is { Length: > 0 } || revocations is { Length: > 0 } || revokeOthers || revokePattern is not null))
+            var errors = ValidatePrivilegeOptions(privilege, grants, revocations, revokeAll, revokeOthers, revokePattern);
+            foreach (var error in errors)
             {
-                result.AddError("Revoke all cannot be used with any other option.");
-            }
-        });
-
-        // Ensure revoke others is only used with grant.
-        revokeOthersOption.Validators.Add(result =>
-        {
-            var grants = result.GetValue(grantsOption);
-            var revocations = result.GetValue(revocationsOption);
-            var revokeAll = result.GetValue(revokeAllOption);
-            var revokeOthers = result.GetValue(revokeOthersOption);
-            var revokePattern = result.GetValue(revokePatternOption);
-
-            if (revokeOthers && (grants is not { Length: > 0 } || revocations is { Length: > 0 } || revokeAll || revokePattern is not null))
-            {
-                result.AddError("Revoke others is only valid when used with grants.");
-            }
-        });
-
-        // Ensure the revoke pattern is a valid string.
-        revokePatternOption.Validators.Add(result =>
-        {
-            var revokePattern = result.GetValue(revokePatternOption);
-
-            if (string.IsNullOrWhiteSpace(revokePattern))
-            {
-                result.AddError("Revoke pattern cannot be empty or whitespace.");
-            }
-            else
-            {
-                try
-                {
-                    _ = new Regex(revokePattern, RegexOptions.None, TimeSpan.FromSeconds(1));
-                }
-                catch (RegexParseException e)
-                {
-                    var error = string.Create(CultureInfo.InvariantCulture, $"Revoke pattern must be a valid regular expression. {e.Message}");
-                    result.AddError(error);
-                }
-            }
-        });
-
-        // Ensure revoke pattern is not used with revoke, revoke all, or revoke others.
-        revokePatternOption.Validators.Add(result =>
-        {
-            var revocations = result.GetValue(revocationsOption);
-            var revokeAll = result.GetValue(revokeAllOption);
-            var revokeOthers = result.GetValue(revokeOthersOption);
-
-            if (revocations is { Length: > 0 } || revokeAll || revokeOthers)
-            {
-                result.AddError("Revoke pattern is only valid when used alone or with grants.");
+                result.AddError(error);
             }
         });
 
@@ -563,7 +332,7 @@ public class CliBuilder
 
             if (string.IsNullOrWhiteSpace(systemName))
             {
-                result.AddError("System name cannot be empty or whitespace.");
+                result.AddError("The system name cannot be empty or whitespace.");
             }
         });
 
@@ -593,10 +362,6 @@ public class CliBuilder
 
             _logger.LogInformation(PrivilegeMode, "{Program:l} v{Version} executing in {Mode:l} mode.", ProgramInfo.Program, ProgramInfo.InformationalVersion, command.Name);
 
-            var revokeRegex = string.IsNullOrWhiteSpace(revokePattern)
-                ? null
-                : new Regex(revokePattern, RegexOptions.None, TimeSpan.FromSeconds(1));
-
             _policy.Connect(systemName);
 
             _manager.ModifyPrivilege(
@@ -606,7 +371,7 @@ public class CliBuilder
                 revocations!,
                 revokeAll,
                 revokeOthers,
-                revokeRegex,
+                revokePattern,
                 dryRun);
         });
 

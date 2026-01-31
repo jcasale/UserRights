@@ -32,8 +32,21 @@ public class OptionsValidatorTests
         bool revokeOthers,
         string message)
     {
+        // Arrange.
+        var errors = new List<string>();
+
         // Act.
-        var errors = ValidatePrincipalOptions(principal, grants, revocations, revokeAll, revokeOthers).ToList();
+        ValidatePrincipalOptions(
+            principal,
+            errors.Add,
+            grants,
+            errors.Add,
+            revocations,
+            errors.Add,
+            revokeAll,
+            errors.Add,
+            revokeOthers,
+            errors.Add);
 
         foreach (var error in errors)
         {
@@ -63,8 +76,21 @@ public class OptionsValidatorTests
         bool revokeOthers,
         string message)
     {
+        // Arrange.
+        var errors = new List<string>();
+
         // Act.
-        var errors = ValidatePrincipalOptions(principal, grants, revocations, revokeAll, revokeOthers).ToList();
+        ValidatePrincipalOptions(
+            principal,
+            errors.Add,
+            grants,
+            errors.Add,
+            revocations,
+            errors.Add,
+            revokeAll,
+            errors.Add,
+            revokeOthers,
+            errors.Add);
 
         foreach (var error in errors)
         {
@@ -96,8 +122,23 @@ public class OptionsValidatorTests
         string? revokePattern,
         string message)
     {
+        // Arrange.
+        var errors = new List<string>();
+
         // Act.
-        var errors = ValidatePrivilegeOptions(privilege, grants, revocations, revokeAll, revokeOthers, revokePattern).ToList();
+        ValidatePrivilegeOptions(
+            privilege,
+            errors.Add,
+            grants,
+            errors.Add,
+            revocations,
+            errors.Add,
+            revokeAll,
+            errors.Add,
+            revokeOthers,
+            errors.Add,
+            revokePattern,
+            errors.Add);
 
         foreach (var error in errors)
         {
@@ -129,8 +170,23 @@ public class OptionsValidatorTests
         string? revokePattern,
         string message)
     {
+        // Arrange.
+        var errors = new List<string>();
+
         // Act.
-        var errors = ValidatePrivilegeOptions(privilege, grants, revocations, revokeAll, revokeOthers, revokePattern).ToList();
+        ValidatePrivilegeOptions(
+            privilege,
+            errors.Add,
+            grants,
+            errors.Add,
+            revocations,
+            errors.Add,
+            revokeAll,
+            errors.Add,
+            revokeOthers,
+            errors.Add,
+            revokePattern,
+            errors.Add);
 
         foreach (var error in errors)
         {

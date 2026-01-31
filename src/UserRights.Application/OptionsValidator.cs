@@ -12,40 +12,55 @@ public static class OptionsValidator
     /// Validates the options for modifying a principal.
     /// </summary>
     /// <param name="principal">The principal to modify.</param>
+    /// <param name="principalAction">The action to invoke for principal validation errors.</param>
     /// <param name="grants">The privileges to grant to the principal.</param>
+    /// <param name="grantsAction">The action to invoke for grants validation errors.</param>
     /// <param name="revocations">The privileges to revoke from the principal.</param>
+    /// <param name="revocationsAction">The action to invoke for revocations validation errors.</param>
     /// <param name="revokeAll">Revokes all privileges from the principal.</param>
+    /// <param name="revokeAllAction">The action to invoke for revokeAll validation errors.</param>
     /// <param name="revokeOthers">Revokes all privileges from the principal excluding those being granted.</param>
-    /// <returns>A sequence of validation error messages.</returns>
-    public static IEnumerable<string> ValidatePrincipalOptions(
+    /// <param name="revokeOthersAction">The action to invoke for revokeOthers validation errors.</param>
+    public static void ValidatePrincipalOptions(
         string? principal,
+        Action<string> principalAction,
         string[]? grants,
+        Action<string> grantsAction,
         string[]? revocations,
+        Action<string> revocationsAction,
         bool revokeAll,
-        bool revokeOthers)
+        Action<string> revokeAllAction,
+        bool revokeOthers,
+        Action<string> revokeOthersAction)
     {
+        ArgumentNullException.ThrowIfNull(principalAction);
+        ArgumentNullException.ThrowIfNull(grantsAction);
+        ArgumentNullException.ThrowIfNull(revocationsAction);
+        ArgumentNullException.ThrowIfNull(revokeAllAction);
+        ArgumentNullException.ThrowIfNull(revokeOthersAction);
+
         // Ensure the principal is a valid string.
         if (string.IsNullOrWhiteSpace(principal))
         {
-            yield return "The principal cannot be empty or whitespace.";
+            principalAction("The principal cannot be empty or whitespace.");
         }
 
         // Ensure principal mode is used with at least one of grant, revoke, or revoke all.
         if (grants is not { Length: > 0 } && revocations is not { Length: > 0 } && !revokeAll)
         {
-            yield return "At least one of grant, revoke, or revoke all is required.";
+            principalAction("At least one of grant, revoke, or revoke all is required.");
         }
 
         // Ensure the grants are valid strings.
         if (grants?.Any(string.IsNullOrWhiteSpace) is true)
         {
-            yield return "The grants cannot contain empty or whitespace values.";
+            grantsAction("The grants cannot contain empty or whitespace values.");
         }
 
         // Ensure the revocations are valid strings.
         if (revocations?.Any(string.IsNullOrWhiteSpace) is true)
         {
-            yield return "The revocations cannot contain empty or whitespace values.";
+            revocationsAction("The revocations cannot contain empty or whitespace values.");
         }
 
         // Ensure the grants do not overlap with revocations or contain duplicates.
@@ -54,29 +69,29 @@ public static class OptionsValidator
 
         if (grantsSet.Overlaps(revocationsSet))
         {
-            yield return "The grants and revocations cannot overlap.";
+            grantsAction("The grants and revocations cannot overlap.");
         }
 
         if (grants is not null && grants.Length != grantsSet.Count)
         {
-            yield return "The grants cannot contain duplicates.";
+            grantsAction("The grants cannot contain duplicates.");
         }
 
         if (revocations is not null && revocations.Length != revocationsSet.Count)
         {
-            yield return "The revocations cannot contain duplicates.";
+            revocationsAction("The revocations cannot contain duplicates.");
         }
 
         // Ensure revoke all is not used with any other option.
         if (revokeAll && (revokeOthers || grants is { Length: > 0 } || revocations is { Length: > 0 }))
         {
-            yield return "The revoke all option cannot be used with any other option.";
+            revokeAllAction("The revoke all option cannot be used with any other option.");
         }
 
         // Ensure revoke others is only used with grant.
         if (revokeOthers && (revokeAll || grants is not { Length: > 0 } || revocations is { Length: > 0 }))
         {
-            yield return "The revoke others option is only valid with grants.";
+            revokeOthersAction("The revoke others option is only valid with grants.");
         }
     }
 
@@ -84,42 +99,60 @@ public static class OptionsValidator
     /// Validates the options for modifying a privilege.
     /// </summary>
     /// <param name="privilege">The privilege to modify.</param>
+    /// <param name="privilegeAction">The action to invoke for privilege validation errors.</param>
     /// <param name="grants">The principals to grant the privilege to.</param>
+    /// <param name="grantsAction">The action to invoke for grants validation errors.</param>
     /// <param name="revocations">The principals to revoke the privilege from.</param>
+    /// <param name="revocationsAction">The action to invoke for revocations validation errors.</param>
     /// <param name="revokeAll">Revokes all principals from the privilege.</param>
+    /// <param name="revokeAllAction">The action to invoke for revokeAll validation errors.</param>
     /// <param name="revokeOthers">Revokes all principals from the privilege excluding those being granted.</param>
+    /// <param name="revokeOthersAction">The action to invoke for revokeOthers validation errors.</param>
     /// <param name="revokePattern">Revokes all principals whose SID matches the regular expression excluding those being granted.</param>
-    /// <returns>A sequence of validation error messages.</returns>
-    public static IEnumerable<string> ValidatePrivilegeOptions(
+    /// <param name="revokePatternAction">The action to invoke for revokePattern validation errors.</param>
+    public static void ValidatePrivilegeOptions(
         string? privilege,
+        Action<string> privilegeAction,
         string[]? grants,
+        Action<string> grantsAction,
         string[]? revocations,
+        Action<string> revocationsAction,
         bool revokeAll,
+        Action<string> revokeAllAction,
         bool revokeOthers,
-        string? revokePattern)
+        Action<string> revokeOthersAction,
+        string? revokePattern,
+        Action<string> revokePatternAction)
     {
+        ArgumentNullException.ThrowIfNull(privilegeAction);
+        ArgumentNullException.ThrowIfNull(grantsAction);
+        ArgumentNullException.ThrowIfNull(revocationsAction);
+        ArgumentNullException.ThrowIfNull(revokeAllAction);
+        ArgumentNullException.ThrowIfNull(revokeOthersAction);
+        ArgumentNullException.ThrowIfNull(revokePatternAction);
+
         // Ensure the privilege is a valid string.
         if (string.IsNullOrWhiteSpace(privilege))
         {
-            yield return "The privilege cannot be empty or whitespace.";
+            privilegeAction("The privilege cannot be empty or whitespace.");
         }
 
         // Ensure privilege mode is used with at least one of grant, revoke, revoke all, or revoke pattern.
         if (grants is not { Length: > 0 } && revocations is not { Length: > 0 } && !revokeAll && string.IsNullOrWhiteSpace(revokePattern))
         {
-            yield return "At least one of grant, revoke, revoke all, or revoke pattern is required.";
+            privilegeAction("At least one of grant, revoke, revoke all, or revoke pattern is required.");
         }
 
         // Ensure the grants are valid strings.
         if (grants?.Any(string.IsNullOrWhiteSpace) is true)
         {
-            yield return "The grants cannot contain empty or whitespace values.";
+            grantsAction("The grants cannot contain empty or whitespace values.");
         }
 
         // Ensure the revocations are valid strings.
         if (revocations?.Any(string.IsNullOrWhiteSpace) is true)
         {
-            yield return "The revocations cannot contain empty or whitespace values.";
+            revocationsAction("The revocations cannot contain empty or whitespace values.");
         }
 
         // Ensure the grants do not overlap with revocations or contain duplicates.
@@ -128,53 +161,47 @@ public static class OptionsValidator
 
         if (grantsSet.Overlaps(revocationsSet))
         {
-            yield return "The grants and revocations cannot overlap.";
+            grantsAction("The grants and revocations cannot overlap.");
         }
 
         if (grants is not null && grants.Length != grantsSet.Count)
         {
-            yield return "The grants cannot contain duplicates.";
+            grantsAction("The grants cannot contain duplicates.");
         }
 
         if (revocations is not null && revocations.Length != revocationsSet.Count)
         {
-            yield return "The revocations cannot contain duplicates.";
+            revocationsAction("The revocations cannot contain duplicates.");
         }
 
         // Ensure revoke all is not used with any other option.
         if (revokeAll && (grants is { Length: > 0 } || revocations is { Length: > 0 } || revokeOthers || !string.IsNullOrWhiteSpace(revokePattern)))
         {
-            yield return "The revoke all option cannot be used with any other option.";
+            revokeAllAction("The revoke all option cannot be used with any other option.");
         }
 
         // Ensure revoke others is only used with grant.
         if (revokeOthers && (grants is not { Length: > 0 } || revocations is { Length: > 0 } || revokeAll || !string.IsNullOrWhiteSpace(revokePattern)))
         {
-            yield return "The revoke others option is only valid with grants.";
+            revokeOthersAction("The revoke others option is only valid with grants.");
         }
 
         // Ensure revoke pattern is not used with revoke, revoke all, or revoke others.
         if (!string.IsNullOrWhiteSpace(revokePattern) && (revocations is { Length: > 0 } || revokeAll || revokeOthers))
         {
-            yield return "The revoke pattern option is only valid when used alone or with grants.";
+            revokePatternAction("The revoke pattern option is only valid when used alone or with grants.");
         }
 
         // Ensure the revoke pattern is a valid regular expression.
         if (!string.IsNullOrWhiteSpace(revokePattern))
         {
-            Exception? exception = null;
             try
             {
                 _ = new Regex(revokePattern, RegexOptions.None, TimeSpan.FromSeconds(1));
             }
             catch (RegexParseException e)
             {
-                exception = e;
-            }
-
-            if (exception is not null)
-            {
-                yield return string.Create(CultureInfo.InvariantCulture, $"The revoke pattern must be a valid regular expression: {exception.Message}");
+                revokePatternAction(string.Create(CultureInfo.InvariantCulture, $"The revoke pattern must be a valid regular expression: {e.Message}"));
             }
         }
     }

@@ -69,11 +69,17 @@ public class UserRightsManager : IUserRightsManager
         ArgumentNullException.ThrowIfNull(grants);
         ArgumentNullException.ThrowIfNull(revocations);
 
-        var error = ValidatePrincipalOptions(principal, grants, revocations, revokeAll, revokeOthers).FirstOrDefault();
-        if (error is not null)
-        {
-            throw new ArgumentException(error);
-        }
+        ValidatePrincipalOptions(
+            principal,
+            message => throw new ArgumentException(message, nameof(principal)),
+            grants,
+            message => throw new ArgumentException(message, nameof(grants)),
+            revocations,
+            message => throw new ArgumentException(message, nameof(revocations)),
+            revokeAll,
+            message => throw new ArgumentException(message, nameof(revokeAll)),
+            revokeOthers,
+            message => throw new ArgumentException(message, nameof(revokeOthers)));
 
         // Convert the principal to a security identifier.
         var securityIdentifier = principal.ToSecurityIdentifier();
@@ -136,11 +142,19 @@ public class UserRightsManager : IUserRightsManager
         ArgumentNullException.ThrowIfNull(grants);
         ArgumentNullException.ThrowIfNull(revocations);
 
-        var error = ValidatePrivilegeOptions(privilege, grants, revocations, revokeAll, revokeOthers, revokePattern).FirstOrDefault();
-        if (error is not null)
-        {
-            throw new ArgumentException(error);
-        }
+        ValidatePrivilegeOptions(
+            privilege,
+            message => throw new ArgumentException(message, nameof(privilege)),
+            grants,
+            message => throw new ArgumentException(message, nameof(grants)),
+            revocations,
+            message => throw new ArgumentException(message, nameof(revocations)),
+            revokeAll,
+            message => throw new ArgumentException(message, nameof(revokeAll)),
+            revokeOthers,
+            message => throw new ArgumentException(message, nameof(revokeOthers)),
+            revokePattern,
+            message => throw new ArgumentException(message, nameof(revokePattern)));
 
         // Translate the principal for each grant to a security identifier.
         var grantSet = grants.Select(p => p.ToSecurityIdentifier()).ToHashSet();

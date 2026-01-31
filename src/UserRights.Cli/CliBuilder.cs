@@ -204,11 +204,17 @@ public class CliBuilder
             var revokeAll = result.GetValue(revokeAllOption);
             var revokeOthers = result.GetValue(revokeOthersOption);
 
-            var errors = ValidatePrincipalOptions(principal, grants, revocations, revokeAll, revokeOthers);
-            foreach (var error in errors)
-            {
-                result.AddError(error);
-            }
+            ValidatePrincipalOptions(
+                principal,
+                result.AddError,
+                grants,
+                result.AddError,
+                revocations,
+                result.AddError,
+                revokeAll,
+                result.AddError,
+                revokeOthers,
+                result.AddError);
         });
 
         // Ensure the system name is a valid string.
@@ -318,11 +324,19 @@ public class CliBuilder
             var revokeOthers = result.GetValue(revokeOthersOption);
             var revokePattern = result.GetValue(revokePatternOption);
 
-            var errors = ValidatePrivilegeOptions(privilege, grants, revocations, revokeAll, revokeOthers, revokePattern);
-            foreach (var error in errors)
-            {
-                result.AddError(error);
-            }
+            ValidatePrivilegeOptions(
+                privilege,
+                result.AddError,
+                grants,
+                result.AddError,
+                revocations,
+                result.AddError,
+                revokeAll,
+                result.AddError,
+                revokeOthers,
+                result.AddError,
+                revokePattern,
+                result.AddError);
         });
 
         // Ensure the system name is a valid string.

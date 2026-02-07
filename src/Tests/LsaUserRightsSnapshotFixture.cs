@@ -19,19 +19,13 @@ using UserRights.Extensions.Security;
 /// </remarks>
 public class LsaUserRightsSnapshotFixture : IDisposable
 {
+    private const string ExportSecurityArguments = $"/export /cfg {ExportSecurityTemplateName} /areas user_rights /log {ExportSecurityLogName}";
     private const string ExportSecurityTemplateName = "export.ini";
     private const string ExportSecurityLogName = "export.log";
+    private const string RestoreSecurityArguments = $"/configure /db {RestoreSecurityDatabaseName} /cfg {RestoreSecurityTemplateName} /areas user_rights /log {RestoreSecurityLogName}";
     private const string RestoreSecurityDatabaseName = "restore.db";
     private const string RestoreSecurityTemplateName = "restore.ini";
     private const string RestoreSecurityLogName = "restore.log";
-
-    private readonly string _exportSecurityArguments = string.Create(
-        CultureInfo.InvariantCulture,
-        $"/export /cfg {ExportSecurityTemplateName} /areas user_rights /log {ExportSecurityLogName}");
-
-    private readonly string _restoreSecurityArguments = string.Create(
-        CultureInfo.InvariantCulture,
-        $"/configure /db {RestoreSecurityDatabaseName} /cfg {RestoreSecurityTemplateName} /areas user_rights /log {RestoreSecurityLogName}");
 
     private readonly DirectoryInfo? _directory;
     private readonly IReadOnlyDictionary<string, IReadOnlyCollection<SecurityIdentifier>> _initialState;
@@ -48,7 +42,7 @@ public class LsaUserRightsSnapshotFixture : IDisposable
         try
         {
             // Create a backup to restore during disposal.
-            RunSecurityEditor(_exportSecurityArguments, _directory.FullName);
+            RunSecurityEditor(ExportSecurityArguments, _directory.FullName);
 
             // Load the contents of the backup for use as initial state.
             _initialState = ReadSecurityDatabaseBackup(_directory.FullName);
@@ -89,7 +83,7 @@ public class LsaUserRightsSnapshotFixture : IDisposable
         var directoryInfo = CreateTempDirectory();
         try
         {
-            RunSecurityEditor(_exportSecurityArguments, directoryInfo.FullName);
+            RunSecurityEditor(ExportSecurityArguments, directoryInfo.FullName);
 
             return ReadSecurityDatabaseBackup(directoryInfo.FullName);
         }
@@ -121,7 +115,7 @@ public class LsaUserRightsSnapshotFixture : IDisposable
         {
             if (_directory is not null)
             {
-                RunSecurityEditor(_restoreSecurityArguments, _directory.FullName);
+                RunSecurityEditor(RestoreSecurityArguments, _directory.FullName);
 
                 _directory.Delete(true);
             }
@@ -165,8 +159,7 @@ public class LsaUserRightsSnapshotFixture : IDisposable
                 continue;
             }
 
-            var entry = string.Create(CultureInfo.InvariantCulture, $"{privilege} =");
-            lines.Insert(index + 1, entry);
+            lines.Insert(index + 1, $"{privilege} =");
         }
 
         // Write restore template.

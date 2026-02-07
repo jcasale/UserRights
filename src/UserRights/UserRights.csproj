@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
-    <AnalysisLevel>latest-All</AnalysisLevel>
+    <AnalysisLevel>latest-all</AnalysisLevel>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,6 +24,7 @@
   <ItemGroup>
     <ProjectReference Include="..\UserRights.Application\UserRights.Application.csproj" />
     <ProjectReference Include="..\UserRights.Cli\UserRights.Cli.csproj" />
+    <ProjectReference Include="..\UserRights.Logging\UserRights.Logging.csproj" />
   </ItemGroup>
 
 </Project>

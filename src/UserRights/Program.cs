@@ -14,6 +14,9 @@ using Serilog.Templates.Themes;
 
 using UserRights.Application;
 using UserRights.Cli;
+using UserRights.Logging;
+
+using static UserRights.Logging.OperationId;
 
 /// <summary>
 /// Implements the user right utility.
@@ -37,7 +40,7 @@ internal static class Program
         catch (SyntaxException e)
         {
             // Log syntax errors to assist with instrumenting automation.
-            using (LogContext.PushProperty("EventId", OperationId.SyntaxError))
+            using (LogContext.PushProperty("EventId", SyntaxError))
             {
                 Log.Fatal("{SyntaxError}", e.Message);
             }
@@ -47,7 +50,7 @@ internal static class Program
         catch (Exception e)
         {
             // Log all other errors as execution failures.
-            using (LogContext.PushProperty("EventId", OperationId.FatalError))
+            using (LogContext.PushProperty("EventId", FatalError))
             {
                 Log.Fatal(e, "Execution failed.");
             }

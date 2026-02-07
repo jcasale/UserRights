@@ -4,7 +4,10 @@ using System.Security.Principal;
 using System.Text.RegularExpressions;
 
 using Microsoft.Extensions.Logging;
+
 using UserRights.Extensions.Security;
+
+using static UserRights.Logging.OperationId;
 
 /// <summary>
 /// Represents the applications logic.
@@ -267,7 +270,7 @@ public class UserRightsManager : IUserRightsManager
 
         if (dryRun)
         {
-            _logger.LogInformation(OperationId.PrivilegeGrantDryrun, "Granting {Privilege:l} to {Principal}.", privilege, principal);
+            _logger.LogInformation(PrivilegeGrantDryrun, "Granting {Privilege:l} to {Principal}.", privilege, principal);
 
             return;
         }
@@ -278,12 +281,12 @@ public class UserRightsManager : IUserRightsManager
         }
         catch
         {
-            _logger.LogError(OperationId.PrivilegeGrantFailure, "Failed to grant {Privilege:l} to {Principal}.", privilege, principal);
+            _logger.LogError(PrivilegeGrantFailure, "Failed to grant {Privilege:l} to {Principal}.", privilege, principal);
 
             throw;
         }
 
-        _logger.LogInformation(OperationId.PrivilegeGrantSuccess, "Successfully granted {Privilege:l} to {Principal}.", privilege, principal);
+        _logger.LogInformation(PrivilegeGrantSuccess, "Successfully granted {Privilege:l} to {Principal}.", privilege, principal);
     }
 
     /// <summary>
@@ -301,7 +304,7 @@ public class UserRightsManager : IUserRightsManager
 
         if (dryRun)
         {
-            _logger.LogInformation(OperationId.PrivilegeRevokeDryrun, "Revoking {Privilege:l} from {Principal}.", privilege, principal);
+            _logger.LogInformation(PrivilegeRevokeDryrun, "Revoking {Privilege:l} from {Principal}.", privilege, principal);
 
             return;
         }
@@ -312,11 +315,11 @@ public class UserRightsManager : IUserRightsManager
         }
         catch
         {
-            _logger.LogError(OperationId.PrivilegeRevokeFailure, "Failed to revoke {Privilege:l} from {Principal}.", privilege, principal);
+            _logger.LogError(PrivilegeRevokeFailure, "Failed to revoke {Privilege:l} from {Principal}.", privilege, principal);
 
             throw;
         }
 
-        _logger.LogInformation(OperationId.PrivilegeRevokeSuccess, "Successfully revoked {Privilege:l} from {Principal}.", privilege, principal);
+        _logger.LogInformation(PrivilegeRevokeSuccess, "Successfully revoked {Privilege:l} from {Principal}.", privilege, principal);
     }
 }

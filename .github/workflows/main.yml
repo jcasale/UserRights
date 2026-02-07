@@ -1,9 +1,9 @@
 name: CI
+
 on:
   push:
     tags:
-      - 'v*'
-
+      - '*'
   workflow_dispatch:
 
 env:
@@ -27,15 +27,19 @@ jobs:
         with:
           global-json-file: src/global.json
 
-      - name: Set dotnet version
-        id: dotnet-version
+      - name: Set base name
+        id: base-name
         run: |
-          $str = '${{ steps.setup-dotnet.outputs.dotnet-version }}'.Split('-')[0]
-          $version = [version]::new($str)
-          $label = 'net{0}{1}' -f $version.Major, $version.Minor
-          echo $label
-          
-          "label=$label" >> $env:GITHUB_OUTPUT
+          if ('${{ github.ref_type }}' -eq 'tag')
+          {
+            $value = 'UserRights-x64-${{ github.ref_name }}'
+          }
+          else
+          {
+            $value = 'UserRights-x64'
+          }
+
+          'value={0}' -f $value |Tee-Object -FilePath $env:GITHUB_OUTPUT -Append
 
       - name: Run CLI tests
         run: |
@@ -48,39 +52,47 @@ jobs:
           dotnet.exe test --project .\Tests.Application\Tests.Application.csproj --configuration Debug --runtime win-x64 --output Detailed
 
       - name: Clean solution
-        run: dotnet.exe clean .\src\UserRights.slnx --configuration Debug
-
-      - name: Publish runtime-dependent release
-        run: dotnet.exe publish .\src\UserRights\UserRights.csproj --configuration Release --runtime win-x64 --no-self-contained --output .\publish
-
-      - name: Archive runtime-dependent release
         run: |
-          cd ./publish
-          Get-ChildItem . -Exclude *.pdb,*.xml -Recurse |Compress-Archive -DestinationPath ../UserRights-${{ steps.dotnet-version.outputs.label }}-x64.zip
+          cd .\src
+          dotnet.exe clean .\UserRights.slnx
 
-      - name: Upload runtime-dependent release
+      - name: Publish framework-dependent release
+        run: |
+          cd .\src
+          dotnet.exe publish .\UserRights\UserRights.csproj --configuration Release --runtime win-x64 --no-self-contained --output .\publish-fdd
+
+      - name: Archive framework-dependent release
+        run: |
+          cd .\src\publish-fdd
+          Get-ChildItem . -Exclude *.pdb,*.xml -Recurse |Compress-Archive -DestinationPath .\${{ steps.base-name.outputs.value }}.zip
+
+      - name: Upload framework-dependent release
         uses: actions/upload-artifact@v6
         with:
-            name: UserRights-${{ steps.dotnet-version.outputs.label }}-x64
-            path: publish
+            name: ${{ steps.base-name.outputs.value }}
+            path: ./src/publish-fdd
             if-no-files-found: error
 
       - name: Clean solution
-        run: dotnet.exe clean .\src\UserRights.slnx --configuration Release
+        run: |
+          cd .\src
+          dotnet.exe clean .\UserRights.slnx
 
       - name: Publish self-contained release
-        run: dotnet.exe publish .\src\UserRights\UserRights.csproj --configuration Release --runtime win-x64 --self-contained --output .\publish-packed -p:PublishSingleFile=true -p:PublishReadyToRun=true
+        run: |
+          cd .\src
+          dotnet.exe publish .\UserRights\UserRights.csproj --configuration Release --runtime win-x64 --self-contained --output .\publish-scd -p:PublishSingleFile=true -p:PublishReadyToRun=true -p:EnableCompressionInSingleFile=true
 
       - name: Archive self-contained release
         run: |
-          cd ./publish-packed
-          Compress-Archive -Path ./UserRights.exe -DestinationPath ../UserRights-${{ steps.dotnet-version.outputs.label }}-x64-self-contained.zip
+          cd .\src\publish-scd
+          Compress-Archive -Path ./UserRights.exe -DestinationPath .\${{ steps.base-name.outputs.value }}-self-contained.zip
 
       - name: Upload self-contained release
         uses: actions/upload-artifact@v6
         with:
-            name: UserRights-${{ steps.dotnet-version.outputs.label }}-x64-self-contained
-            path: publish-packed
+            name: ${{ steps.base-name.outputs.value }}-self-contained
+            path: ./src/publish-scd
             if-no-files-found: error
 
       - name: Publish release
@@ -91,14 +103,14 @@ jobs:
 
           Compiled with .NET SDK ${{ steps.setup-dotnet.outputs.dotnet-version }}
 
-          ## UserRights-${{ steps.dotnet-version.outputs.label }}-x64-self-contained.zip
+          ## ${{ steps.base-name.outputs.value }}-self-contained.zip
 
           Self-contained release for Windows x64
 
-          ## UserRights-${{ steps.dotnet-version.outputs.label }}-x64.zip
+          ## ${{ steps.base-name.outputs.value }}.zip
 
           Framework-dependent release for Windows x64
-          '@ |gh.exe release create ${{ github.ref }} --title ${{ github.ref_name }} --notes-file - UserRights-${{ steps.dotnet-version.outputs.label }}-x64.zip UserRights-${{ steps.dotnet-version.outputs.label }}-x64-self-contained.zip
+          '@ |gh.exe release create ${{ github.ref }} --title ${{ github.ref_name }} --notes-file - .\src\publish-fdd\${{ steps.base-name.outputs.value }}.zip .\src\publish-scd\${{ steps.base-name.outputs.value }}-self-contained.zip
         env:
           # Requires a personal access token with a fine-grained permission of contents:read/write.
           GH_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}

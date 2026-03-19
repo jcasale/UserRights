@@ -113,6 +113,6 @@ jobs:
           ## ${{ steps.base-name.outputs.value }}.zip
 
           Framework-dependent release for Windows x64
-          '@ |gh.exe release create ${{ github.ref_name }} --notes-file - .\src\publish-fdd\${{ steps.base-name.outputs.value }}.zip .\src\publish-scd\${{ steps.base-name.outputs.value }}-self-contained.zip
+          '@ |gh.exe release create ${{ github.ref_name }} --verify-tag --title ${{ github.ref_name }} --notes-file - .\src\publish-fdd\${{ steps.base-name.outputs.value }}.zip .\src\publish-scd\${{ steps.base-name.outputs.value }}-self-contained.zip
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -70,7 +70,7 @@ jobs:
           Get-ChildItem . -Exclude *.pdb,*.xml -Recurse |Compress-Archive -DestinationPath .\${{ steps.base-name.outputs.value }}.zip
 
       - name: Upload framework-dependent release
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
             name: ${{ steps.base-name.outputs.value }}
             path: ./src/publish-fdd
@@ -92,7 +92,7 @@ jobs:
           Compress-Archive -Path ./UserRights.exe -DestinationPath .\${{ steps.base-name.outputs.value }}-self-contained.zip
 
       - name: Upload self-contained release
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
             name: ${{ steps.base-name.outputs.value }}-self-contained
             path: ./src/publish-scd

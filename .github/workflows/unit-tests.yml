@@ -72,7 +72,7 @@ jobs:
             -tag:${{ github.run_number }}_${{ github.run_id }}
 
       - name: Upload test result artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: test-results
@@ -82,7 +82,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload coverage report artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: coverage-report
@@ -90,7 +90,7 @@ jobs:
           if-no-files-found: error
 
       - name: Add coverage pr comment
-        uses: marocchino/sticky-pull-request-comment@v2
+        uses: marocchino/sticky-pull-request-comment@v3
         if: github.event_name == 'pull_request'
         with:
           path: ${{ github.workspace }}/coveragereport/Summary.md

@@ -20,13 +20,13 @@ jobs:
       contents: read
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Setup dotnet
         id: setup-dotnet
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@v6
         with:
           global-json-file: src/global.json
 
@@ -38,28 +38,26 @@ jobs:
           cd src
           dotnet.exe test `
             --project .\Tests.Cli\Tests.Cli.csproj `
-            --configuration Debug `
+            --configuration Release `
             --runtime win-x64 `
             --output Detailed `
             --diagnostic `
             --diagnostic-output-directory diags `
-            --report-trx `
-            --coverage `
-            --coverage-settings .\testconfig.json
+            --config-file .\testconfig.json `
+            --coverage
 
       - name: Run Application tests
         run: |
           cd src
           dotnet.exe test `
             --project .\Tests.Application\Tests.Application.csproj `
-            --configuration Debug `
+            --configuration Release `
             --runtime win-x64 `
             --output Detailed `
             --diagnostic `
             --diagnostic-output-directory diags `
-            --report-trx `
-            --coverage `
-            --coverage-settings .\testconfig.json
+            --config-file .\testconfig.json `
+            --coverage
 
       - name: Run report generator
         if: always()
@@ -67,8 +65,8 @@ jobs:
           reportgenerator.exe `
             -reports:**/*.cobertura.xml `
             -targetdir:${{ github.workspace }}/coveragereport `
-            '-reporttypes:Cobertura;HtmlInline;MarkdownSummary' `
-            '-title:Code Coverage' `
+            -reporttypes:'HtmlInline;MarkdownSummaryGithub' `
+            -title:'Code Coverage' `
             -tag:${{ github.run_number }}_${{ github.run_id }}
 
       - name: Upload test result artifacts
@@ -90,7 +88,11 @@ jobs:
           if-no-files-found: error
 
       - name: Add coverage pr comment
-        uses: marocchino/sticky-pull-request-comment@v3
         if: github.event_name == 'pull_request'
-        with:
-          path: ${{ github.workspace }}/coveragereport/Summary.md
+        run: gh pr comment $env:PR_NUMBER --edit-last --create-if-none --body-file coveragereport/SummaryGithub.md
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.number }}
+
+      - name: Publish coverage in build summary
+        run: Get-Content coveragereport/SummaryGithub.md -Raw |Add-Content $env:GITHUB_STEP_SUMMARY

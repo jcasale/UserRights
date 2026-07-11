@@ -20,13 +20,13 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Setup dotnet
         id: setup-dotnet
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@v6
         with:
           global-json-file: src/global.json
 
@@ -47,12 +47,12 @@ jobs:
       - name: Run CLI tests
         run: |
           cd .\src
-          dotnet.exe test --project .\Tests.Cli\Tests.Cli.csproj --configuration Debug --runtime win-x64 --output Detailed
+          dotnet.exe test --project .\Tests.Cli\Tests.Cli.csproj --configuration Release --runtime win-x64 --output Detailed
 
       - name: Run Application tests
         run: |
           cd .\src
-          dotnet.exe test --project .\Tests.Application\Tests.Application.csproj --configuration Debug --runtime win-x64 --output Detailed
+          dotnet.exe test --project .\Tests.Application\Tests.Application.csproj --configuration Release --runtime win-x64 --output Detailed
 
       - name: Clean solution
         run: |

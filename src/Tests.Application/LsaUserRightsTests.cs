@@ -142,7 +142,7 @@ public class LsaUserRightsTests
         var collection = policy.LsaEnumerateAccountsWithUserRight(right);
 
         // Assert.
-        Assert.AreSequenceEqual(expected.ToArray(), collection, SequenceOrder.InAnyOrder);
+        Assert.AreSequenceEqual([.. expected], collection, SequenceOrder.InAnyOrder);
     }
 
     /// <summary>

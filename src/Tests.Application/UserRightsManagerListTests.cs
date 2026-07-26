@@ -35,6 +35,6 @@ public class UserRightsManagerListTests
         var actual = fixture.UserRightsManager.GetUserRights(lsaUserRights.Object).ToArray();
 
         // Assert.
-        CollectionAssert.AreEquivalent(expected, actual);
+        Assert.AreSequenceEqual(expected, actual, SequenceOrder.InAnyOrder);
     }
 }

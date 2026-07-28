@@ -106,9 +106,9 @@ public class UserRightsManagerPrivilegeTests
         fixture.UserRightsManager.ModifyPrivilege(lsaUserRights.Object, Privilege2, [PrincipalName1], [], false, false, null, false);
 
         // Assert.
-        CollectionAssert.AreEquivalent(new[] { PrincipalSid1, PrincipalSid2 }, lsaUserRightsMockBuilder.Database.Keys.ToArray());
-        CollectionAssert.AreEquivalent(new[] { Privilege1, Privilege2 }, lsaUserRightsMockBuilder.Database[PrincipalSid1]);
-        CollectionAssert.AreEqual(new[] { Privilege2 }, lsaUserRightsMockBuilder.Database[PrincipalSid2]);
+        Assert.AreSequenceEqual(new[] { PrincipalSid1, PrincipalSid2 }, lsaUserRightsMockBuilder.Database.Keys.ToArray(), StringComparer.Ordinal, SequenceOrder.InAnyOrder);
+        Assert.AreSequenceEqual([Privilege1, Privilege2], lsaUserRightsMockBuilder.Database[PrincipalSid1], StringComparer.Ordinal, SequenceOrder.InAnyOrder);
+        Assert.AreSequenceEqual([Privilege2], lsaUserRightsMockBuilder.Database[PrincipalSid2], StringComparer.Ordinal);
 
         lsaUserRights.Verify(x => x.LsaEnumerateAccountsWithUserRight(It.Is<string>(s => string.Equals(s, Privilege2, StringComparison.Ordinal))), Times.Exactly(1));
         lsaUserRights.Verify(x => x.LsaAddAccountRights(It.Is<SecurityIdentifier>(s => s == PrincipalSid1), It.Is<string>(s => string.Equals(s, Privilege2, StringComparison.Ordinal))), Times.Exactly(1));
@@ -134,9 +134,9 @@ public class UserRightsManagerPrivilegeTests
         fixture.UserRightsManager.ModifyPrivilege(lsaUserRights.Object, Privilege2, [PrincipalName1], [], false, false, null, true);
 
         // Assert.
-        CollectionAssert.AreEquivalent(new[] { PrincipalSid1, PrincipalSid2 }, lsaUserRightsMockBuilder.Database.Keys.ToArray());
-        CollectionAssert.AreEqual(new[] { Privilege1 }, lsaUserRightsMockBuilder.Database[PrincipalSid1]);
-        CollectionAssert.AreEqual(new[] { Privilege2 }, lsaUserRightsMockBuilder.Database[PrincipalSid2]);
+        Assert.AreSequenceEqual([PrincipalSid1, PrincipalSid2], [.. lsaUserRightsMockBuilder.Database.Keys], SequenceOrder.InAnyOrder);
+        Assert.AreSequenceEqual([Privilege1], lsaUserRightsMockBuilder.Database[PrincipalSid1], StringComparer.Ordinal);
+        Assert.AreSequenceEqual([Privilege2], lsaUserRightsMockBuilder.Database[PrincipalSid2], StringComparer.Ordinal);
 
         lsaUserRights.Verify(x => x.LsaEnumerateAccountsWithUserRight(It.Is<string>(s => string.Equals(s, Privilege2, StringComparison.Ordinal))), Times.Exactly(1));
         lsaUserRights.VerifyNoOtherCalls();
@@ -161,8 +161,8 @@ public class UserRightsManagerPrivilegeTests
         fixture.UserRightsManager.ModifyPrivilege(lsaUserRights.Object, Privilege1, [PrincipalName2], [PrincipalName1], false, false, null, false);
 
         // Assert.
-        CollectionAssert.AreEqual(new[] { PrincipalSid2 }, lsaUserRightsMockBuilder.Database.Keys.ToArray());
-        CollectionAssert.AreEquivalent(new[] { Privilege1, Privilege2 }, lsaUserRightsMockBuilder.Database[PrincipalSid2]);
+        Assert.AreSequenceEqual([PrincipalSid2], [.. lsaUserRightsMockBuilder.Database.Keys]);
+        Assert.AreSequenceEqual([Privilege1, Privilege2], lsaUserRightsMockBuilder.Database[PrincipalSid2], StringComparer.Ordinal, SequenceOrder.InAnyOrder);
 
         lsaUserRights.Verify(x => x.LsaEnumerateAccountsWithUserRight(It.Is<string>(s => string.Equals(s, Privilege1, StringComparison.Ordinal))), Times.Exactly(1));
         lsaUserRights.Verify(x => x.LsaAddAccountRights(It.Is<SecurityIdentifier>(s => s == PrincipalSid2), It.Is<string>(s => string.Equals(s, Privilege1, StringComparison.Ordinal))), Times.Exactly(1));
@@ -189,9 +189,9 @@ public class UserRightsManagerPrivilegeTests
         fixture.UserRightsManager.ModifyPrivilege(lsaUserRights.Object, Privilege1, [PrincipalName2], [PrincipalName1], false, false, null, true);
 
         // Assert.
-        CollectionAssert.AreEquivalent(new[] { PrincipalSid2, PrincipalSid1 }, lsaUserRightsMockBuilder.Database.Keys.ToArray());
-        CollectionAssert.AreEqual(new[] { Privilege1 }, lsaUserRightsMockBuilder.Database[PrincipalSid1]);
-        CollectionAssert.AreEqual(new[] { Privilege2 }, lsaUserRightsMockBuilder.Database[PrincipalSid2]);
+        Assert.AreSequenceEqual([PrincipalSid2, PrincipalSid1], [.. lsaUserRightsMockBuilder.Database.Keys], SequenceOrder.InAnyOrder);
+        Assert.AreSequenceEqual([Privilege1], lsaUserRightsMockBuilder.Database[PrincipalSid1], StringComparer.Ordinal);
+        Assert.AreSequenceEqual([Privilege2], lsaUserRightsMockBuilder.Database[PrincipalSid2], StringComparer.Ordinal);
 
         lsaUserRights.Verify(x => x.LsaEnumerateAccountsWithUserRight(It.Is<string>(s => string.Equals(s, Privilege1, StringComparison.Ordinal))), Times.Exactly(1));
         lsaUserRights.VerifyNoOtherCalls();
@@ -216,9 +216,9 @@ public class UserRightsManagerPrivilegeTests
         fixture.UserRightsManager.ModifyPrivilege(lsaUserRights.Object, Privilege2, [PrincipalName1], [], false, true, null, false);
 
         // Assert.
-        CollectionAssert.AreEquivalent(new[] { PrincipalSid1, PrincipalSid2 }, lsaUserRightsMockBuilder.Database.Keys.ToArray());
-        CollectionAssert.AreEquivalent(new[] { Privilege1, Privilege2 }, lsaUserRightsMockBuilder.Database[PrincipalSid1]);
-        CollectionAssert.AreEqual(new[] { Privilege1 }, lsaUserRightsMockBuilder.Database[PrincipalSid2]);
+        Assert.AreSequenceEqual([PrincipalSid1, PrincipalSid2], [.. lsaUserRightsMockBuilder.Database.Keys], SequenceOrder.InAnyOrder);
+        Assert.AreSequenceEqual([Privilege1, Privilege2], lsaUserRightsMockBuilder.Database[PrincipalSid1], StringComparer.Ordinal, SequenceOrder.InAnyOrder);
+        Assert.AreSequenceEqual([Privilege1], lsaUserRightsMockBuilder.Database[PrincipalSid2], StringComparer.Ordinal);
 
         lsaUserRights.Verify(x => x.LsaEnumerateAccountsWithUserRight(It.Is<string>(s => string.Equals(s, Privilege2, StringComparison.Ordinal))), Times.Exactly(1));
         lsaUserRights.Verify(x => x.LsaRemoveAccountRights(It.Is<SecurityIdentifier>(s => s == PrincipalSid2), It.Is<string>(s => string.Equals(s, Privilege2, StringComparison.Ordinal))), Times.Exactly(1));
@@ -245,9 +245,9 @@ public class UserRightsManagerPrivilegeTests
         fixture.UserRightsManager.ModifyPrivilege(lsaUserRights.Object, Privilege2, [PrincipalName1], [], false, true, null, true);
 
         // Assert.
-        CollectionAssert.AreEquivalent(new[] { PrincipalSid1, PrincipalSid2 }, lsaUserRightsMockBuilder.Database.Keys.ToArray());
-        CollectionAssert.AreEqual(new[] { Privilege1 }, lsaUserRightsMockBuilder.Database[PrincipalSid1]);
-        CollectionAssert.AreEquivalent(new[] { Privilege1, Privilege2 }, lsaUserRightsMockBuilder.Database[PrincipalSid2]);
+        Assert.AreSequenceEqual([PrincipalSid1, PrincipalSid2], [.. lsaUserRightsMockBuilder.Database.Keys], SequenceOrder.InAnyOrder);
+        Assert.AreSequenceEqual([Privilege1], lsaUserRightsMockBuilder.Database[PrincipalSid1], StringComparer.Ordinal);
+        Assert.AreSequenceEqual([Privilege1, Privilege2], lsaUserRightsMockBuilder.Database[PrincipalSid2], StringComparer.Ordinal, SequenceOrder.InAnyOrder);
 
         lsaUserRights.Verify(x => x.LsaEnumerateAccountsWithUserRight(It.Is<string>(s => string.Equals(s, Privilege2, StringComparison.Ordinal))), Times.Exactly(1));
         lsaUserRights.VerifyNoOtherCalls();
@@ -275,10 +275,10 @@ public class UserRightsManagerPrivilegeTests
         fixture.UserRightsManager.ModifyPrivilege(lsaUserRights.Object, Privilege1, [PrincipalName1], [], false, false, pattern, false);
 
         // Assert.
-        CollectionAssert.AreEquivalent(new[] { PrincipalSid1, PrincipalSid2, PrincipalSid3 }, lsaUserRightsMockBuilder.Database.Keys.ToArray());
-        CollectionAssert.AreEquivalent(new[] { Privilege1, Privilege2 }, lsaUserRightsMockBuilder.Database[PrincipalSid1]);
-        CollectionAssert.AreEquivalent(new[] { Privilege1, Privilege2 }, lsaUserRightsMockBuilder.Database[PrincipalSid2]);
-        CollectionAssert.AreEquivalent(new[] { Privilege1, Privilege2 }, lsaUserRightsMockBuilder.Database[PrincipalSid3]);
+        Assert.AreSequenceEqual([PrincipalSid1, PrincipalSid2, PrincipalSid3], [.. lsaUserRightsMockBuilder.Database.Keys], SequenceOrder.InAnyOrder);
+        Assert.AreSequenceEqual([Privilege1, Privilege2], lsaUserRightsMockBuilder.Database[PrincipalSid1], StringComparer.Ordinal, SequenceOrder.InAnyOrder);
+        Assert.AreSequenceEqual([Privilege1, Privilege2], lsaUserRightsMockBuilder.Database[PrincipalSid2], StringComparer.Ordinal, SequenceOrder.InAnyOrder);
+        Assert.AreSequenceEqual([Privilege1, Privilege2], lsaUserRightsMockBuilder.Database[PrincipalSid3], StringComparer.Ordinal, SequenceOrder.InAnyOrder);
 
         lsaUserRights.Verify(x => x.LsaEnumerateAccountsWithUserRight(It.Is<string>(s => string.Equals(s, Privilege1, StringComparison.Ordinal))), Times.Exactly(1));
         lsaUserRights.Verify(x => x.LsaAddAccountRights(It.Is<SecurityIdentifier>(s => s == PrincipalSid1), It.Is<string>(s => string.Equals(s, Privilege1, StringComparison.Ordinal))), Times.Exactly(1));
@@ -308,11 +308,11 @@ public class UserRightsManagerPrivilegeTests
         fixture.UserRightsManager.ModifyPrivilege(lsaUserRights.Object, Privilege1, [PrincipalName1], [], false, false, pattern, true);
 
         // Assert.
-        CollectionAssert.AreEquivalent(new[] { PrincipalSidCurrent, PrincipalSid1, PrincipalSid2, PrincipalSid3 }, lsaUserRightsMockBuilder.Database.Keys.ToArray());
-        CollectionAssert.AreEqual(new[] { Privilege1 }, lsaUserRightsMockBuilder.Database[PrincipalSidCurrent]);
-        CollectionAssert.AreEqual(new[] { Privilege2 }, lsaUserRightsMockBuilder.Database[PrincipalSid1]);
-        CollectionAssert.AreEquivalent(new[] { Privilege1, Privilege2 }, lsaUserRightsMockBuilder.Database[PrincipalSid2]);
-        CollectionAssert.AreEquivalent(new[] { Privilege1, Privilege2 }, lsaUserRightsMockBuilder.Database[PrincipalSid3]);
+        Assert.AreSequenceEqual([PrincipalSidCurrent, PrincipalSid1, PrincipalSid2, PrincipalSid3], [.. lsaUserRightsMockBuilder.Database.Keys], SequenceOrder.InAnyOrder);
+        Assert.AreSequenceEqual([Privilege1], lsaUserRightsMockBuilder.Database[PrincipalSidCurrent], StringComparer.Ordinal);
+        Assert.AreSequenceEqual([Privilege2], lsaUserRightsMockBuilder.Database[PrincipalSid1], StringComparer.Ordinal);
+        Assert.AreSequenceEqual([Privilege1, Privilege2], lsaUserRightsMockBuilder.Database[PrincipalSid2], StringComparer.Ordinal, SequenceOrder.InAnyOrder);
+        Assert.AreSequenceEqual([Privilege1, Privilege2], lsaUserRightsMockBuilder.Database[PrincipalSid3], StringComparer.Ordinal, SequenceOrder.InAnyOrder);
 
         lsaUserRights.Verify(x => x.LsaEnumerateAccountsWithUserRight(It.Is<string>(s => string.Equals(s, Privilege1, StringComparison.Ordinal))), Times.Exactly(1));
         lsaUserRights.VerifyNoOtherCalls();
@@ -337,9 +337,9 @@ public class UserRightsManagerPrivilegeTests
         fixture.UserRightsManager.ModifyPrivilege(lsaUserRights.Object, Privilege1, [], [PrincipalName2], false, false, null, false);
 
         // Assert.
-        CollectionAssert.AreEquivalent(new[] { PrincipalSid1, PrincipalSid2 }, lsaUserRightsMockBuilder.Database.Keys.ToArray());
-        CollectionAssert.AreEqual(new[] { Privilege1 }, lsaUserRightsMockBuilder.Database[PrincipalSid1]);
-        CollectionAssert.AreEqual(new[] { Privilege2 }, lsaUserRightsMockBuilder.Database[PrincipalSid2]);
+        Assert.AreSequenceEqual([PrincipalSid1, PrincipalSid2], [.. lsaUserRightsMockBuilder.Database.Keys], SequenceOrder.InAnyOrder);
+        Assert.AreSequenceEqual([Privilege1], lsaUserRightsMockBuilder.Database[PrincipalSid1], StringComparer.Ordinal);
+        Assert.AreSequenceEqual([Privilege2], lsaUserRightsMockBuilder.Database[PrincipalSid2], StringComparer.Ordinal);
 
         lsaUserRights.Verify(x => x.LsaEnumerateAccountsWithUserRight(It.Is<string>(s => string.Equals(s, Privilege1, StringComparison.Ordinal))), Times.Exactly(1));
         lsaUserRights.Verify(x => x.LsaRemoveAccountRights(It.Is<SecurityIdentifier>(s => s == PrincipalSid2), It.Is<string>(s => string.Equals(s, Privilege1, StringComparison.Ordinal))), Times.Exactly(1));
@@ -365,9 +365,9 @@ public class UserRightsManagerPrivilegeTests
         fixture.UserRightsManager.ModifyPrivilege(lsaUserRights.Object, Privilege1, [], [PrincipalName2], false, false, null, true);
 
         // Assert.
-        CollectionAssert.AreEquivalent(new[] { PrincipalSid1, PrincipalSid2 }, lsaUserRightsMockBuilder.Database.Keys.ToArray());
-        CollectionAssert.AreEqual(new[] { Privilege1 }, lsaUserRightsMockBuilder.Database[PrincipalSid1]);
-        CollectionAssert.AreEquivalent(new[] { Privilege1, Privilege2 }, lsaUserRightsMockBuilder.Database[PrincipalSid2]);
+        Assert.AreSequenceEqual([PrincipalSid1, PrincipalSid2], [.. lsaUserRightsMockBuilder.Database.Keys], SequenceOrder.InAnyOrder);
+        Assert.AreSequenceEqual([Privilege1], lsaUserRightsMockBuilder.Database[PrincipalSid1], StringComparer.Ordinal);
+        Assert.AreSequenceEqual([Privilege1, Privilege2], lsaUserRightsMockBuilder.Database[PrincipalSid2], StringComparer.Ordinal, SequenceOrder.InAnyOrder);
 
         lsaUserRights.Verify(x => x.LsaEnumerateAccountsWithUserRight(It.Is<string>(s => string.Equals(s, Privilege1, StringComparison.Ordinal))), Times.Exactly(1));
         lsaUserRights.VerifyNoOtherCalls();
@@ -392,8 +392,8 @@ public class UserRightsManagerPrivilegeTests
         fixture.UserRightsManager.ModifyPrivilege(lsaUserRights.Object, Privilege1, [], [], true, false, null, false);
 
         // Assert.
-        CollectionAssert.AreEqual(new[] { PrincipalSid2 }, lsaUserRightsMockBuilder.Database.Keys.ToArray());
-        CollectionAssert.AreEqual(new[] { Privilege2 }, lsaUserRightsMockBuilder.Database[PrincipalSid2]);
+        Assert.AreSequenceEqual([PrincipalSid2], [.. lsaUserRightsMockBuilder.Database.Keys]);
+        Assert.AreSequenceEqual([Privilege2], lsaUserRightsMockBuilder.Database[PrincipalSid2], StringComparer.Ordinal);
 
         lsaUserRights.Verify(x => x.LsaEnumerateAccountsWithUserRight(It.Is<string>(s => string.Equals(s, Privilege1, StringComparison.Ordinal))), Times.Exactly(1));
         lsaUserRights.Verify(x => x.LsaRemoveAccountRights(It.Is<SecurityIdentifier>(s => s == PrincipalSid1), It.Is<string>(s => string.Equals(s, Privilege1, StringComparison.Ordinal))), Times.Exactly(1));
@@ -420,9 +420,9 @@ public class UserRightsManagerPrivilegeTests
         fixture.UserRightsManager.ModifyPrivilege(lsaUserRights.Object, Privilege1, [], [], true, false, null, true);
 
         // Assert.
-        CollectionAssert.AreEquivalent(new[] { PrincipalSid1, PrincipalSid2 }, lsaUserRightsMockBuilder.Database.Keys.ToArray());
-        CollectionAssert.AreEqual(new[] { Privilege1 }, lsaUserRightsMockBuilder.Database[PrincipalSid1]);
-        CollectionAssert.AreEquivalent(new[] { Privilege1, Privilege2 }, lsaUserRightsMockBuilder.Database[PrincipalSid2]);
+        Assert.AreSequenceEqual([PrincipalSid1, PrincipalSid2], [.. lsaUserRightsMockBuilder.Database.Keys], SequenceOrder.InAnyOrder);
+        Assert.AreSequenceEqual([Privilege1], lsaUserRightsMockBuilder.Database[PrincipalSid1], StringComparer.Ordinal);
+        Assert.AreSequenceEqual([Privilege1, Privilege2], lsaUserRightsMockBuilder.Database[PrincipalSid2], StringComparer.Ordinal, SequenceOrder.InAnyOrder);
 
         lsaUserRights.Verify(x => x.LsaEnumerateAccountsWithUserRight(It.Is<string>(s => string.Equals(s, Privilege1, StringComparison.Ordinal))), Times.Exactly(1));
         lsaUserRights.VerifyNoOtherCalls();
@@ -450,10 +450,10 @@ public class UserRightsManagerPrivilegeTests
         fixture.UserRightsManager.ModifyPrivilege(lsaUserRights.Object, Privilege1, [], [], false, false, pattern, false);
 
         // Assert.
-        CollectionAssert.AreEquivalent(new[] { PrincipalSid1, PrincipalSid2, PrincipalSid3 }, lsaUserRightsMockBuilder.Database.Keys.ToArray());
-        CollectionAssert.AreEqual(new[] { Privilege2 }, lsaUserRightsMockBuilder.Database[PrincipalSid1]);
-        CollectionAssert.AreEquivalent(new[] { Privilege1, Privilege2 }, lsaUserRightsMockBuilder.Database[PrincipalSid2]);
-        CollectionAssert.AreEquivalent(new[] { Privilege1, Privilege2 }, lsaUserRightsMockBuilder.Database[PrincipalSid3]);
+        Assert.AreSequenceEqual([PrincipalSid1, PrincipalSid2, PrincipalSid3], [.. lsaUserRightsMockBuilder.Database.Keys], SequenceOrder.InAnyOrder);
+        Assert.AreSequenceEqual([Privilege2], lsaUserRightsMockBuilder.Database[PrincipalSid1], StringComparer.Ordinal);
+        Assert.AreSequenceEqual([Privilege1, Privilege2], lsaUserRightsMockBuilder.Database[PrincipalSid2], StringComparer.Ordinal, SequenceOrder.InAnyOrder);
+        Assert.AreSequenceEqual([Privilege1, Privilege2], lsaUserRightsMockBuilder.Database[PrincipalSid3], StringComparer.Ordinal, SequenceOrder.InAnyOrder);
 
         lsaUserRights.Verify(x => x.LsaEnumerateAccountsWithUserRight(It.Is<string>(s => string.Equals(s, Privilege1, StringComparison.Ordinal))), Times.Exactly(1));
         lsaUserRights.Verify(x => x.LsaRemoveAccountRights(It.Is<SecurityIdentifier>(s => s == PrincipalSidCurrent), It.Is<string>(s => string.Equals(s, Privilege1, StringComparison.Ordinal))), Times.Exactly(1));
@@ -482,11 +482,11 @@ public class UserRightsManagerPrivilegeTests
         fixture.UserRightsManager.ModifyPrivilege(lsaUserRights.Object, Privilege1, [], [], false, false, pattern, true);
 
         // Assert.
-        CollectionAssert.AreEquivalent(new[] { PrincipalSidCurrent, PrincipalSid1, PrincipalSid2, PrincipalSid3 }, lsaUserRightsMockBuilder.Database.Keys.ToArray());
-        CollectionAssert.AreEqual(new[] { Privilege1 }, lsaUserRightsMockBuilder.Database[PrincipalSidCurrent]);
-        CollectionAssert.AreEqual(new[] { Privilege2 }, lsaUserRightsMockBuilder.Database[PrincipalSid1]);
-        CollectionAssert.AreEquivalent(new[] { Privilege1, Privilege2 }, lsaUserRightsMockBuilder.Database[PrincipalSid2]);
-        CollectionAssert.AreEquivalent(new[] { Privilege1, Privilege2 }, lsaUserRightsMockBuilder.Database[PrincipalSid3]);
+        Assert.AreSequenceEqual([PrincipalSidCurrent, PrincipalSid1, PrincipalSid2, PrincipalSid3], [.. lsaUserRightsMockBuilder.Database.Keys], SequenceOrder.InAnyOrder);
+        Assert.AreSequenceEqual([Privilege1], lsaUserRightsMockBuilder.Database[PrincipalSidCurrent], StringComparer.Ordinal);
+        Assert.AreSequenceEqual([Privilege2], lsaUserRightsMockBuilder.Database[PrincipalSid1], StringComparer.Ordinal);
+        Assert.AreSequenceEqual([Privilege1, Privilege2], lsaUserRightsMockBuilder.Database[PrincipalSid2], StringComparer.Ordinal, SequenceOrder.InAnyOrder);
+        Assert.AreSequenceEqual([Privilege1, Privilege2], lsaUserRightsMockBuilder.Database[PrincipalSid3], StringComparer.Ordinal, SequenceOrder.InAnyOrder);
 
         lsaUserRights.Verify(x => x.LsaEnumerateAccountsWithUserRight(It.Is<string>(s => string.Equals(s, Privilege1, StringComparison.Ordinal))), Times.Exactly(1));
         lsaUserRights.VerifyNoOtherCalls();

@@ -13,7 +13,26 @@ env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
 
 jobs:
+  check-duplicate:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      skip: ${{ steps.check.outputs.skip }}
+    steps:
+      - id: check
+        run: |
+          count=$(gh pr list --repo "${{ github.repository }}" \
+            --head "${{ github.ref_name }}" --base master \
+            --json number --jq 'length')
+          echo "skip=$([ "$count" -gt 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
   unit-tests:
+    needs: [check-duplicate]
+    if: always() && (github.event_name != 'push' || needs.check-duplicate.outputs.skip == 'false')
     runs-on: windows-latest
     permissions:
       pull-requests: write

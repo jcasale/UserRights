@@ -4,9 +4,10 @@
     <TargetFramework>net10.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <LangVersion>latest</LangVersion>
-    <AnalysisLevel>latest-All</AnalysisLevel>
-    <MSTestAnalysisMode>All</MSTestAnalysisMode>
+    <AnalysisLevel>latest-all</AnalysisLevel>
+    <MSTestAnalysisMode>all</MSTestAnalysisMode>
+    <MSTestParallelizeScope>MethodLevel</MSTestParallelizeScope>
+    <MSTestParallelizeWorkers>0</MSTestParallelizeWorkers>
   </PropertyGroup>
 
   <ItemGroup>

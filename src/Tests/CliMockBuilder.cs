@@ -5,6 +5,8 @@ using Microsoft.Extensions.Logging;
 
 using Moq;
 
+using Tests.Logging;
+
 using UserRights.Application;
 using UserRights.Cli;
 
@@ -20,11 +22,14 @@ public class CliMockBuilder : IDisposable
     /// <summary>
     /// Initializes a new instance of the <see cref="CliMockBuilder"/> class.
     /// </summary>
+    /// <param name="testContext">The test context instance.</param>
     /// <remarks>
     /// Creates a CLI with an empty, mock <see cref="ILsaUserRights"/> implementation, and a mock <see cref="IUserRightsManager"/> implementation.
     /// </remarks>
-    public CliMockBuilder()
+    public CliMockBuilder(TestContext testContext)
     {
+        ArgumentNullException.ThrowIfNull(testContext);
+
         var repository = new MockRepository(MockBehavior.Strict);
 
         // Mock the LSA user rights interface.
@@ -61,10 +66,8 @@ public class CliMockBuilder : IDisposable
                 It.IsAny<bool>()));
 
         var serviceCollection = new ServiceCollection()
-            .AddLogging(builder => builder
-                .ClearProviders()
-                .SetMinimumLevel(LogLevel.Trace)
-                .AddDebug());
+            .AddSingleton<ILoggerFactory>(_ => TestLogging.CreateLoggerFactory(testContext))
+            .AddLogging();
 
         serviceCollection.AddSingleton(lsaUserRights.Object);
         serviceCollection.AddSingleton(userRightsManager.Object);
@@ -76,19 +79,19 @@ public class CliMockBuilder : IDisposable
     /// <summary>
     /// Initializes a new instance of the <see cref="CliMockBuilder"/> class.
     /// </summary>
+    /// <param name="testContext">The test context instance.</param>
     /// <param name="policy">The existing LSA user rights implementation.</param>
     /// <remarks>
     /// Creates a CLI with a user-supplied <see cref="ILsaUserRights"/> implementation, and a complete instance of a <see cref="IUserRightsManager"/> implementation.
     /// </remarks>
-    public CliMockBuilder(ILsaUserRights policy)
+    public CliMockBuilder(TestContext testContext, ILsaUserRights policy)
     {
+        ArgumentNullException.ThrowIfNull(testContext);
         ArgumentNullException.ThrowIfNull(policy);
 
         var serviceCollection = new ServiceCollection()
-            .AddLogging(builder => builder
-                .ClearProviders()
-                .SetMinimumLevel(LogLevel.Trace)
-                .AddDebug());
+            .AddSingleton<ILoggerFactory>(_ => TestLogging.CreateLoggerFactory(testContext))
+            .AddLogging();
 
         serviceCollection.AddSingleton(policy);
         serviceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();

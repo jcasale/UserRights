@@ -22,9 +22,9 @@ using static Tests.TestData;
 public class CliCommandTests
 {
     /// <summary>
-    /// Gets or sets the unit test context.
+    /// Gets the unit test context.
     /// </summary>
-    public required TestContext TestContext { get; set; }
+    public required TestContext TestContext { get; init; }
 
     /// <summary>
     /// Verifies listing all user rights to a JSON formatted file works as expected.
@@ -46,7 +46,7 @@ public class CliCommandTests
             .WithGrant(expected)
             .Build();
 
-        using var fixture = new CliMockBuilder(lsaUserRights.Object);
+        using var fixture = new CliMockBuilder(TestContext, lsaUserRights.Object);
 
         var rootCommand = fixture.CliBuilder.Build();
 
@@ -104,7 +104,7 @@ public class CliCommandTests
             .WithGrant(expected)
             .Build();
 
-        using var fixture = new CliMockBuilder(lsaUserRights.Object);
+        using var fixture = new CliMockBuilder(TestContext, lsaUserRights.Object);
 
         var rootCommand = fixture.CliBuilder.Build();
 
@@ -160,7 +160,7 @@ public class CliCommandTests
             .WithGrant(PrincipalSid2, Privilege1, Privilege2)
             .Build();
 
-        using var fixture = new CliMockBuilder(lsaUserRights.Object);
+        using var fixture = new CliMockBuilder(TestContext, lsaUserRights.Object);
 
         var rootCommand = fixture.CliBuilder.Build();
 
@@ -197,7 +197,7 @@ public class CliCommandTests
             .WithGrant(PrincipalSid2, Privilege1, Privilege2)
             .Build();
 
-        using var fixture = new CliMockBuilder(lsaUserRights.Object);
+        using var fixture = new CliMockBuilder(TestContext, lsaUserRights.Object);
 
         var rootCommand = fixture.CliBuilder.Build();
 
@@ -231,7 +231,7 @@ public class CliCommandTests
             .WithGrant(PrincipalSid1, Privilege1)
             .Build();
 
-        using var fixture = new CliMockBuilder(lsaUserRights.Object);
+        using var fixture = new CliMockBuilder(TestContext, lsaUserRights.Object);
 
         var rootCommand = fixture.CliBuilder.Build();
 
@@ -266,7 +266,7 @@ public class CliCommandTests
             .WithGrant(PrincipalSid2, Privilege1, Privilege2)
             .Build();
 
-        using var fixture = new CliMockBuilder(lsaUserRights.Object);
+        using var fixture = new CliMockBuilder(TestContext, lsaUserRights.Object);
 
         var rootCommand = fixture.CliBuilder.Build();
 
@@ -300,7 +300,7 @@ public class CliCommandTests
             .WithGrant(PrincipalSid2, Privilege1, Privilege2)
             .Build();
 
-        using var fixture = new CliMockBuilder(lsaUserRights.Object);
+        using var fixture = new CliMockBuilder(TestContext, lsaUserRights.Object);
 
         var rootCommand = fixture.CliBuilder.Build();
 
@@ -333,7 +333,7 @@ public class CliCommandTests
             .WithGrant(PrincipalSid2, Privilege2)
             .Build();
 
-        using var fixture = new CliMockBuilder(lsaUserRights.Object);
+        using var fixture = new CliMockBuilder(TestContext, lsaUserRights.Object);
 
         var rootCommand = fixture.CliBuilder.Build();
 
@@ -367,7 +367,7 @@ public class CliCommandTests
             .WithGrant(PrincipalSid2, Privilege2)
             .Build();
 
-        using var fixture = new CliMockBuilder(lsaUserRights.Object);
+        using var fixture = new CliMockBuilder(TestContext, lsaUserRights.Object);
 
         var rootCommand = fixture.CliBuilder.Build();
 
@@ -401,7 +401,7 @@ public class CliCommandTests
             .WithGrant(PrincipalSid2, Privilege1, Privilege2)
             .Build();
 
-        using var fixture = new CliMockBuilder(lsaUserRights.Object);
+        using var fixture = new CliMockBuilder(TestContext, lsaUserRights.Object);
 
         var rootCommand = fixture.CliBuilder.Build();
 
@@ -438,7 +438,7 @@ public class CliCommandTests
             .WithGrant(PrincipalSid3, Privilege1, Privilege2)
             .Build();
 
-        using var fixture = new CliMockBuilder(lsaUserRights.Object);
+        using var fixture = new CliMockBuilder(TestContext, lsaUserRights.Object);
 
         var rootCommand = fixture.CliBuilder.Build();
 
@@ -474,7 +474,7 @@ public class CliCommandTests
             .WithGrant(PrincipalSid2, Privilege1, Privilege2)
             .Build();
 
-        using var fixture = new CliMockBuilder(lsaUserRights.Object);
+        using var fixture = new CliMockBuilder(TestContext, lsaUserRights.Object);
 
         var rootCommand = fixture.CliBuilder.Build();
 
@@ -508,7 +508,7 @@ public class CliCommandTests
             .WithGrant(PrincipalSid2, Privilege1, Privilege2)
             .Build();
 
-        using var fixture = new CliMockBuilder(lsaUserRights.Object);
+        using var fixture = new CliMockBuilder(TestContext, lsaUserRights.Object);
 
         var rootCommand = fixture.CliBuilder.Build();
 
@@ -545,7 +545,7 @@ public class CliCommandTests
             .WithGrant(PrincipalSid3, Privilege1, Privilege2)
             .Build();
 
-        using var fixture = new CliMockBuilder(lsaUserRights.Object);
+        using var fixture = new CliMockBuilder(TestContext, lsaUserRights.Object);
 
         var rootCommand = fixture.CliBuilder.Build();
 

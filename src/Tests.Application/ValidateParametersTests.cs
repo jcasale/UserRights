@@ -1,6 +1,8 @@
 ﻿namespace Tests.Application;
 
-using System.Diagnostics;
+using Microsoft.Extensions.Logging;
+
+using Tests.Logging;
 
 using UserRights.Application;
 
@@ -13,6 +15,11 @@ using static UserRights.Application.ValidateParameters;
 [TestClass]
 public class ValidateParametersTests
 {
+    /// <summary>
+    /// Gets the unit test context.
+    /// </summary>
+    public required TestContext TestContext { get; init; }
+
     /// <summary>
     /// Verifies that validating principal parameters with invalid arguments returns errors.
     /// </summary>
@@ -32,12 +39,16 @@ public class ValidateParametersTests
         bool revokeOthers,
         string message)
     {
+        // Arrange.
+        using var loggerFactory = TestLogging.CreateLoggerFactory(TestContext);
+        var logger = loggerFactory.CreateLogger<ValidateParametersTests>();
+
         // Act.
         var result = ValidatePrincipalParameters(principal, grants, revocations, revokeAll, revokeOthers);
 
         foreach (var (option, error) in result.Errors)
         {
-            Debug.WriteLine($"{option}: {error}");
+            logger.LogDebug("{Option}: {Error}", option, error);
         }
 
         // Assert.
@@ -64,12 +75,16 @@ public class ValidateParametersTests
         bool revokeOthers,
         string message)
     {
+        // Arrange.
+        using var loggerFactory = TestLogging.CreateLoggerFactory(TestContext);
+        var logger = loggerFactory.CreateLogger<ValidateParametersTests>();
+
         // Act.
         var result = ValidatePrincipalParameters(principal, grants, revocations, revokeAll, revokeOthers);
 
         foreach (var (option, error) in result.Errors)
         {
-            Debug.WriteLine($"{option}: {error}");
+            logger.LogDebug("{Option}: {Error}", option, error);
         }
 
         // Assert.
@@ -98,12 +113,16 @@ public class ValidateParametersTests
         string? revokePattern,
         string message)
     {
+        // Arrange.
+        using var loggerFactory = TestLogging.CreateLoggerFactory(TestContext);
+        var logger = loggerFactory.CreateLogger<ValidateParametersTests>();
+
         // Act.
         var result = ValidatePrivilegeParameters(privilege, grants, revocations, revokeAll, revokeOthers, revokePattern);
 
         foreach (var (option, error) in result.Errors)
         {
-            Debug.WriteLine($"{option}: {error}");
+            logger.LogDebug("{Option}: {Error}", option, error);
         }
 
         // Assert.
@@ -132,12 +151,16 @@ public class ValidateParametersTests
         string? revokePattern,
         string message)
     {
+        // Arrange.
+        using var loggerFactory = TestLogging.CreateLoggerFactory(TestContext);
+        var logger = loggerFactory.CreateLogger<ValidateParametersTests>();
+
         // Act.
         var result = ValidatePrivilegeParameters(privilege, grants, revocations, revokeAll, revokeOthers, revokePattern);
 
         foreach (var (option, error) in result.Errors)
         {
-            Debug.WriteLine($"{option}: {error}");
+            logger.LogDebug("{Option}: {Error}", option, error);
         }
 
         // Assert.

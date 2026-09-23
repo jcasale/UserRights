@@ -399,6 +399,11 @@ public class CliSyntaxTests
     }
 
     /// <summary>
+    /// Gets the unit test context.
+    /// </summary>
+    public required TestContext TestContext { get; init; }
+
+    /// <summary>
     /// Verifies the CLI rejects parsing list mode with invalid arguments.
     /// </summary>
     /// <param name="message">The test failure message.</param>
@@ -408,7 +413,7 @@ public class CliSyntaxTests
     public void ListMode_WithInvalidArguments_IsRejected(string message, params string[] args)
     {
         // Arrange.
-        using var fixture = new CliMockBuilder();
+        using var fixture = new CliMockBuilder(TestContext);
 
         var rootCommand = fixture.CliBuilder.Build();
 
@@ -428,7 +433,7 @@ public class CliSyntaxTests
     [DynamicData(nameof(ListModeInvalidArgumentData))]
     public void ListMode_WithInvalidArguments_ThrowsException(string message, params string[] args)
     {
-        using var fixture = new CliMockBuilder();
+        using var fixture = new CliMockBuilder(TestContext);
 
         Assert.Throws<SyntaxException>(() => fixture.CliBuilder.Build().Parse(args).ThrowIfInvalid().Run(), message);
     }
@@ -443,7 +448,7 @@ public class CliSyntaxTests
     public void ListMode_WithValidArguments_IsAccepted(string message, params string[] args)
     {
         // Arrange.
-        using var fixture = new CliMockBuilder();
+        using var fixture = new CliMockBuilder(TestContext);
 
         var rootCommand = fixture.CliBuilder.Build();
 
@@ -463,7 +468,7 @@ public class CliSyntaxTests
     [DynamicData(nameof(PrincipalModeInvalidArgumentData))]
     public void PrincipalMode_WithInvalidArguments_IsRejected(string message, params string[] args)
     {
-        using var fixture = new CliMockBuilder();
+        using var fixture = new CliMockBuilder(TestContext);
 
         Assert.Throws<SyntaxException>(() => fixture.CliBuilder.Build().Parse(args).ThrowIfInvalid().Run(), message);
     }
@@ -478,7 +483,7 @@ public class CliSyntaxTests
     public void PrincipalMode_WithInvalidArguments_ThrowsException(string message, params string[] args)
     {
         // Arrange.
-        using var fixture = new CliMockBuilder();
+        using var fixture = new CliMockBuilder(TestContext);
 
         var rootCommand = fixture.CliBuilder.Build();
 
@@ -499,7 +504,7 @@ public class CliSyntaxTests
     public void PrincipalMode_WithValidArguments_IsAccepted(string message, params string[] args)
     {
         // Arrange.
-        using var fixture = new CliMockBuilder();
+        using var fixture = new CliMockBuilder(TestContext);
 
         var rootCommand = fixture.CliBuilder.Build();
 
@@ -519,7 +524,7 @@ public class CliSyntaxTests
     [DynamicData(nameof(PrivilegeModeInvalidArgumentData))]
     public void PrivilegeMode_WithInvalidArguments_IsRejected(string message, params string[] args)
     {
-        using var fixture = new CliMockBuilder();
+        using var fixture = new CliMockBuilder(TestContext);
 
         Assert.Throws<SyntaxException>(() => fixture.CliBuilder.Build().Parse(args).ThrowIfInvalid().Run(), message);
     }
@@ -534,7 +539,7 @@ public class CliSyntaxTests
     public void PrivilegeMode_WithInvalidArguments_ThrowsException(string message, params string[] args)
     {
         // Arrange.
-        using var fixture = new CliMockBuilder();
+        using var fixture = new CliMockBuilder(TestContext);
 
         var rootCommand = fixture.CliBuilder.Build();
 
@@ -555,7 +560,7 @@ public class CliSyntaxTests
     public void PrivilegeMode_WithValidArguments_IsAccepted(string message, params string[] args)
     {
         // Arrange.
-        using var fixture = new CliMockBuilder();
+        using var fixture = new CliMockBuilder(TestContext);
 
         var rootCommand = fixture.CliBuilder.Build();
 

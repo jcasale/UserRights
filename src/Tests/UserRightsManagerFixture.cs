@@ -3,6 +3,8 @@ namespace Tests;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
+using Tests.Logging;
+
 using UserRights.Application;
 
 /// <summary>
@@ -17,13 +19,14 @@ public class UserRightsManagerFixture : IDisposable
     /// <summary>
     /// Initializes a new instance of the <see cref="UserRightsManagerFixture"/> class.
     /// </summary>
-    public UserRightsManagerFixture()
+    /// <param name="testContext">The test context instance.</param>
+    public UserRightsManagerFixture(TestContext testContext)
     {
+        ArgumentNullException.ThrowIfNull(testContext);
+
         var serviceCollection = new ServiceCollection()
-            .AddLogging(builder => builder
-                .ClearProviders()
-                .SetMinimumLevel(LogLevel.Trace)
-                .AddDebug());
+            .AddSingleton<ILoggerFactory>(_ => TestLogging.CreateLoggerFactory(testContext))
+            .AddLogging();
 
         serviceCollection.AddSingleton<IUserRightsManager, UserRightsManager>();
 

@@ -14,6 +14,11 @@ using static Tests.ValidateParametersTestData;
 public class UserRightsManagerPrincipalTests
 {
     /// <summary>
+    /// Gets the unit test context.
+    /// </summary>
+    public required TestContext TestContext { get; init; }
+
+    /// <summary>
     /// Verifies granting a privilege works as expected.
     /// </summary>
     [TestMethod]
@@ -26,7 +31,7 @@ public class UserRightsManagerPrincipalTests
             .WithGrant(PrincipalSid2, Privilege1, Privilege2)
             .Build();
 
-        using var fixture = new UserRightsManagerFixture();
+        using var fixture = new UserRightsManagerFixture(TestContext);
 
         // Act.
         fixture.UserRightsManager.ModifyPrincipal(lsaUserRights.Object, PrincipalName1, [Privilege2], [], false, false, false);
@@ -54,7 +59,7 @@ public class UserRightsManagerPrincipalTests
             .WithGrant(PrincipalSid2, Privilege1, Privilege2)
             .Build();
 
-        using var fixture = new UserRightsManagerFixture();
+        using var fixture = new UserRightsManagerFixture(TestContext);
 
         // Act.
         fixture.UserRightsManager.ModifyPrincipal(lsaUserRights.Object, PrincipalName1, [Privilege2], [], false, false, true);
@@ -81,7 +86,7 @@ public class UserRightsManagerPrincipalTests
             .WithGrant(PrincipalSid2, Privilege1, Privilege2)
             .Build();
 
-        using var fixture = new UserRightsManagerFixture();
+        using var fixture = new UserRightsManagerFixture(TestContext);
 
         // Act.
         fixture.UserRightsManager.ModifyPrincipal(lsaUserRights.Object, PrincipalName1, [Privilege2], [Privilege1], false, false, false);
@@ -110,7 +115,7 @@ public class UserRightsManagerPrincipalTests
             .WithGrant(PrincipalSid2, Privilege1, Privilege2)
             .Build();
 
-        using var fixture = new UserRightsManagerFixture();
+        using var fixture = new UserRightsManagerFixture(TestContext);
 
         // Act.
         fixture.UserRightsManager.ModifyPrincipal(lsaUserRights.Object, PrincipalName1, [Privilege2], [Privilege1], false, false, true);
@@ -137,7 +142,7 @@ public class UserRightsManagerPrincipalTests
             .WithGrant(PrincipalSid2, Privilege1, Privilege2)
             .Build();
 
-        using var fixture = new UserRightsManagerFixture();
+        using var fixture = new UserRightsManagerFixture(TestContext);
 
         // Act.
         fixture.UserRightsManager.ModifyPrincipal(lsaUserRights.Object, PrincipalName1, [Privilege2], [], false, true, false);
@@ -166,7 +171,7 @@ public class UserRightsManagerPrincipalTests
             .WithGrant(PrincipalSid2, Privilege1, Privilege2)
             .Build();
 
-        using var fixture = new UserRightsManagerFixture();
+        using var fixture = new UserRightsManagerFixture(TestContext);
 
         // Act.
         fixture.UserRightsManager.ModifyPrincipal(lsaUserRights.Object, PrincipalName1, [Privilege2], [], false, true, true);
@@ -187,7 +192,7 @@ public class UserRightsManagerPrincipalTests
     public void ModifyPrincipal_WithNullPolicy_ThrowsException()
     {
         // Arrange.
-        using var fixture = new UserRightsManagerFixture();
+        using var fixture = new UserRightsManagerFixture(TestContext);
 
         // Act & Assert.
         Assert.Throws<ArgumentException>(() => fixture.UserRightsManager.ModifyPrincipal(null!, PrincipalName1, [Privilege1], [], false, false, false));
@@ -201,7 +206,7 @@ public class UserRightsManagerPrincipalTests
     {
         // Arrange.
         var lsaUserRights = LsaUserRightsMockBuilder.CreateBuilder().Build();
-        using var fixture = new UserRightsManagerFixture();
+        using var fixture = new UserRightsManagerFixture(TestContext);
 
         // Act & Assert.
         Assert.Throws<ArgumentException>(() => fixture.UserRightsManager.ModifyPrincipal(lsaUserRights.Object, PrincipalName1, null!, [], false, false, false));
@@ -217,7 +222,7 @@ public class UserRightsManagerPrincipalTests
     {
         // Arrange.
         var lsaUserRights = LsaUserRightsMockBuilder.CreateBuilder().Build();
-        using var fixture = new UserRightsManagerFixture();
+        using var fixture = new UserRightsManagerFixture(TestContext);
 
         // Act & Assert.
         Assert.Throws<ArgumentException>(() => fixture.UserRightsManager.ModifyPrincipal(lsaUserRights.Object, PrincipalName1, [], null!, false, false, false));
@@ -241,7 +246,7 @@ public class UserRightsManagerPrincipalTests
         // Arrange.
         var lsaUserRights = LsaUserRightsMockBuilder.CreateBuilder().Build();
 
-        using var fixture = new UserRightsManagerFixture();
+        using var fixture = new UserRightsManagerFixture(TestContext);
 
         // Act & Assert.
         Assert.Throws<ArgumentException>(
@@ -264,7 +269,7 @@ public class UserRightsManagerPrincipalTests
             .WithGrant(PrincipalSid2, Privilege1, Privilege2)
             .Build();
 
-        using var fixture = new UserRightsManagerFixture();
+        using var fixture = new UserRightsManagerFixture(TestContext);
 
         // Act.
         fixture.UserRightsManager.ModifyPrincipal(lsaUserRights.Object, PrincipalName2, [], [Privilege2], false, false, false);
@@ -292,7 +297,7 @@ public class UserRightsManagerPrincipalTests
             .WithGrant(PrincipalSid2, Privilege1, Privilege2)
             .Build();
 
-        using var fixture = new UserRightsManagerFixture();
+        using var fixture = new UserRightsManagerFixture(TestContext);
 
         // Act.
         fixture.UserRightsManager.ModifyPrincipal(lsaUserRights.Object, PrincipalName1, [], [], true, false, false);
@@ -319,7 +324,7 @@ public class UserRightsManagerPrincipalTests
             .WithGrant(PrincipalSid2, Privilege1, Privilege2)
             .Build();
 
-        using var fixture = new UserRightsManagerFixture();
+        using var fixture = new UserRightsManagerFixture(TestContext);
 
         // Act.
         fixture.UserRightsManager.ModifyPrincipal(lsaUserRights.Object, PrincipalName1, [], [], true, false, true);
@@ -346,7 +351,7 @@ public class UserRightsManagerPrincipalTests
             .WithGrant(PrincipalSid2, Privilege1, Privilege2)
             .Build();
 
-        using var fixture = new UserRightsManagerFixture();
+        using var fixture = new UserRightsManagerFixture(TestContext);
 
         // Act.
         fixture.UserRightsManager.ModifyPrincipal(lsaUserRights.Object, PrincipalName2, [], [Privilege2], false, false, true);

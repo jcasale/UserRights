@@ -11,6 +11,11 @@ using static Tests.TestData;
 public class UserRightsManagerListTests
 {
     /// <summary>
+    /// Gets the unit test context.
+    /// </summary>
+    public required TestContext TestContext { get; init; }
+
+    /// <summary>
     /// Verifies enumerating all user rights works as expected.
     /// </summary>
     [TestMethod]
@@ -29,7 +34,7 @@ public class UserRightsManagerListTests
             .WithGrant(expected)
             .Build();
 
-        using var fixture = new UserRightsManagerFixture();
+        using var fixture = new UserRightsManagerFixture(TestContext);
 
         // Act.
         var actual = fixture.UserRightsManager.GetUserRights(lsaUserRights.Object).ToArray();

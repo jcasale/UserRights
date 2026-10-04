@@ -1,0 +1,33 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: friday
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "nuget"
+    directories:
+      - "/src"
+    schedule:
+      interval: weekly
+      day: friday
+    cooldown:
+      default-days: 3
+    groups:
+      dotnet-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  - package-ecosystem: "dotnet-sdk"
+    directory: "/src"
+    schedule:
+      interval: weekly
+      day: friday

@@ -109,6 +109,12 @@ public static class ValidateParametersTestData
                 (Privilege2, [], [], true, false, pattern, "RevokePattern with RevokeAll should fail."),
                 (Privilege2, [], [], false, true, pattern, "RevokePattern with RevokeOthers should fail."),
 
+                // Verify empty or whitespace RevokePattern.
+                (Privilege1, [], [], false, false, string.Empty, "Empty RevokePattern alone should fail."),
+                (Privilege1, [], [], false, false, " ", "Whitespace RevokePattern alone should fail."),
+                (Privilege1, [PrincipalName1], [], false, false, string.Empty, "Empty RevokePattern with grants should fail."),
+                (Privilege1, [PrincipalName1], [], false, false, " ", "Whitespace RevokePattern with grants should fail."),
+
                 // Verify remaining requirements.
                 (Privilege1, [], [], false, false, null, "No action specified should fail."),
 

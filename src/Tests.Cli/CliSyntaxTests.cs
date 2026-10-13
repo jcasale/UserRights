@@ -314,6 +314,10 @@ public class CliSyntaxTests
             yield return [message, "privilege", "SeBatchLogonRight", "-t", " "];
             yield return [message, "privilege", "SeServiceLogonRight", "--revoke-pattern", "["];
             yield return [message, "privilege", "SeBatchLogonRight", "-t", "(?<unclosed"];
+            yield return [message, "privilege", "SeServiceLogonRight", "--grant", "DOMAIN\\UserOrGroup", "--revoke-pattern", string.Empty];
+            yield return [message, "privilege", "SeServiceLogonRight", "--grant", "DOMAIN\\UserOrGroup", "--revoke-pattern", " "];
+            yield return [message, "privilege", "SeBatchLogonRight", "-g", "DOMAIN\\UserOrGroup", "-t", string.Empty];
+            yield return [message, "privilege", "SeBatchLogonRight", "-g", "DOMAIN\\UserOrGroup", "-t", " "];
 
             // Invalid combinations.
             message = "Expected invalid combinations to fail.";

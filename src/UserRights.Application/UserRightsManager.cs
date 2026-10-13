@@ -141,6 +141,22 @@ public class UserRightsManager : IUserRightsManager
         // Translate the principal for each revocation to a security identifier.
         var revocationSet = revocations.Select(p => p.ToSecurityIdentifier()).ToHashSet();
 
+        // Different spellings of a principal, such as a name and a SID, can translate to the same security identifier.
+        if (grantSet.Count != grants.Length)
+        {
+            throw new ArgumentException("The grants cannot contain duplicates.", nameof(grants));
+        }
+
+        if (revocationSet.Count != revocations.Length)
+        {
+            throw new ArgumentException("The revocations cannot contain duplicates.", nameof(revocations));
+        }
+
+        if (grantSet.Overlaps(revocationSet))
+        {
+            throw new ArgumentException("The grants and revocations cannot overlap.", nameof(grants));
+        }
+
         // Get the principals with the privilege currently assigned.
         var principals = policy.LsaEnumerateAccountsWithUserRight(privilege).ToHashSet();
 

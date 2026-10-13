@@ -185,6 +185,11 @@ public class CliSyntaxTests
             message = "Expected mixed long/short form arguments to pass.";
             yield return [message, "principal", "DOMAIN\\UserOrGroup", "-g", "SeServiceLogonRight", "--revoke", "SeBatchLogonRight"];
             yield return [message, "principal", "DOMAIN\\UserOrGroup", "--grant", "SeInteractiveLogonRight", "-o", "--dry-run"];
+
+            // Principal specified as a prefixed security identifier (SID).
+            message = "Expected a prefixed SID principal to pass.";
+            yield return [message, "principal", "*S-1-5-21-1-2-3-1000", "--revoke-all"];
+            yield return [message, "principal", "*S-1-5-21-1-2-3-1000", "--grant", "SeServiceLogonRight", "--dry-run"];
         }
     }
 
@@ -341,6 +346,12 @@ public class CliSyntaxTests
             yield return [message, "privilege", "SeBatchLogonRight", "-g", "DOMAIN\\UserOrGroup", "-t", "^S-1-5-21-"];
             yield return [message, "privilege", "SeServiceLogonRight", "--grant", "DOMAIN\\UserOrGroup", "--revoke-pattern", "^S-1-5-21-", "--dry-run"];
             yield return [message, "privilege", "SeBatchLogonRight", "-g", "DOMAIN\\UserOrGroup", "-t", "^S-1-5-21-", "-d"];
+
+            // Principals specified as prefixed security identifiers (SIDs).
+            message = "Expected prefixed SID principals to pass.";
+            yield return [message, "privilege", "SeServiceLogonRight", "--grant", "*S-1-5-21-1-2-3-1000"];
+            yield return [message, "privilege", "SeServiceLogonRight", "--revoke", "*S-1-5-21-1-2-3-1000", "--dry-run"];
+            yield return [message, "privilege", "SeBatchLogonRight", "-g", "*S-1-5-21-1-2-3-1000", "-r", "DOMAIN\\UserOrGroup"];
         }
     }
 

@@ -109,6 +109,19 @@ Events originate from the *UserRights* source and have the following possible ID
 
 ## Examples
 
+### Specifying a Principal by SID
+
+Principals are normally specified by account name.
+To target a security identifier (SID) directly, such as the SID of a deleted account that no longer translates to a name, prefix it with an asterisk.
+The `SecurityId` values written by `list` are bare SIDs, so add the asterisk when passing one as input. For example:
+
+```bat
+UserRights.exe principal "*S-1-5-21-1-2-3-1000" --revoke-all
+UserRights.exe privilege SeServiceLogonRight --revoke "*S-1-5-21-1-2-3-1000"
+```
+
+A SID without the prefix is treated as an account name and is rejected. Granting a privilege to a SID that has no matching account is allowed.
+
 ### Manage a Principal
 
 - Grant a privilege and revoke a different privilege from a principal:

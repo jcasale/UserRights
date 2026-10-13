@@ -68,7 +68,8 @@ public class HelpExamplesAction : SynchronousCommandLineAction
                     "principal DOMAIN\\UserOrGroup --grant SeDenyServiceLogonRight",
                     "principal DOMAIN\\UserOrGroup --revoke SeDenyServiceLogonRight",
                     "principal DOMAIN\\UserOrGroup --grant SeServiceLogonRight --revoke SeDenyServiceLogonRight",
-                    "principal DOMAIN\\UserOrGroup --grant SeServiceLogonRight --grant SeInteractiveLogonRight --revoke-others"
+                    "principal DOMAIN\\UserOrGroup --grant SeServiceLogonRight --grant SeInteractiveLogonRight --revoke-others",
+                    "principal *S-1-5-21-1-2-3-1000 --revoke-all"
                 ];
 
                 break;
@@ -79,6 +80,7 @@ public class HelpExamplesAction : SynchronousCommandLineAction
                 [
                     "privilege SeServiceLogonRight --grant DOMAIN\\UserOrGroup --revoke DOMAIN\\Group",
                     "privilege SeServiceLogonRight --revoke DOMAIN\\UserOrGroup",
+                    "privilege SeServiceLogonRight --revoke *S-1-5-21-1-2-3-1000",
                     "privilege SeServiceLogonRight --grant DOMAIN\\UserOrGroup --revoke-pattern \"^S-1-5-21-\"",
                     "privilege SeServiceLogonRight --revoke-pattern \"^S-1-5-21-\"",
                     "privilege SeServiceLogonRight --revoke-all"

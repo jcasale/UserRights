@@ -92,6 +92,7 @@ public class LsaUserRightsTests
         var value = string.Create(
             CultureInfo.InvariantCulture,
             $"S-1-5-21-{RandomNumberGenerator.GetInt32(1, int.MaxValue)}-{RandomNumberGenerator.GetInt32(1, int.MaxValue)}-{RandomNumberGenerator.GetInt32(1, int.MaxValue)}-{RandomNumberGenerator.GetInt32(1000, int.MaxValue)}");
+
         var securityIdentifier = new SecurityIdentifier(value);
 
         using var policy = new LsaUserRights();

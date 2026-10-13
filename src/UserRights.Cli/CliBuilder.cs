@@ -144,7 +144,7 @@ public class CliBuilder
     {
         var principalArgument = new Argument<string>("principal")
         {
-            Description = "The principal to modify."
+            Description = "The principal to modify, as an account name or as a security identifier (SID) prefixed with * (for example *S-1-5-32-544)."
         };
 
         var grantsOption = new Option<string[]>("--grant", "-g")
@@ -235,12 +235,12 @@ public class CliBuilder
 
         var grantsOption = new Option<string[]>("--grant", "-g")
         {
-            Description = "The principal to grant the privilege to."
+            Description = "The principal to grant the privilege to, as an account name or as a security identifier (SID) prefixed with * (for example *S-1-5-32-544)."
         };
 
         var revocationsOption = new Option<string[]>("--revoke", "-r")
         {
-            Description = "The principal to revoke the privilege from."
+            Description = "The principal to revoke the privilege from, as an account name or as a security identifier (SID) prefixed with * (for example *S-1-5-32-544)."
         };
 
         var revokeAllOption = new Option<bool>("--revoke-all", "-a")

@@ -217,7 +217,7 @@ public class CliBuilder
                 revokeAll,
                 revokeOthers,
                 dryRun);
-            });
+        });
 
         return command;
     }

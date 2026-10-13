@@ -76,13 +76,13 @@ public class UserRightsManager : IUserRightsManager
         var securityIdentifier = principal.ToSecurityIdentifier();
 
         // Convert the grants to a set.
-        var grantSet = grants.ToHashSet(StringComparer.InvariantCultureIgnoreCase);
+        var grantSet = grants.ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         // Convert the revocations to a set.
-        var revocationSet = revocations.ToHashSet(StringComparer.InvariantCultureIgnoreCase);
+        var revocationSet = revocations.ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         // Get the privileges currently assigned to the principal.
-        var privileges = policy.LsaEnumerateAccountRights(securityIdentifier).ToHashSet(StringComparer.InvariantCultureIgnoreCase);
+        var privileges = policy.LsaEnumerateAccountRights(securityIdentifier).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         // Perform a full revocation of all privileges if required.
         if (revokeAll)

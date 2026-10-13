@@ -50,7 +50,7 @@ public static class SerializationExtensions
                 }
             }
         }
-        catch (Exception e)
+        catch (Exception e) when (e is not OperationCanceledException)
         {
             throw new SerializationException("Failed to serialize the data to a string in CSV format.", e);
         }
@@ -73,7 +73,7 @@ public static class SerializationExtensions
         {
             await JsonSerializer.SerializeAsync(stream, data, Options, cancellationToken).ConfigureAwait(false);
         }
-        catch (Exception e)
+        catch (Exception e) when (e is not OperationCanceledException)
         {
             throw new SerializationException("Failed to serialize the data to a string in JSON format.", e);
         }

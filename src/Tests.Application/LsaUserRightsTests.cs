@@ -1,5 +1,6 @@
 namespace Tests.Application;
 
+using System.Globalization;
 using System.Security.Cryptography;
 using System.Security.Principal;
 
@@ -78,6 +79,29 @@ public class LsaUserRightsTests
 
         // Assert.
         Assert.Throws<InvalidOperationException>(() => policy.LsaAddAccountRights(securityIdentifier, SeMachineAccountPrivilege));
+    }
+
+    /// <summary>
+    /// Verifies enumerating the rights of an account that has never been assigned a right returns an empty result.
+    /// </summary>
+    [TestMethod]
+    [RunWhenElevated]
+    public void LsaEnumerateAccountRights_WithAccountWithoutRights_ReturnsEmpty()
+    {
+        // Arrange.
+        var value = string.Create(
+            CultureInfo.InvariantCulture,
+            $"S-1-5-21-{RandomNumberGenerator.GetInt32(1, int.MaxValue)}-{RandomNumberGenerator.GetInt32(1, int.MaxValue)}-{RandomNumberGenerator.GetInt32(1, int.MaxValue)}-{RandomNumberGenerator.GetInt32(1000, int.MaxValue)}");
+        var securityIdentifier = new SecurityIdentifier(value);
+
+        using var policy = new LsaUserRights();
+        policy.Connect();
+
+        // Act.
+        var actual = policy.LsaEnumerateAccountRights(securityIdentifier);
+
+        // Assert.
+        Assert.IsEmpty(actual);
     }
 
     /// <summary>

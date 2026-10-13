@@ -126,7 +126,14 @@ public class LsaUserRights : ILsaUserRights, IDisposable
                 var status = PInvoke.LsaEnumerateAccountRights(_handle, psid, out userRights, out var count);
                 if (status != NTSTATUS.STATUS_SUCCESS)
                 {
-                    var error = PInvoke.LsaNtStatusToWinError(status);
+                    var error = (WIN32_ERROR)PInvoke.LsaNtStatusToWinError(status);
+
+                    // An account that has never been assigned a right has no LSA account object.
+                    if (error == WIN32_ERROR.ERROR_FILE_NOT_FOUND)
+                    {
+                        return [];
+                    }
+
                     throw new Win32Exception(unchecked((int)error), "Failed to enumerate account rights.");
                 }
 

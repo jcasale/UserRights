@@ -3,7 +3,7 @@
 /// <summary>
 /// Represents a container for the results of a parameter validation request.
 /// </summary>
-public record ValidationResult
+public sealed class ValidationResult
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="ValidationResult"/> class.

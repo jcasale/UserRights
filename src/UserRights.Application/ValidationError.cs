@@ -3,7 +3,7 @@
 /// <summary>
 /// Represents a parameter validation error.
 /// </summary>
-public record ValidationError
+public sealed record ValidationError
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="ValidationError"/> class.

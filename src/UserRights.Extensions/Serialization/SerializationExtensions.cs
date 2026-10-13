@@ -35,6 +35,7 @@ public static class SerializationExtensions
 
         var csvConfiguration = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
+            InjectionOptions = InjectionOptions.Escape,
             ShouldQuote = _ => true
         };
 

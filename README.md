@@ -106,6 +106,11 @@ Events originate from the *UserRights* source and have the following possible ID
 |   3003   | Indicates a privilege is being revoked in dryrun mode.    |
 |   4001   | Indicates a fatal error has occurred.                     |
 |   4002   | Indicates a syntax error has occurred.                    |
+|   4003   | Indicates the Windows event log could not be configured.  |
+
+> [!NOTE]
+> Event 4003 is only written to the console.
+> It reports that the Windows event log could not be configured, for example when the event source cannot be registered without elevation, so it can never reach the event log.
 
 ## Examples
 

@@ -15,7 +15,7 @@
     <PackageReference Include="Serilog.Enrichers.GlobalLogContext" />
     <PackageReference Include="Serilog.Enrichers.Process" />
     <PackageReference Include="Serilog.Expressions" />
-    <PackageReference Include="Serilog.Extensions.Logging" />
+    <PackageReference Include="Serilog.Extensions.Hosting" />
     <PackageReference Include="Serilog.Sinks.Console" />
     <PackageReference Include="Serilog.Sinks.EventLog" />
   </ItemGroup>

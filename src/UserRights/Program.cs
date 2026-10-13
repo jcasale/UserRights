@@ -1,6 +1,7 @@
 namespace UserRights;
 
 using System.Globalization;
+using System.Security;
 using System.Text;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -23,6 +24,23 @@ using static UserRights.Logging.OperationId;
 /// </summary>
 internal static class Program
 {
+    // Use Coalesce to accomodate EventIds from Microsoft.Extensions.Logging and Serilog.
+    private const string ConsoleTemplate =
+        "[{@t:yyyy-MM-dd HH:mm:ss.fff}] " +
+        "[{@l}] " +
+        "[{Coalesce(EventId.Id, EventId)}] " +
+        "{#if DryRun = true}[DryRun] {#end}" +
+        "{@m:l}\n" +
+        "{#if ConsoleException is not null}{ConsoleException}\n{#end}";
+
+    private const string EventLogTemplate =
+        "Context: {EnvironmentUserName}\n" +
+        "Process Id: {ProcessId}\n" +
+        "Correlation Id: {CorrelationId}\n" +
+        "Arguments: {Arguments}\n\n" +
+        "{@m:l}" +
+        "{#if @x is not null}\n\n{@x}{#end}";
+
     /// <summary>
     /// Represents the programs main entry point.
     /// </summary>
@@ -30,12 +48,20 @@ internal static class Program
     /// <returns>A value representing the operation status code.</returns>
     private static async Task<int> Main(string[] args)
     {
-        int rc;
+        // Configure a minimal console logger so failures while configuring the full logger are reported.
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Verbose()
+            .Enrich.FromLogContext()
+            .Enrich.With<ConsoleExceptionEnricher>()
+            .WriteTo.Console(
+                new ExpressionTemplate(ConsoleTemplate, CultureInfo.InvariantCulture, theme: TemplateTheme.Literate),
+                standardErrorFromLevel: LogEventLevel.Verbose)
+            .CreateBootstrapLogger();
 
         // Wrap the execution with error handling.
         try
         {
-            rc = await Run(args).ConfigureAwait(false);
+            return await Run(args).ConfigureAwait(false);
         }
         catch (SyntaxException e)
         {
@@ -45,7 +71,7 @@ internal static class Program
                 Log.Fatal("{SyntaxError}", e.Message);
             }
 
-            rc = 1;
+            return 1;
         }
         catch (Exception e)
         {
@@ -55,14 +81,12 @@ internal static class Program
                 Log.Fatal(e, "Execution failed.");
             }
 
-            rc = 2;
+            return 2;
         }
         finally
         {
             await Log.CloseAndFlushAsync().ConfigureAwait(false);
         }
-
-        return rc;
     }
 
     /// <summary>
@@ -89,34 +113,18 @@ internal static class Program
     }
 
     /// <summary>
-    /// Represents the programs execution logic.
+    /// Configures the full logger that reconfigures the bootstrap logger.
     /// </summary>
+    /// <param name="configuration">The logger configuration to populate.</param>
+    /// <param name="levelSwitch">The switch that controls the minimum level of the console sink.</param>
     /// <param name="args">The command line arguments.</param>
-    private static async Task<int> Run(string[] args)
+    private static void ConfigureLogger(LoggerConfiguration configuration, LoggingLevelSwitch levelSwitch, string[] args)
     {
+        ArgumentNullException.ThrowIfNull(configuration);
+        ArgumentNullException.ThrowIfNull(levelSwitch);
         ArgumentNullException.ThrowIfNull(args);
 
-        // Use Coalesce to accomodate EventIds from Microsoft.Extensions.Logging and Serilog.
-        const string consoleTemplate =
-            "[{@t:yyyy-MM-dd HH:mm:ss.fff}] " +
-            "[{@l}] " +
-            "[{Coalesce(EventId.Id, EventId)}] " +
-            "{#if DryRun = true}[DryRun] {#end}" +
-            "{@m:l}\n" +
-            "{#if ConsoleException is not null}{ConsoleException}\n{#end}";
-
-        const string eventLogTemplate =
-            "Context: {EnvironmentUserName}\n" +
-            "Process Id: {ProcessId}\n" +
-            "Correlation Id: {CorrelationId}\n" +
-            "Arguments: {Arguments}\n\n" +
-            "{@m:l}" +
-            "{#if @x is not null}\n\n{@x}{#end}";
-
-        // Configure the initial logging state with the console sink only enabled for warning level.
-        var levelSwitch = new LoggingLevelSwitch { MinimumLevel = LogEventLevel.Warning };
-
-        Log.Logger = new LoggerConfiguration()
+        configuration
             .MinimumLevel.Verbose()
             .Enrich.FromGlobalLogContext()
             .Enrich.FromLogContext()
@@ -126,21 +134,46 @@ internal static class Program
             .Enrich.WithProperty("CorrelationId", Guid.NewGuid())
             .Enrich.With<ConsoleExceptionEnricher>()
             .WriteTo.Console(
-                new ExpressionTemplate(consoleTemplate, CultureInfo.InvariantCulture, theme: TemplateTheme.Literate),
+                new ExpressionTemplate(ConsoleTemplate, CultureInfo.InvariantCulture, theme: TemplateTheme.Literate),
                 levelSwitch: levelSwitch,
-                standardErrorFromLevel: LogEventLevel.Verbose)
-            .WriteTo.EventLog(
-                new ExpressionTemplate(eventLogTemplate, CultureInfo.InvariantCulture),
+                standardErrorFromLevel: LogEventLevel.Verbose);
+
+        try
+        {
+            configuration.WriteTo.EventLog(
+                new ExpressionTemplate(EventLogTemplate, CultureInfo.InvariantCulture),
                 nameof(UserRights),
                 manageEventSource: true,
-                eventIdProvider: new EventIdProvider())
-            .CreateLogger();
+                eventIdProvider: new EventIdProvider());
+        }
+        catch (Exception e) when (e is ArgumentException or InvalidOperationException or SecurityException)
+        {
+            // The event log sink is unavailable, so this only reaches the console through the bootstrap logger.
+            using (LogContext.PushProperty("EventId", EventLogError))
+            {
+                Log.Warning(e, "Events will not be written to the Windows event log because it could not be configured.");
+            }
+        }
+    }
 
+    /// <summary>
+    /// Represents the programs execution logic.
+    /// </summary>
+    /// <param name="args">The command line arguments.</param>
+    private static async Task<int> Run(string[] args)
+    {
+        ArgumentNullException.ThrowIfNull(args);
+
+        // Configure the initial logging state with the console sink only enabled for warning level.
+        var levelSwitch = new LoggingLevelSwitch { MinimumLevel = LogEventLevel.Warning };
+
+        // The logger is not disposed with the service provider, Main flushes and disposes it so errors can still be logged.
         var serviceProvider = new ServiceCollection()
             .AddSingleton<ILsaUserRights, LsaUserRights>()
             .AddSingleton<IUserRightsManager, UserRightsManager>()
             .AddSingleton<CliBuilder>()
-            .AddLogging(logging => logging.AddSerilog())
+            .AddLogging()
+            .AddSerilog((_, configuration) => ConfigureLogger(configuration, levelSwitch, args))
             .BuildServiceProvider();
 
         await using var _ = serviceProvider.ConfigureAwait(false);

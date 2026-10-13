@@ -35,7 +35,7 @@ public record UserRightEntry : IUserRightEntry
     /// Gets the account name of the principal.
     /// </summary>
     /// <remarks>
-    /// The account name may be empty if the query was performed remotely due to the translation possibly not working.
+    /// The account name may be empty if the security identifier cannot be translated, as the account may be unknown locally or it may have been deleted.
     /// </remarks>
     public string? AccountName { get; }
 

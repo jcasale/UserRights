@@ -42,7 +42,7 @@ public class UserRightsManager : IUserRightsManager
             }
             catch (SecurityTranslationException)
             {
-                // Account may be unknown locally if querying a remote host, or it may have been deleted.
+                // Account may be unknown locally or it may have been deleted.
             }
 
             var privileges = policy.LsaEnumerateAccountRights(principal);

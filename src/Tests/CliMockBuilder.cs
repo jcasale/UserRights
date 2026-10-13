@@ -36,7 +36,7 @@ public class CliMockBuilder : IDisposable
         var lsaUserRights = repository.Create<ILsaUserRights>();
 
         // Only calls to Connect are expected.
-        lsaUserRights.Setup(x => x.Connect(It.IsAny<string>()));
+        lsaUserRights.Setup(x => x.Connect());
 
         // Mock the user rights manager interface.
         var userRightsManager = repository.Create<IUserRightsManager>();

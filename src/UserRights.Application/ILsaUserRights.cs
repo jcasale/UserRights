@@ -8,6 +8,5 @@ public interface ILsaUserRights : IUserRights
     /// <summary>
     /// Connects to the local security authority.
     /// </summary>
-    /// <param name="systemName">The remote system name to execute the task on (default localhost).</param>
-    void Connect(string? systemName = null);
+    void Connect();
 }

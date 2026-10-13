@@ -88,27 +88,10 @@ public class CliBuilder
             }
         });
 
-        var systemNameOption = new Option<string>("--system-name", "-s")
-        {
-            Description = "The name of the remote system to execute on (default localhost)."
-        };
-
-        // Ensure the system name is a valid string.
-        systemNameOption.Validators.Add(result =>
-        {
-            var systemName = result.GetValue(systemNameOption);
-
-            if (string.IsNullOrWhiteSpace(systemName))
-            {
-                result.AddError("The system name cannot be empty or whitespace.");
-            }
-        });
-
         var command = new Command("list", "Runs the utility in list mode.");
 
         command.Options.Add(jsonOption);
         command.Options.Add(pathOption);
-        command.Options.Add(systemNameOption);
 
         command.SetAction(async (parseResult, cancellationToken) =>
         {
@@ -116,9 +99,8 @@ public class CliBuilder
 
             var json = parseResult.GetValue(jsonOption);
             var path = parseResult.GetValue(pathOption);
-            var systemName = parseResult.GetValue(systemNameOption);
 
-            _policy.Connect(systemName);
+            _policy.Connect();
 
             var results = _manager.GetUserRights(_policy);
 
@@ -190,11 +172,6 @@ public class CliBuilder
             Description = "Enables dry-run mode."
         };
 
-        var systemNameOption = new Option<string>("--system-name", "-s")
-        {
-            Description = "The name of the remote system to execute on (default localhost)."
-        };
-
         // Validate principal mode parameters.
         principalArgument.Validators.Add(result =>
         {
@@ -207,17 +184,6 @@ public class CliBuilder
             ValidatePrincipalParameters(principal, grants, revocations, revokeAll, revokeOthers).AddErrorsTo(result.AddError);
         });
 
-        // Ensure the system name is a valid string.
-        systemNameOption.Validators.Add(result =>
-        {
-            var systemName = result.GetValue(systemNameOption);
-
-            if (string.IsNullOrWhiteSpace(systemName))
-            {
-                result.AddError("System name cannot be empty or whitespace.");
-            }
-        });
-
         // Create command.
         var command = new Command("principal", "Runs the utility in principal mode.");
 
@@ -227,7 +193,6 @@ public class CliBuilder
         command.Options.Add(revokeAllOption);
         command.Options.Add(revokeOthersOption);
         command.Options.Add(dryRunOption);
-        command.Options.Add(systemNameOption);
 
         command.SetAction(parseResult =>
         {
@@ -237,13 +202,12 @@ public class CliBuilder
             var revokeAll = parseResult.GetValue(revokeAllOption);
             var revokeOthers = parseResult.GetValue(revokeOthersOption);
             var dryRun = parseResult.GetValue(dryRunOption);
-            var systemName = parseResult.GetValue(systemNameOption);
 
             _logger.BeginScope(new Dictionary<string, object>(StringComparer.Ordinal) { { "DryRun", dryRun } });
 
             _logger.LogInformation(PrincipalMode, "{Program:l} v{Version} executing in {Mode:l} mode.", ProgramInfo.Program, ProgramInfo.InformationalVersion, command.Name);
 
-            _policy.Connect(systemName);
+            _policy.Connect();
 
             _manager.ModifyPrincipal(
                 _policy,
@@ -299,11 +263,6 @@ public class CliBuilder
             Description = "Enables dry-run mode."
         };
 
-        var systemNameOption = new Option<string>("--system-name", "-s")
-        {
-            Description = "The name of the remote system to execute on (default localhost)."
-        };
-
         // Validate privilege mode parameters.
         privilegeArgument.Validators.Add(result =>
         {
@@ -317,17 +276,6 @@ public class CliBuilder
             ValidatePrivilegeParameters(privilege, grants, revocations, revokeAll, revokeOthers, revokePattern).AddErrorsTo(result.AddError);
         });
 
-        // Ensure the system name is a valid string.
-        systemNameOption.Validators.Add(result =>
-        {
-            var systemName = result.GetValue(systemNameOption);
-
-            if (string.IsNullOrWhiteSpace(systemName))
-            {
-                result.AddError("The system name cannot be empty or whitespace.");
-            }
-        });
-
         var command = new Command("privilege", "Runs the utility in privilege mode.");
 
         command.Arguments.Add(privilegeArgument);
@@ -337,7 +285,6 @@ public class CliBuilder
         command.Options.Add(revokeOthersOption);
         command.Options.Add(revokePatternOption);
         command.Options.Add(dryRunOption);
-        command.Options.Add(systemNameOption);
 
         command.SetAction(parseResult =>
         {
@@ -348,13 +295,12 @@ public class CliBuilder
             var revokeOthers = parseResult.GetValue(revokeOthersOption);
             var revokePattern = parseResult.GetValue(revokePatternOption);
             var dryRun = parseResult.GetValue(dryRunOption);
-            var systemName = parseResult.GetValue(systemNameOption);
 
             _logger.BeginScope(new Dictionary<string, object>(StringComparer.Ordinal) { { "DryRun", dryRun } });
 
             _logger.LogInformation(PrivilegeMode, "{Program:l} v{Version} executing in {Mode:l} mode.", ProgramInfo.Program, ProgramInfo.InformationalVersion, command.Name);
 
-            _policy.Connect(systemName);
+            _policy.Connect();
 
             _manager.ModifyPrivilege(
                 _policy,

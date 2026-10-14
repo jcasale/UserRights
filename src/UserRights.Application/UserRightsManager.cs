@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 
 using UserRights.Extensions.Security;
 
+using static UserRights.Application.Constants;
 using static UserRights.Application.ValidateParameters;
 using static UserRights.Logging.OperationId;
 
@@ -96,26 +97,21 @@ public class UserRightsManager : IUserRightsManager
             return;
         }
 
-        // Determine the deficit grants.
-        var deficit = grantSet.Where(p => !privileges.Contains(p));
+        // Calculate the required changes.
+        var deficit = grantSet.Where(p => !privileges.Contains(p)).ToArray();
+        var surplus = revocationSet.Where(privileges.Contains).ToArray();
+        var others = revokeOthers ? privileges.Where(p => !grantSet.Contains(p)).ToArray() : [];
 
-        // Determine the surplus grants.
-        var surplus = revocationSet.Where(privileges.Contains);
-
-        // Perform a revocation of all privileges except those being granted if required.
-        if (revokeOthers)
-        {
-            var others = privileges.Where(p => !grantSet.Contains(p));
-            foreach (var privilege in others)
-            {
-                RevokePrivilege(policy, securityIdentifier, privilege, dryRun);
-            }
-        }
-
-        // Grant any deficit privileges.
+        // Grant first so a failed grant never leaves the principal without the privileges it is meant to keep.
         foreach (var privilege in deficit)
         {
             GrantPrivilege(policy, securityIdentifier, privilege, dryRun);
+        }
+
+        // Revoke all privileges except those being granted if required.
+        foreach (var privilege in others)
+        {
+            RevokePrivilege(policy, securityIdentifier, privilege, dryRun);
         }
 
         // Revoke any surplus privileges.
@@ -172,37 +168,34 @@ public class UserRightsManager : IUserRightsManager
             return;
         }
 
-        // Determine the deficit grants.
-        var deficit = grantSet.Where(p => !principals.Contains(p));
+        // Calculate the required changes.
+        var deficit = grantSet.Where(p => !principals.Contains(p)).ToArray();
+        var surplus = revocationSet.Where(principals.Contains).ToArray();
+        var others = revokeOthers ? principals.Where(p => !grantSet.Contains(p)).ToArray() : [];
 
-        // Determine the surplus grants.
-        var surplus = revocationSet.Where(principals.Contains);
-
-        // Perform a revocation of the privilege from each principal except those being granted if required.
-        if (revokeOthers)
-        {
-            var others = principals.Where(p => !grantSet.Contains(p));
-            foreach (var principal in others)
-            {
-                RevokePrivilege(policy, principal, privilege, dryRun);
-            }
-        }
-
-        // Perform a revocation of the privilege from each principal matching the regex pattern if required.
+        var matches = Array.Empty<SecurityIdentifier>();
         if (revokePattern is not null)
         {
-            var regex = new Regex(revokePattern, RegexOptions.None, TimeSpan.FromSeconds(1));
-            var matches = principals.Where(p => !grantSet.Contains(p) && regex.IsMatch(p.Value));
-            foreach (var principal in matches)
-            {
-                RevokePrivilege(policy, principal, privilege, dryRun);
-            }
+            var regex = new Regex(revokePattern, RegexOptions.None, TimeSpan.FromMilliseconds(RegexMatchTimeoutMilliseconds));
+            matches = [.. principals.Where(p => !grantSet.Contains(p) && regex.IsMatch(p.Value))];
         }
 
-        // Grant any deficit principals.
+        // Grant first so a failed grant never leaves the privilege without the principals it is meant to keep.
         foreach (var sid in deficit)
         {
             GrantPrivilege(policy, sid, privilege, dryRun);
+        }
+
+        // Revoke the privilege from each principal except those being granted if required.
+        foreach (var principal in others)
+        {
+            RevokePrivilege(policy, principal, privilege, dryRun);
+        }
+
+        // Revoke the privilege from each principal matching the regex pattern if required.
+        foreach (var principal in matches)
+        {
+            RevokePrivilege(policy, principal, privilege, dryRun);
         }
 
         // Revoke any surplus principals.

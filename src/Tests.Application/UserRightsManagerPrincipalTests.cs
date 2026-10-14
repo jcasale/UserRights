@@ -1,8 +1,11 @@
 namespace Tests.Application;
 
+using System.ComponentModel;
 using System.Security.Principal;
 
 using Moq;
+
+using UserRights.Application;
 
 using static Tests.TestData;
 using static Tests.ValidateParametersTestData;
@@ -440,5 +443,59 @@ public class UserRightsManagerPrincipalTests
 
         lsaUserRights.Verify(x => x.LsaEnumerateAccountRights(It.Is<SecurityIdentifier>(s => s == PrincipalSidUnresolved)), Times.Exactly(1));
         lsaUserRights.VerifyNoOtherCalls();
+    }
+
+    /// <summary>
+    /// Verifies the grants are applied before the privileges are revoked.
+    /// </summary>
+    /// <param name="revokeOthers">A value indicating whether to revoke all other privileges instead of the explicit revocations.</param>
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ModifyPrincipal_WithGrantAndRevocation_GrantsBeforeRevoking(bool revokeOthers)
+    {
+        // Arrange.
+        var lsaUserRights = LsaUserRightsMockBuilder.CreateBuilder()
+            .WithGrant(PrincipalSid1, Privilege1)
+            .Build();
+
+        using var fixture = new UserRightsManagerFixture(TestContext);
+        string[] revocations = revokeOthers ? [] : [Privilege1];
+
+        // Act.
+        fixture.UserRightsManager.ModifyPrincipal(lsaUserRights.Object, PrincipalName1, [Privilege2], revocations, false, revokeOthers, false);
+
+        // Assert.
+        var calls = lsaUserRights.Invocations.Select(i => i.Method.Name).ToList();
+
+        Assert.IsLessThan(calls.IndexOf(nameof(IUserRights.LsaRemoveAccountRights)), calls.IndexOf(nameof(IUserRights.LsaAddAccountRights)));
+    }
+
+    /// <summary>
+    /// Verifies a failed grant prevents any privilege from being revoked.
+    /// </summary>
+    /// <param name="revokeOthers">A value indicating whether to revoke all other privileges instead of the explicit revocations.</param>
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ModifyPrincipal_WhenGrantFails_DoesNotRevoke(bool revokeOthers)
+    {
+        // Arrange.
+        var lsaUserRightsMockBuilder = LsaUserRightsMockBuilder.CreateBuilder();
+        var lsaUserRights = lsaUserRightsMockBuilder
+            .WithGrant(PrincipalSid1, Privilege1)
+            .Build();
+
+        lsaUserRights.Setup(x => x.LsaAddAccountRights(It.IsAny<SecurityIdentifier>(), It.IsAny<string[]>())).Throws(new Win32Exception(5));
+
+        using var fixture = new UserRightsManagerFixture(TestContext);
+        string[] revocations = revokeOthers ? [] : [Privilege1];
+
+        // Act & Assert.
+        Assert.Throws<Win32Exception>(() => fixture.UserRightsManager.ModifyPrincipal(lsaUserRights.Object, PrincipalName1, [Privilege2], revocations, false, revokeOthers, false));
+
+        Assert.AreSequenceEqual([Privilege1], lsaUserRightsMockBuilder.Database[PrincipalSid1], StringComparer.Ordinal);
+
+        lsaUserRights.Verify(x => x.LsaRemoveAccountRights(It.IsAny<SecurityIdentifier>(), It.IsAny<string[]>()), Times.Never());
     }
 }

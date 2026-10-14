@@ -2,6 +2,8 @@ namespace UserRights.Application;
 
 using System.Text.RegularExpressions;
 
+using static UserRights.Application.Constants;
+
 /// <summary>
 /// Represents validation logic for command parameters.
 /// </summary>
@@ -180,7 +182,7 @@ public static class ValidateParameters
             // A blank pattern has already been reported above, so only non-blank patterns are compiled here.
             try
             {
-                _ = new Regex(revokePattern, RegexOptions.None, TimeSpan.FromSeconds(1));
+                _ = new Regex(revokePattern, RegexOptions.None, TimeSpan.FromMilliseconds(RegexMatchTimeoutMilliseconds));
             }
             catch (RegexParseException e)
             {

@@ -13,26 +13,7 @@ env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
 
 jobs:
-  check-duplicate:
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: read
-    outputs:
-      skip: ${{ steps.check.outputs.skip }}
-    steps:
-      - id: check
-        run: |
-          count=$(gh pr list --repo "${{ github.repository }}" \
-            --head "${{ github.ref_name }}" --base master \
-            --json number --jq 'length')
-          echo "skip=$([ "$count" -gt 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
-        env:
-          GH_TOKEN: ${{ github.token }}
-
   unit-tests:
-    needs: [check-duplicate]
-    if: always() && (github.event_name != 'push' || needs.check-duplicate.outputs.skip == 'false')
     runs-on: windows-latest
     permissions:
       pull-requests: write
@@ -52,41 +33,16 @@ jobs:
       - name: Setup report generator
         run: dotnet.exe tool install -g dotnet-reportgenerator-globaltool
 
-      - name: Run CLI tests
+      - name: Run tests
         run: |
-          cd src
+          cd .\src
           dotnet.exe test `
-            --project .\Tests.Cli\Tests.Cli.csproj `
             --configuration Release `
-            --runtime win-x64 `
             --output Detailed `
             --diagnostic `
-            --diagnostic-output-directory diags `
+            --diagnostic-output-directory .\diags `
             --config-file .\testconfig.json `
             --coverage
-
-      - name: Run Application tests
-        run: |
-          cd src
-          dotnet.exe test `
-            --project .\Tests.Application\Tests.Application.csproj `
-            --configuration Release `
-            --runtime win-x64 `
-            --output Detailed `
-            --diagnostic `
-            --diagnostic-output-directory diags `
-            --config-file .\testconfig.json `
-            --coverage
-
-      - name: Run report generator
-        if: always()
-        run: |
-          reportgenerator.exe `
-            -reports:**/*.cobertura.xml `
-            -targetdir:${{ github.workspace }}/coveragereport `
-            -reporttypes:'HtmlInline;MarkdownSummaryGithub' `
-            -title:'Code Coverage' `
-            -tag:${{ github.run_number }}_${{ github.run_id }}
 
       - name: Upload test result artifacts
         uses: actions/upload-artifact@v7
@@ -98,12 +54,22 @@ jobs:
             ${{ github.workspace }}/**/TestResults/**/*
           if-no-files-found: error
 
+      - name: Run report generator
+        if: always()
+        run: |
+          reportgenerator.exe `
+            -reports:**/*.cobertura.xml `
+            -targetdir:${{ github.workspace }}/coveragereport `
+            -reporttypes:'HtmlInline;MarkdownSummaryGithub' `
+            -title:'Code Coverage' `
+            -tag:${{ github.run_number }}_${{ github.run_id }}
+
       - name: Upload coverage report artifacts
         uses: actions/upload-artifact@v7
         if: always()
         with:
           name: coverage-report
-          path: ${{ github.workspace }}/**/coveragereport/**/*
+          path: ${{ github.workspace }}/coveragereport/**/*
           if-no-files-found: error
 
       - name: Add coverage pr comment

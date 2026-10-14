@@ -44,15 +44,10 @@ jobs:
 
           'value={0}' -f $value |Tee-Object -FilePath $env:GITHUB_OUTPUT -Append
 
-      - name: Run CLI tests
+      - name: Run tests
         run: |
           cd .\src
-          dotnet.exe test --project .\Tests.Cli\Tests.Cli.csproj --configuration Release --runtime win-x64 --output Detailed
-
-      - name: Run Application tests
-        run: |
-          cd .\src
-          dotnet.exe test --project .\Tests.Application\Tests.Application.csproj --configuration Release --runtime win-x64 --output Detailed
+          dotnet.exe test --configuration Release --output Detailed
 
       - name: Clean solution
         run: |

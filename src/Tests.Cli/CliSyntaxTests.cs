@@ -15,58 +15,23 @@ public class CliSyntaxTests
     {
         get
         {
-            // Invalid path value (empty/whitespace), with variations of json and system-name.
+            // Invalid path value (empty/whitespace), with variations of json.
             var message = "Expected invalid path value to fail.";
             yield return [message, "list", "--path", string.Empty];
             yield return [message, "list", "--path", " "];
             yield return [message, "list", "--json", "--path", string.Empty];
             yield return [message, "list", "--json", "--path", " "];
-            yield return [message, "list", "--path", string.Empty, "--system-name", "host.example.com"];
-            yield return [message, "list", "--path", " ", "--system-name", "host.example.com"];
-            yield return [message, "list", "--json", "--path", string.Empty, "--system-name", "host.example.com"];
-            yield return [message, "list", "--json", "--path", " ", "--system-name", "host.example.com"];
             yield return [message, "list", "-f", string.Empty];
             yield return [message, "list", "-f", " "];
             yield return [message, "list", "-j", "-f", string.Empty];
             yield return [message, "list", "-j", "-f", " "];
-            yield return [message, "list", "-f", string.Empty, "-s", "host.example.com"];
-            yield return [message, "list", "-f", " ", "-s", "host.example.com"];
-            yield return [message, "list", "-j", "-f", string.Empty, "-s", "host.example.com"];
-            yield return [message, "list", "-j", "-f", " ", "-s", "host.example.com"];
 
-            // Invalid system-name value (empty/whitespace), with/without json, with valid/absent path.
-            message = "Expected invalid system-name value to fail.";
-            yield return [message, "list", "--system-name", string.Empty];
-            yield return [message, "list", "--system-name", " "];
-            yield return [message, "list", "--json", "--system-name", string.Empty];
-            yield return [message, "list", "--json", "--system-name", " "];
-            yield return [message, "list", "--path", $"{Guid.NewGuid()}.csv", "--system-name", string.Empty];
-            yield return [message, "list", "--path", $"{Guid.NewGuid()}.csv", "--system-name", " "];
-            yield return [message, "list", "--json", "--path", $"{Guid.NewGuid()}.csv", "--system-name", string.Empty];
-            yield return [message, "list", "--json", "--path", $"{Guid.NewGuid()}.csv", "--system-name", " "];
-            yield return [message, "list", "-s", string.Empty];
-            yield return [message, "list", "-s", " "];
-            yield return [message, "list", "-j", "-s", string.Empty];
-            yield return [message, "list", "-j", "-s", " "];
-            yield return [message, "list", "-f", $"{Guid.NewGuid()}.csv", "-s", string.Empty];
-            yield return [message, "list", "-f", $"{Guid.NewGuid()}.csv", "-s", " "];
-            yield return [message, "list", "-j", "-f", $"{Guid.NewGuid()}.csv", "-s", string.Empty];
-            yield return [message, "list", "-j", "-f", $"{Guid.NewGuid()}.csv", "-s", " "];
-
-            // Both path and system-name invalid simultaneously.
-            message = "Expected invalid path and system-name to fail.";
-            yield return [message, "list", "--path", string.Empty, "--system-name", string.Empty];
-            yield return [message, "list", "--path", string.Empty, "--system-name", " "];
-            yield return [message, "list", "--path", " ", "--system-name", string.Empty];
-            yield return [message, "list", "--path", " ", "--system-name", " "];
-            yield return [message, "list", "--json", "--path", string.Empty, "--system-name", string.Empty];
-            yield return [message, "list", "--json", "--path", string.Empty, "--system-name", " "];
-            yield return [message, "list", "--json", "--path", " ", "--system-name", string.Empty];
-            yield return [message, "list", "--json", "--path", " ", "--system-name", " "];
-            yield return [message, "list", "-f", string.Empty, "-s", string.Empty];
-            yield return [message, "list", "-f", " ", "-s", " "];
-            yield return [message, "list", "-j", "-f", string.Empty, "-s", " "];
-            yield return [message, "list", "-j", "-f", " ", "-s", string.Empty];
+            // The removed system-name option.
+            message = "Expected the removed system-name option to fail.";
+            yield return [message, "list", "--system-name", "host.example.com"];
+            yield return [message, "list", "-s", "host.example.com"];
+            yield return [message, "list", "--json", "--system-name", "host.example.com"];
+            yield return [message, "list", "--path", $"{Guid.NewGuid()}.csv", "-s", "host.example.com"];
         }
     }
 
@@ -82,10 +47,6 @@ public class CliSyntaxTests
             yield return [message, "list"];
             yield return [message, "list", "--path", $"{Guid.NewGuid()}.csv"];
             yield return [message, "list", "-f", $"{Guid.NewGuid()}.csv"];
-            yield return [message, "list", "--system-name", "host.example.com"];
-            yield return [message, "list", "-s", "host.example.com"];
-            yield return [message, "list", "--path", $"{Guid.NewGuid()}.csv", "--system-name", "host.example.com"];
-            yield return [message, "list", "-f", $"{Guid.NewGuid()}.csv", "-s", "host.example.com"];
 
             // JSON mode.
             message = "Expected valid JSON output options to pass.";
@@ -93,10 +54,6 @@ public class CliSyntaxTests
             yield return [message, "list", "-j"];
             yield return [message, "list", "--json", "--path", $"{Guid.NewGuid()}.json"];
             yield return [message, "list", "-j", "-f", $"{Guid.NewGuid()}.json"];
-            yield return [message, "list", "--json", "--system-name", "host.example.com"];
-            yield return [message, "list", "-j", "-s", "host.example.com"];
-            yield return [message, "list", "--json", "--path", $"{Guid.NewGuid()}.json", "--system-name", "host.example.com"];
-            yield return [message, "list", "-j", "-f", $"{Guid.NewGuid()}.json", "-s", "host.example.com"];
         }
     }
 
@@ -111,8 +68,7 @@ public class CliSyntaxTests
             var message = "Expected missing required options (no grant/revoke/revoke-all) to fail.";
             yield return [message, "principal", "DOMAIN\\UserOrGroup"];
             yield return [message, "principal", "DOMAIN\\UserOrGroup", "--dry-run"];
-            yield return [message, "principal", "DOMAIN\\UserOrGroup", "--system-name", "host.example.com"];
-            yield return [message, "principal", "DOMAIN\\UserOrGroup", "-d", "-s", "host.example.com"];
+            yield return [message, "principal", "DOMAIN\\UserOrGroup", "-d"];
 
             // Overlap between grants and revocations.
             message = "Expected overlap between grants and revocations to fail.";
@@ -147,12 +103,10 @@ public class CliSyntaxTests
             yield return [message, "principal", "DOMAIN\\UserOrGroup", "-o", "-r", "SeBatchLogonRight"];
             yield return [message, "principal", "DOMAIN\\UserOrGroup", "-o", "-a"];
 
-            // Empty or whitespace values for --system-name.
-            message = "Expected empty or whitespace values for system-name to fail.";
-            yield return [message, "principal", "DOMAIN\\UserOrGroup", "--grant", "SeServiceLogonRight", "--system-name", string.Empty];
-            yield return [message, "principal", "DOMAIN\\UserOrGroup", "--grant", "SeServiceLogonRight", "--system-name", " "];
-            yield return [message, "principal", "DOMAIN\\UserOrGroup", "-g", "SeBatchLogonRight", "-s", string.Empty];
-            yield return [message, "principal", "DOMAIN\\UserOrGroup", "-g", "SeBatchLogonRight", "-s", " "];
+            // The removed system-name option.
+            message = "Expected the removed system-name option to fail.";
+            yield return [message, "principal", "DOMAIN\\UserOrGroup", "--grant", "SeServiceLogonRight", "--system-name", "host.example.com"];
+            yield return [message, "principal", "DOMAIN\\UserOrGroup", "-g", "SeBatchLogonRight", "-s", "host.example.com"];
 
             // Empty or whitespace values for --grant.
             message = "Expected empty or whitespace values for grant to fail.";
@@ -221,18 +175,21 @@ public class CliSyntaxTests
             yield return [message, "principal", "DOMAIN\\UserOrGroup", "--grant", "SeServiceLogonRight", "--revoke-others"];
             yield return [message, "principal", "DOMAIN\\UserOrGroup", "-g", "SeBatchLogonRight", "-g", "SeInteractiveLogonRight", "-o"];
 
-            // Using system-name (non-empty) and/or dry-run.
-            message = "Expected a valid system-name and/or dry-run to pass.";
-            yield return [message, "principal", "DOMAIN\\UserOrGroup", "--grant", "SeServiceLogonRight", "--system-name", "host.example.com"];
-            yield return [message, "principal", "DOMAIN\\UserOrGroup", "--revoke", "SeBatchLogonRight", "--system-name", "host.example.com"];
-            yield return [message, "principal", "DOMAIN\\UserOrGroup", "--revoke-all", "--system-name", "host.example.com"];
+            // Using dry-run.
+            message = "Expected dry-run to pass.";
+            yield return [message, "principal", "DOMAIN\\UserOrGroup", "--revoke-all", "--dry-run"];
             yield return [message, "principal", "DOMAIN\\UserOrGroup", "--grant", "SeServiceLogonRight", "--revoke-others", "--dry-run"];
-            yield return [message, "principal", "DOMAIN\\UserOrGroup", "-g", "SeInteractiveLogonRight", "-r", "SeRemoteInteractiveLogonRight", "-d", "-s", "host.example.com"];
+            yield return [message, "principal", "DOMAIN\\UserOrGroup", "-g", "SeInteractiveLogonRight", "-r", "SeRemoteInteractiveLogonRight", "-d"];
 
             // Mixed long/short forms while staying valid.
             message = "Expected mixed long/short form arguments to pass.";
             yield return [message, "principal", "DOMAIN\\UserOrGroup", "-g", "SeServiceLogonRight", "--revoke", "SeBatchLogonRight"];
             yield return [message, "principal", "DOMAIN\\UserOrGroup", "--grant", "SeInteractiveLogonRight", "-o", "--dry-run"];
+
+            // Principal specified as a prefixed security identifier (SID).
+            message = "Expected a prefixed SID principal to pass.";
+            yield return [message, "principal", "*S-1-5-21-1-2-3-1000", "--revoke-all"];
+            yield return [message, "principal", "*S-1-5-21-1-2-3-1000", "--grant", "SeServiceLogonRight", "--dry-run"];
         }
     }
 
@@ -247,8 +204,7 @@ public class CliSyntaxTests
             var message = "Expected missing required option(s) to fail.";
             yield return [message, "privilege", "SeServiceLogonRight"];
             yield return [message, "privilege", "SeBatchLogonRight", "--dry-run"];
-            yield return [message, "privilege", "SeServiceLogonRight", "--system-name", "host.example.com"];
-            yield return [message, "privilege", "SeBatchLogonRight", "-d", "-s", "host.example.com"];
+            yield return [message, "privilege", "SeBatchLogonRight", "-d"];
 
             // Invalid privilege argument (empty or whitespace).
             message = "Expected invalid privilege argument to fail.";
@@ -314,6 +270,10 @@ public class CliSyntaxTests
             yield return [message, "privilege", "SeBatchLogonRight", "-t", " "];
             yield return [message, "privilege", "SeServiceLogonRight", "--revoke-pattern", "["];
             yield return [message, "privilege", "SeBatchLogonRight", "-t", "(?<unclosed"];
+            yield return [message, "privilege", "SeServiceLogonRight", "--grant", "DOMAIN\\UserOrGroup", "--revoke-pattern", string.Empty];
+            yield return [message, "privilege", "SeServiceLogonRight", "--grant", "DOMAIN\\UserOrGroup", "--revoke-pattern", " "];
+            yield return [message, "privilege", "SeBatchLogonRight", "-g", "DOMAIN\\UserOrGroup", "-t", string.Empty];
+            yield return [message, "privilege", "SeBatchLogonRight", "-g", "DOMAIN\\UserOrGroup", "-t", " "];
 
             // Invalid combinations.
             message = "Expected invalid combinations to fail.";
@@ -325,14 +285,11 @@ public class CliSyntaxTests
             yield return [message, "privilege", "SeBatchLogonRight", "-a", "-t", ".*"];
             yield return [message, "privilege", "SeBatchLogonRight", "-o", "-t", ".*"];
 
-            // Invalid --system-name values (empty or whitespace).
-            message = "Expected invalid system-name values to fail.";
-            yield return [message, "privilege", "SeServiceLogonRight", "--grant", "DOMAIN\\UserOrGroup", "--system-name", string.Empty];
-            yield return [message, "privilege", "SeServiceLogonRight", "--grant", "DOMAIN\\UserOrGroup", "--system-name", " "];
-            yield return [message, "privilege", "SeBatchLogonRight", "-r", "DOMAIN\\UserOrGroup", "-s", string.Empty];
-            yield return [message, "privilege", "SeBatchLogonRight", "-r", "DOMAIN\\UserOrGroup", "-s", " "];
-            yield return [message, "privilege", "SeServiceLogonRight", "--revoke-pattern", ".*", "--system-name", string.Empty];
-            yield return [message, "privilege", "SeServiceLogonRight", "--revoke-pattern", ".*", "--system-name", " "];
+            // The removed system-name option.
+            message = "Expected the removed system-name option to fail.";
+            yield return [message, "privilege", "SeServiceLogonRight", "--grant", "DOMAIN\\UserOrGroup", "--system-name", "host.example.com"];
+            yield return [message, "privilege", "SeBatchLogonRight", "-g", "DOMAIN\\UserOrGroup", "-s", "host.example.com"];
+            yield return [message, "privilege", "SeServiceLogonRight", "--revoke-pattern", ".*", "--system-name", "host.example.com"];
         }
     }
 
@@ -348,53 +305,53 @@ public class CliSyntaxTests
             yield return [message, "privilege", "SeServiceLogonRight", "--grant", "DOMAIN\\UserOrGroup"];
             yield return [message, "privilege", "SeBatchLogonRight", "-g", "DOMAIN\\UserOrGroup"];
             yield return [message, "privilege", "SeServiceLogonRight", "--grant", "DOMAIN\\UserOrGroup", "--dry-run"];
-            yield return [message, "privilege", "SeServiceLogonRight", "--grant", "DOMAIN\\UserOrGroup", "--system-name", "host.example.com"];
-            yield return [message, "privilege", "SeBatchLogonRight", "-g", "DOMAIN\\UserOrGroup", "-d", "-s", "host.example.com"];
+            yield return [message, "privilege", "SeBatchLogonRight", "-g", "DOMAIN\\UserOrGroup", "-d"];
 
             // Revoke only.
             message = "Expected revoke only to pass.";
             yield return [message, "privilege", "SeServiceLogonRight", "--revoke", "DOMAIN\\UserOrGroup"];
             yield return [message, "privilege", "SeBatchLogonRight", "-r", "DOMAIN\\UserOrGroup"];
             yield return [message, "privilege", "SeServiceLogonRight", "--revoke", "DOMAIN\\UserOrGroup", "--dry-run"];
-            yield return [message, "privilege", "SeServiceLogonRight", "--revoke", "DOMAIN\\UserOrGroup", "--system-name", "host.example.com"];
-            yield return [message, "privilege", "SeBatchLogonRight", "-r", "DOMAIN\\UserOrGroup", "-d", "-s", "host.example.com"];
+            yield return [message, "privilege", "SeBatchLogonRight", "-r", "DOMAIN\\UserOrGroup", "-d"];
 
             // Grant(s) and revoke(s) without overlap.
             message = "Expected grant(s) and revoke(s) without overlap to pass.";
             yield return [message, "privilege", "SeServiceLogonRight", "--grant", "DOMAIN\\UserOrGroupA", "--revoke", "DOMAIN\\UserOrGroupB"];
-            yield return [message, "privilege", "SeBatchLogonRight", "-g", "DOMAIN\\UserOrGroupA", "--revoke", "DOMAIN\\UserOrGroupB", "--dry-run", "--system-name", "host.example.com"];
+            yield return [message, "privilege", "SeBatchLogonRight", "-g", "DOMAIN\\UserOrGroupA", "--revoke", "DOMAIN\\UserOrGroupB", "--dry-run"];
 
             // Revoke-all (cannot mix with grants/revokes/others/pattern).
             message = "Expected revoke-all to pass.";
             yield return [message, "privilege", "SeServiceLogonRight", "--revoke-all"];
             yield return [message, "privilege", "SeBatchLogonRight", "-a"];
             yield return [message, "privilege", "SeServiceLogonRight", "--revoke-all", "--dry-run"];
-            yield return [message, "privilege", "SeServiceLogonRight", "--revoke-all", "--system-name", "host.example.com"];
-            yield return [message, "privilege", "SeBatchLogonRight", "-a", "-d", "-s", "host.example.com"];
+            yield return [message, "privilege", "SeBatchLogonRight", "-a", "-d"];
 
             // Revoke-others with grants (no revoke/revoke-all/revoke-pattern).
             message = "Expected revoke-others with grants to pass.";
             yield return [message, "privilege", "SeServiceLogonRight", "--grant", "DOMAIN\\UserOrGroup", "--revoke-others"];
             yield return [message, "privilege", "SeBatchLogonRight", "-g", "DOMAIN\\UserOrGroup", "-o"];
             yield return [message, "privilege", "SeServiceLogonRight", "--grant", "DOMAIN\\UserOrGroup", "--revoke-others", "--dry-run"];
-            yield return [message, "privilege", "SeServiceLogonRight", "--grant", "DOMAIN\\UserOrGroup", "--revoke-others", "--system-name", "host.example.com"];
-            yield return [message, "privilege", "SeBatchLogonRight", "-g", "DOMAIN\\UserOrGroup", "-o", "-d", "-s", "host.example.com"];
+            yield return [message, "privilege", "SeBatchLogonRight", "-g", "DOMAIN\\UserOrGroup", "-o", "-d"];
 
             // Revoke-pattern alone (valid regex; no revoke/revoke-all/revoke-others).
             message = "Expected revoke-pattern alone to pass.";
             yield return [message, "privilege", "SeServiceLogonRight", "--revoke-pattern", "^S-1-5-21-"];
             yield return [message, "privilege", "SeBatchLogonRight", "-t", "^S-1-5-21-"];
             yield return [message, "privilege", "SeServiceLogonRight", "--revoke-pattern", "^S-1-5-21-", "--dry-run"];
-            yield return [message, "privilege", "SeServiceLogonRight", "--revoke-pattern", "^S-1-5-21-", "--system-name", "host.example.com"];
-            yield return [message, "privilege", "SeBatchLogonRight", "-t", "^S-1-5-21-", "-d", "-s", "host.example.com"];
+            yield return [message, "privilege", "SeBatchLogonRight", "-t", "^S-1-5-21-", "-d"];
 
             // Revoke-pattern with grants (no revoke/revoke-all/revoke-others).
             message = "Expected revoke-pattern with grants to pass.";
             yield return [message, "privilege", "SeServiceLogonRight", "--grant", "DOMAIN\\UserOrGroup", "--revoke-pattern", "^S-1-5-21-"];
             yield return [message, "privilege", "SeBatchLogonRight", "-g", "DOMAIN\\UserOrGroup", "-t", "^S-1-5-21-"];
             yield return [message, "privilege", "SeServiceLogonRight", "--grant", "DOMAIN\\UserOrGroup", "--revoke-pattern", "^S-1-5-21-", "--dry-run"];
-            yield return [message, "privilege", "SeServiceLogonRight", "--grant", "DOMAIN\\UserOrGroup", "--revoke-pattern", "^S-1-5-21-", "--system-name", "host.example.com"];
-            yield return [message, "privilege", "SeBatchLogonRight", "-g", "DOMAIN\\UserOrGroup", "-t", "^S-1-5-21-", "-d", "-s", "host.example.com"];
+            yield return [message, "privilege", "SeBatchLogonRight", "-g", "DOMAIN\\UserOrGroup", "-t", "^S-1-5-21-", "-d"];
+
+            // Principals specified as prefixed security identifiers (SIDs).
+            message = "Expected prefixed SID principals to pass.";
+            yield return [message, "privilege", "SeServiceLogonRight", "--grant", "*S-1-5-21-1-2-3-1000"];
+            yield return [message, "privilege", "SeServiceLogonRight", "--revoke", "*S-1-5-21-1-2-3-1000", "--dry-run"];
+            yield return [message, "privilege", "SeBatchLogonRight", "-g", "*S-1-5-21-1-2-3-1000", "-r", "DOMAIN\\UserOrGroup"];
         }
     }
 

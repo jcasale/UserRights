@@ -59,4 +59,9 @@ public static class OperationId
     /// Indicates a syntax error has occurred.
     /// </summary>
     public const int SyntaxError = 4002;
+
+    /// <summary>
+    /// Indicates an Event Log configuration error has occurred.
+    /// </summary>
+    public const int EventLogError = 4003;
 }

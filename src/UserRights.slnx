@@ -7,6 +7,7 @@
   </Folder>
   <Project Path="Tests.Application/Tests.Application.csproj" />
   <Project Path="Tests.Cli/Tests.Cli.csproj" />
+  <Project Path="Tests.Extensions/Tests.Extensions.csproj" Id="5e645f42-0bf5-419e-9f41-debc8c3b9768" />
   <Project Path="Tests/Tests.csproj" />
   <Project Path="UserRights.Application/UserRights.Application.csproj" />
   <Project Path="UserRights.Cli/UserRights.Cli.csproj" />

@@ -2,6 +2,8 @@ namespace UserRights.Application;
 
 using System.Text.RegularExpressions;
 
+using static UserRights.Application.Constants;
+
 /// <summary>
 /// Represents validation logic for command parameters.
 /// </summary>
@@ -52,8 +54,8 @@ public static class ValidateParameters
         }
 
         // Ensure the grants do not overlap with revocations or contain duplicates.
-        var grantsSet = grants?.ToHashSet(StringComparer.InvariantCultureIgnoreCase) ?? [];
-        var revocationsSet = revocations?.ToHashSet(StringComparer.InvariantCultureIgnoreCase) ?? [];
+        var grantsSet = grants?.ToHashSet(StringComparer.OrdinalIgnoreCase) ?? [];
+        var revocationsSet = revocations?.ToHashSet(StringComparer.OrdinalIgnoreCase) ?? [];
 
         if (grantsSet.Overlaps(revocationsSet))
         {
@@ -114,9 +116,15 @@ public static class ValidateParameters
         }
 
         // Ensure privilege mode is used with at least one of grant, revoke, revoke all, or revoke pattern.
-        if (grants is not { Length: > 0 } && revocations is not { Length: > 0 } && !revokeAll && string.IsNullOrWhiteSpace(revokePattern))
+        if (grants is not { Length: > 0 } && revocations is not { Length: > 0 } && !revokeAll && revokePattern is null)
         {
             errors.Add(new(nameof(privilege), "At least one of grant, revoke, revoke all, or revoke pattern is required."));
+        }
+
+        // Ensure the revoke pattern, when specified, is a valid string.
+        if (revokePattern is not null && string.IsNullOrWhiteSpace(revokePattern))
+        {
+            errors.Add(new(nameof(revokePattern), "The revoke pattern cannot be empty or whitespace."));
         }
 
         // Ensure the grants are valid strings.
@@ -132,8 +140,8 @@ public static class ValidateParameters
         }
 
         // Ensure the grants do not overlap with revocations or contain duplicates.
-        var grantsSet = grants?.ToHashSet(StringComparer.InvariantCultureIgnoreCase) ?? [];
-        var revocationsSet = revocations?.ToHashSet(StringComparer.InvariantCultureIgnoreCase) ?? [];
+        var grantsSet = grants?.ToHashSet(StringComparer.OrdinalIgnoreCase) ?? [];
+        var revocationsSet = revocations?.ToHashSet(StringComparer.OrdinalIgnoreCase) ?? [];
 
         if (grantsSet.Overlaps(revocationsSet))
         {
@@ -151,19 +159,19 @@ public static class ValidateParameters
         }
 
         // Ensure revoke all is not used with any other option.
-        if (revokeAll && (grants is { Length: > 0 } || revocations is { Length: > 0 } || revokeOthers || !string.IsNullOrWhiteSpace(revokePattern)))
+        if (revokeAll && (grants is { Length: > 0 } || revocations is { Length: > 0 } || revokeOthers || revokePattern is not null))
         {
             errors.Add(new(nameof(revokeAll), "The revoke all option cannot be used with any other option."));
         }
 
         // Ensure revoke others is only used with grant.
-        if (revokeOthers && (grants is not { Length: > 0 } || revocations is { Length: > 0 } || revokeAll || !string.IsNullOrWhiteSpace(revokePattern)))
+        if (revokeOthers && (grants is not { Length: > 0 } || revocations is { Length: > 0 } || revokeAll || revokePattern is not null))
         {
             errors.Add(new(nameof(revokeOthers), "The revoke others option is only valid with grants."));
         }
 
         // Ensure revoke pattern is not used with revoke, revoke all, or revoke others.
-        if (!string.IsNullOrWhiteSpace(revokePattern) && (revocations is { Length: > 0 } || revokeAll || revokeOthers))
+        if (revokePattern is not null && (revocations is { Length: > 0 } || revokeAll || revokeOthers))
         {
             errors.Add(new(nameof(revokePattern), "The revoke pattern option is only valid when used alone or with grants."));
         }
@@ -171,9 +179,10 @@ public static class ValidateParameters
         // Ensure the revoke pattern is a valid regular expression.
         if (!string.IsNullOrWhiteSpace(revokePattern))
         {
+            // A blank pattern has already been reported above, so only non-blank patterns are compiled here.
             try
             {
-                _ = new Regex(revokePattern, RegexOptions.None, TimeSpan.FromSeconds(1));
+                _ = new Regex(revokePattern, RegexOptions.None, TimeSpan.FromMilliseconds(RegexMatchTimeoutMilliseconds));
             }
             catch (RegexParseException e)
             {

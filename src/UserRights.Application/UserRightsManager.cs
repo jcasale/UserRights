@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 
 using UserRights.Extensions.Security;
 
+using static UserRights.Application.Constants;
 using static UserRights.Application.ValidateParameters;
 using static UserRights.Logging.OperationId;
 
@@ -42,7 +43,7 @@ public class UserRightsManager : IUserRightsManager
             }
             catch (SecurityTranslationException)
             {
-                // Account may be unknown locally if querying a remote host, or it may have been deleted.
+                // Account may be unknown locally or it may have been deleted.
             }
 
             var privileges = policy.LsaEnumerateAccountRights(principal);
@@ -76,13 +77,13 @@ public class UserRightsManager : IUserRightsManager
         var securityIdentifier = principal.ToSecurityIdentifier();
 
         // Convert the grants to a set.
-        var grantSet = grants.ToHashSet(StringComparer.InvariantCultureIgnoreCase);
+        var grantSet = grants.ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         // Convert the revocations to a set.
-        var revocationSet = revocations.ToHashSet(StringComparer.InvariantCultureIgnoreCase);
+        var revocationSet = revocations.ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         // Get the privileges currently assigned to the principal.
-        var privileges = policy.LsaEnumerateAccountRights(securityIdentifier).ToHashSet(StringComparer.InvariantCultureIgnoreCase);
+        var privileges = policy.LsaEnumerateAccountRights(securityIdentifier).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         // Perform a full revocation of all privileges if required.
         if (revokeAll)
@@ -96,26 +97,21 @@ public class UserRightsManager : IUserRightsManager
             return;
         }
 
-        // Determine the deficit grants.
-        var deficit = grantSet.Where(p => !privileges.Contains(p));
+        // Calculate the required changes.
+        var deficit = grantSet.Where(p => !privileges.Contains(p)).ToArray();
+        var surplus = revocationSet.Where(privileges.Contains).ToArray();
+        var others = revokeOthers ? privileges.Where(p => !grantSet.Contains(p)).ToArray() : [];
 
-        // Determine the surplus grants.
-        var surplus = revocationSet.Where(privileges.Contains);
-
-        // Perform a revocation of all privileges except those being granted if required.
-        if (revokeOthers)
-        {
-            var others = privileges.Where(p => !grantSet.Contains(p));
-            foreach (var privilege in others)
-            {
-                RevokePrivilege(policy, securityIdentifier, privilege, dryRun);
-            }
-        }
-
-        // Grant any deficit privileges.
+        // Grant first so a failed grant never leaves the principal without the privileges it is meant to keep.
         foreach (var privilege in deficit)
         {
             GrantPrivilege(policy, securityIdentifier, privilege, dryRun);
+        }
+
+        // Revoke all privileges except those being granted if required.
+        foreach (var privilege in others)
+        {
+            RevokePrivilege(policy, securityIdentifier, privilege, dryRun);
         }
 
         // Revoke any surplus privileges.
@@ -141,6 +137,22 @@ public class UserRightsManager : IUserRightsManager
         // Translate the principal for each revocation to a security identifier.
         var revocationSet = revocations.Select(p => p.ToSecurityIdentifier()).ToHashSet();
 
+        // Different spellings of a principal, such as a name and a SID, can translate to the same security identifier.
+        if (grantSet.Count != grants.Length)
+        {
+            throw new ArgumentException("The grants cannot contain duplicates.", nameof(grants));
+        }
+
+        if (revocationSet.Count != revocations.Length)
+        {
+            throw new ArgumentException("The revocations cannot contain duplicates.", nameof(revocations));
+        }
+
+        if (grantSet.Overlaps(revocationSet))
+        {
+            throw new ArgumentException("The grants and revocations cannot overlap.", nameof(grants));
+        }
+
         // Get the principals with the privilege currently assigned.
         var principals = policy.LsaEnumerateAccountsWithUserRight(privilege).ToHashSet();
 
@@ -156,37 +168,34 @@ public class UserRightsManager : IUserRightsManager
             return;
         }
 
-        // Determine the deficit grants.
-        var deficit = grantSet.Where(p => !principals.Contains(p));
+        // Calculate the required changes.
+        var deficit = grantSet.Where(p => !principals.Contains(p)).ToArray();
+        var surplus = revocationSet.Where(principals.Contains).ToArray();
+        var others = revokeOthers ? principals.Where(p => !grantSet.Contains(p)).ToArray() : [];
 
-        // Determine the surplus grants.
-        var surplus = revocationSet.Where(principals.Contains);
-
-        // Perform a revocation of the privilege from each principal except those being granted if required.
-        if (revokeOthers)
-        {
-            var others = principals.Where(p => !grantSet.Contains(p));
-            foreach (var principal in others)
-            {
-                RevokePrivilege(policy, principal, privilege, dryRun);
-            }
-        }
-
-        // Perform a revocation of the privilege from each principal matching the regex pattern if required.
+        var matches = Array.Empty<SecurityIdentifier>();
         if (revokePattern is not null)
         {
-            var regex = new Regex(revokePattern, RegexOptions.None, TimeSpan.FromSeconds(1));
-            var matches = principals.Where(p => !grantSet.Contains(p) && regex.IsMatch(p.Value));
-            foreach (var principal in matches)
-            {
-                RevokePrivilege(policy, principal, privilege, dryRun);
-            }
+            var regex = new Regex(revokePattern, RegexOptions.None, TimeSpan.FromMilliseconds(RegexMatchTimeoutMilliseconds));
+            matches = [.. principals.Where(p => !grantSet.Contains(p) && regex.IsMatch(p.Value))];
         }
 
-        // Grant any deficit principals.
+        // Grant first so a failed grant never leaves the privilege without the principals it is meant to keep.
         foreach (var sid in deficit)
         {
             GrantPrivilege(policy, sid, privilege, dryRun);
+        }
+
+        // Revoke the privilege from each principal except those being granted if required.
+        foreach (var principal in others)
+        {
+            RevokePrivilege(policy, principal, privilege, dryRun);
+        }
+
+        // Revoke the privilege from each principal matching the regex pattern if required.
+        foreach (var principal in matches)
+        {
+            RevokePrivilege(policy, principal, privilege, dryRun);
         }
 
         // Revoke any surplus principals.

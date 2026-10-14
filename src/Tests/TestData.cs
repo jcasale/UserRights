@@ -51,4 +51,14 @@ public static class TestData
     /// Represents the security identity for the built-in local guests group.
     /// </summary>
     public static readonly SecurityIdentifier PrincipalSid3 = new("S-1-5-32-546");
+
+    /// <summary>
+    /// Represents a well-formed security identity that does not translate to an account, such as an orphaned or deleted account.
+    /// </summary>
+    public static readonly SecurityIdentifier PrincipalSidUnresolved = new("S-1-5-21-1111111111-2222222222-3333333333-9999");
+
+    /// <summary>
+    /// Represents the prefixed command line form of <see cref="PrincipalSidUnresolved"/>.
+    /// </summary>
+    public static readonly string PrincipalNameUnresolved = $"*{PrincipalSidUnresolved.Value}";
 }

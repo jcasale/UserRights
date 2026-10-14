@@ -21,7 +21,7 @@ public static class SerializationExtensions
     };
 
     /// <summary>
-    /// Serializes data to a string in CSV format.
+    /// Serializes data to a stream in CSV format.
     /// </summary>
     /// <typeparam name="T">The type of data.</typeparam>
     /// <param name="data">The data to serialize.</param>
@@ -35,6 +35,7 @@ public static class SerializationExtensions
 
         var csvConfiguration = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
+            InjectionOptions = InjectionOptions.Escape,
             ShouldQuote = _ => true
         };
 
@@ -50,14 +51,14 @@ public static class SerializationExtensions
                 }
             }
         }
-        catch (Exception e)
+        catch (Exception e) when (e is not OperationCanceledException)
         {
-            throw new SerializationException("Failed to serialize the data to a string in CSV format.", e);
+            throw new SerializationException("Failed to serialize the data to a stream in CSV format.", e);
         }
     }
 
     /// <summary>
-    /// Serializes data to a string in JSON format.
+    /// Serializes data to a stream in JSON format.
     /// </summary>
     /// <typeparam name="T">The type of data.</typeparam>
     /// <param name="data">The data to serialize.</param>
@@ -73,9 +74,9 @@ public static class SerializationExtensions
         {
             await JsonSerializer.SerializeAsync(stream, data, Options, cancellationToken).ConfigureAwait(false);
         }
-        catch (Exception e)
+        catch (Exception e) when (e is not OperationCanceledException)
         {
-            throw new SerializationException("Failed to serialize the data to a string in JSON format.", e);
+            throw new SerializationException("Failed to serialize the data to a stream in JSON format.", e);
         }
     }
 }

@@ -188,11 +188,8 @@ public class CliCommandTests
     public void PrincipalMode_WithGrantAndRevoke_ShouldWork()
     {
         // Arrange.
-        const string systemName = "host.example.com";
-
         var lsaUserRightsMockBuilder = LsaUserRightsMockBuilder.CreateBuilder();
         var lsaUserRights = lsaUserRightsMockBuilder
-            .WithSystemName(systemName)
             .WithGrant(PrincipalSid1, Privilege1)
             .WithGrant(PrincipalSid2, Privilege1, Privilege2)
             .Build();
@@ -201,7 +198,7 @@ public class CliCommandTests
 
         var rootCommand = fixture.CliBuilder.Build();
 
-        var args = new[] { "principal", PrincipalName1, "--grant", Privilege2, "--revoke", Privilege1, "--system-name", systemName };
+        var args = new[] { "principal", PrincipalName1, "--grant", Privilege2, "--revoke", Privilege1 };
 
         // Act.
         var rc = rootCommand.Parse(args).ThrowIfInvalid().Run();
@@ -212,7 +209,7 @@ public class CliCommandTests
         Assert.AreSequenceEqual([Privilege2], lsaUserRightsMockBuilder.Database[PrincipalSid1], StringComparer.Ordinal);
         Assert.AreSequenceEqual([Privilege1, Privilege2], lsaUserRightsMockBuilder.Database[PrincipalSid2], StringComparer.Ordinal, SequenceOrder.InAnyOrder);
 
-        lsaUserRights.Verify(x => x.Connect(It.Is<string>(s => string.Equals(s, systemName, StringComparison.Ordinal))), Times.Exactly(1));
+        lsaUserRights.Verify(x => x.Connect(), Times.Exactly(1));
         lsaUserRights.Verify(x => x.LsaEnumerateAccountRights(It.Is<SecurityIdentifier>(s => s == PrincipalSid1)), Times.Exactly(1));
         lsaUserRights.Verify(x => x.LsaRemoveAccountRights(It.Is<SecurityIdentifier>(s => s == PrincipalSid1), It.Is<string>(s => string.Equals(s, Privilege1, StringComparison.Ordinal))), Times.Exactly(1));
         lsaUserRights.Verify(x => x.LsaAddAccountRights(It.Is<SecurityIdentifier>(s => s == PrincipalSid1), It.Is<string>(s => string.Equals(s, Privilege2, StringComparison.Ordinal))), Times.Exactly(1));
@@ -564,6 +561,70 @@ public class CliCommandTests
         lsaUserRights.Verify(x => x.Connect(), Times.Exactly(1));
         lsaUserRights.Verify(x => x.LsaEnumerateAccountsWithUserRight(It.Is<string>(s => string.Equals(s, Privilege1, StringComparison.Ordinal))), Times.Exactly(1));
         lsaUserRights.Verify(x => x.LsaRemoveAccountRights(It.Is<SecurityIdentifier>(s => s == PrincipalSidCurrent), It.Is<string>(s => string.Equals(s, Privilege1, StringComparison.Ordinal))), Times.Exactly(1));
+        lsaUserRights.VerifyNoOtherCalls();
+    }
+
+    /// <summary>
+    /// Verifies revoking all privileges from a security identifier that has no account is successful and does not modify other assignments.
+    /// </summary>
+    [TestMethod]
+    public void PrincipalMode_WithRevokeAllAndUnresolvedSid_ShouldWork()
+    {
+        // Arrange.
+        var lsaUserRightsMockBuilder = LsaUserRightsMockBuilder.CreateBuilder();
+        var lsaUserRights = lsaUserRightsMockBuilder
+            .WithGrant(PrincipalSid1, Privilege1)
+            .WithGrant(PrincipalSidUnresolved, Privilege2)
+            .Build();
+
+        using var fixture = new CliMockBuilder(TestContext, lsaUserRights.Object);
+
+        var rootCommand = fixture.CliBuilder.Build();
+
+        var args = new[] { "principal", PrincipalNameUnresolved, "--revoke-all" };
+
+        // Act.
+        var rc = rootCommand.Parse(args).ThrowIfInvalid().Run();
+
+        // Assert.
+        Assert.AreEqual(0, rc);
+        Assert.AreSequenceEqual([PrincipalSid1], [.. lsaUserRightsMockBuilder.Database.Keys]);
+
+        lsaUserRights.Verify(x => x.Connect(), Times.Exactly(1));
+        lsaUserRights.Verify(x => x.LsaEnumerateAccountRights(It.Is<SecurityIdentifier>(s => s == PrincipalSidUnresolved)), Times.Exactly(1));
+        lsaUserRights.Verify(x => x.LsaRemoveAccountRights(It.Is<SecurityIdentifier>(s => s == PrincipalSidUnresolved), It.Is<string>(s => string.Equals(s, Privilege2, StringComparison.Ordinal))), Times.Exactly(1));
+        lsaUserRights.VerifyNoOtherCalls();
+    }
+
+    /// <summary>
+    /// Verifies revoking a security identifier that has no account from a privilege is successful and does not modify other assignments.
+    /// </summary>
+    [TestMethod]
+    public void PrivilegeMode_WithRevokeOfUnresolvedSid_ShouldWork()
+    {
+        // Arrange.
+        var lsaUserRightsMockBuilder = LsaUserRightsMockBuilder.CreateBuilder();
+        var lsaUserRights = lsaUserRightsMockBuilder
+            .WithGrant(PrincipalSid1, Privilege1)
+            .WithGrant(PrincipalSidUnresolved, Privilege1)
+            .Build();
+
+        using var fixture = new CliMockBuilder(TestContext, lsaUserRights.Object);
+
+        var rootCommand = fixture.CliBuilder.Build();
+
+        var args = new[] { "privilege", Privilege1, "--revoke", PrincipalNameUnresolved };
+
+        // Act.
+        var rc = rootCommand.Parse(args).ThrowIfInvalid().Run();
+
+        // Assert.
+        Assert.AreEqual(0, rc);
+        Assert.AreSequenceEqual([PrincipalSid1], [.. lsaUserRightsMockBuilder.Database.Keys]);
+
+        lsaUserRights.Verify(x => x.Connect(), Times.Exactly(1));
+        lsaUserRights.Verify(x => x.LsaEnumerateAccountsWithUserRight(It.Is<string>(s => string.Equals(s, Privilege1, StringComparison.Ordinal))), Times.Exactly(1));
+        lsaUserRights.Verify(x => x.LsaRemoveAccountRights(It.Is<SecurityIdentifier>(s => s == PrincipalSidUnresolved), It.Is<string>(s => string.Equals(s, Privilege1, StringComparison.Ordinal))), Times.Exactly(1));
         lsaUserRights.VerifyNoOtherCalls();
     }
 }

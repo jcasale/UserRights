@@ -13,7 +13,6 @@ using UserRights.Application;
 public sealed class LsaUserRightsMockBuilder
 {
     private readonly Dictionary<SecurityIdentifier, HashSet<string>> _database = [];
-    private string? _systemName;
 
     /// <summary>
     /// Prevents a default instance of the <see cref="LsaUserRightsMockBuilder"/> class from being created.
@@ -44,15 +43,8 @@ public sealed class LsaUserRightsMockBuilder
     {
         var mock = new Mock<ILsaUserRights>(MockBehavior.Strict);
 
-        // Configure the mock to handle the Connect(string) method.
-        if (string.IsNullOrWhiteSpace(_systemName))
-        {
-            mock.Setup(x => x.Connect(It.IsAny<string?>()));
-        }
-        else
-        {
-            mock.Setup(x => x.Connect(It.Is<string?>(s => string.Equals(s, _systemName, StringComparison.Ordinal))));
-        }
+        // Configure the mock to handle the Connect() method.
+        mock.Setup(x => x.Connect());
 
         // Configure the mock to handle the LsaAddAccountRights(SecurityIdentifier, string[]) method.
         mock.Setup(x => x.LsaAddAccountRights(It.IsAny<SecurityIdentifier>(), It.IsAny<string[]>())).Callback((SecurityIdentifier accountSid, string[] userRights) =>
@@ -99,20 +91,6 @@ public sealed class LsaUserRightsMockBuilder
         });
 
         return mock;
-    }
-
-    /// <summary>
-    /// Sets the system name to be used for the call to <see cref="ILsaUserRights.Connect(string)"/>.
-    /// </summary>
-    /// <param name="systemName">The remote system name to execute the task on (default localhost).</param>
-    /// <returns>The current instance of <see cref="LsaUserRightsMockBuilder"/> with the updated system name.</returns>
-    public LsaUserRightsMockBuilder WithSystemName(string systemName)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(systemName);
-
-        _systemName = systemName;
-
-        return this;
     }
 
     /// <summary>

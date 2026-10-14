@@ -18,7 +18,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
     private LsaCloseSafeHandle? _handle;
 
     /// <inheritdoc />
-    public void Connect(string? systemName = null)
+    public void Connect()
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
@@ -33,7 +33,7 @@ public class LsaUserRights : ILsaUserRights, IDisposable
             PInvoke.POLICY_LOOKUP_NAMES |
             PInvoke.POLICY_VIEW_LOCAL_INFORMATION;
 
-        _handle = LsaOpenPolicy(ref objectAttributes, desiredAccess, systemName);
+        _handle = LsaOpenPolicy(ref objectAttributes, desiredAccess);
     }
 
     /// <inheritdoc />
@@ -126,7 +126,14 @@ public class LsaUserRights : ILsaUserRights, IDisposable
                 var status = PInvoke.LsaEnumerateAccountRights(_handle, psid, out userRights, out var count);
                 if (status != NTSTATUS.STATUS_SUCCESS)
                 {
-                    var error = PInvoke.LsaNtStatusToWinError(status);
+                    var error = (WIN32_ERROR)PInvoke.LsaNtStatusToWinError(status);
+
+                    // An account that has never been assigned a right has no LSA account object.
+                    if (error == WIN32_ERROR.ERROR_FILE_NOT_FOUND)
+                    {
+                        return [];
+                    }
+
                     throw new Win32Exception(unchecked((int)error), "Failed to enumerate account rights.");
                 }
 
@@ -295,13 +302,12 @@ public class LsaUserRights : ILsaUserRights, IDisposable
     }
 
     /// <summary>
-    /// Opens a handle to the Policy object on a local or remote system.
+    /// Opens a handle to the Policy object on the local system.
     /// </summary>
     /// <param name="objectAttributes">The connection attributes.</param>
     /// <param name="desiredAccess">The requested access rights.</param>
-    /// <param name="systemName">The name of the target system.</param>
     /// <returns>A handle to the Policy object.</returns>
-    private unsafe LsaCloseSafeHandle LsaOpenPolicy(ref LSA_OBJECT_ATTRIBUTES objectAttributes, uint desiredAccess, string? systemName = null)
+    private LsaCloseSafeHandle LsaOpenPolicy(ref LSA_OBJECT_ATTRIBUTES objectAttributes, uint desiredAccess)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
@@ -310,34 +316,16 @@ public class LsaUserRights : ILsaUserRights, IDisposable
             throw new InvalidOperationException("A connection to the policy database already exists.");
         }
 
+        // An empty system name targets the local system.
         LSA_UNICODE_STRING systemNameUnicode = default;
 
-        if (systemName is null)
+        var status = PInvoke.LsaOpenPolicy(systemNameUnicode, objectAttributes, desiredAccess, out var policyHandle);
+        if (status != NTSTATUS.STATUS_SUCCESS)
         {
-            return Method(systemNameUnicode, ref objectAttributes, desiredAccess);
+            var error = PInvoke.LsaNtStatusToWinError(status);
+            throw new Win32Exception(unchecked((int)error), "Failed to open the policy database.");
         }
 
-        fixed (char* c = systemName)
-        {
-            var length = checked((ushort)(systemName.Length * sizeof(char)));
-
-            systemNameUnicode.Length = length;
-            systemNameUnicode.MaximumLength = length;
-            systemNameUnicode.Buffer = c;
-
-            return Method(systemNameUnicode, ref objectAttributes, desiredAccess);
-        }
-
-        static LsaCloseSafeHandle Method(LSA_UNICODE_STRING name, ref LSA_OBJECT_ATTRIBUTES attributes, uint access)
-        {
-            var status = PInvoke.LsaOpenPolicy(name, attributes, access, out var policyHandle);
-            if (status != NTSTATUS.STATUS_SUCCESS)
-            {
-                var error = PInvoke.LsaNtStatusToWinError(status);
-                throw new Win32Exception(unchecked((int)error), "Failed to open the policy database.");
-            }
-
-            return policyHandle;
-        }
+        return policyHandle;
     }
 }

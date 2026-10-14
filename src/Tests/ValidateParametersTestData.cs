@@ -8,6 +8,16 @@ using static TestData;
 public static class ValidateParametersTestData
 {
     /// <summary>
+    /// Represents a privilege containing a soft hyphen, which culture-sensitive comparisons ignore but ordinal comparisons do not.
+    /// </summary>
+    private const string SoftHyphenPrivilege1 = "Se\u00ADInteractiveLogonRight";
+
+    /// <summary>
+    /// Represents a principal name containing a soft hyphen, which culture-sensitive comparisons ignore but ordinal comparisons do not.
+    /// </summary>
+    private const string SoftHyphenPrincipalName1 = "BU\u00ADILTIN\\Administrators";
+
+    /// <summary>
     /// Gets invalid method arguments for principal parameter validation.
     /// </summary>
     public static IEnumerable<(string? Principal, string[]? Grants, string[]? Revocations, bool RevokeAll, bool RevokeOthers, string Message)> PrincipalInvalidArgumentData =>
@@ -40,7 +50,9 @@ public static class ValidateParametersTestData
 
         // Verify grant and revocation set restrictions.
         (PrincipalName1, [Privilege1], [Privilege1], false, false, "Overlapping grants and revocations should fail."),
+        (PrincipalName1, [Privilege1], [Privilege1.ToUpperInvariant()], false, false, "Overlapping grants and revocations differing only by case should fail."),
         (PrincipalName1, [Privilege1, Privilege1], [], false, false, "Duplicate grants should fail."),
+        (PrincipalName1, [Privilege1, Privilege1.ToUpperInvariant()], [], false, false, "Duplicate grants differing only by case should fail."),
         (PrincipalName1, [], [Privilege1, Privilege1], false, false, "Duplicate revocations should fail.")
     ];
 
@@ -59,13 +71,15 @@ public static class ValidateParametersTestData
 
         // Grant and revoke (no overlap).
         (PrincipalName1, [Privilege1], [Privilege2], false, false, "Grant and revoke without overlap should pass."),
+        (PrincipalName1, [Privilege1], [SoftHyphenPrivilege1], false, false, "Grant and revoke differing by an ignorable character should pass."),
 
         // RevokeAll alone.
         (PrincipalName1, [], [], true, false, "RevokeAll alone should pass."),
 
         // RevokeOthers with grants.
         (PrincipalName1, [Privilege1], [], false, true, "RevokeOthers with grants should pass."),
-        (PrincipalName1, [Privilege1, Privilege2], [], false, true, "RevokeOthers with multiple grants should pass.")
+        (PrincipalName1, [Privilege1, Privilege2], [], false, true, "RevokeOthers with multiple grants should pass."),
+        (PrincipalName1, [Privilege1, SoftHyphenPrivilege1], [], false, true, "RevokeOthers with grants differing by an ignorable character should pass.")
     ];
 
     /// <summary>
@@ -109,12 +123,20 @@ public static class ValidateParametersTestData
                 (Privilege2, [], [], true, false, pattern, "RevokePattern with RevokeAll should fail."),
                 (Privilege2, [], [], false, true, pattern, "RevokePattern with RevokeOthers should fail."),
 
+                // Verify empty or whitespace RevokePattern.
+                (Privilege1, [], [], false, false, string.Empty, "Empty RevokePattern alone should fail."),
+                (Privilege1, [], [], false, false, " ", "Whitespace RevokePattern alone should fail."),
+                (Privilege1, [PrincipalName1], [], false, false, string.Empty, "Empty RevokePattern with grants should fail."),
+                (Privilege1, [PrincipalName1], [], false, false, " ", "Whitespace RevokePattern with grants should fail."),
+
                 // Verify remaining requirements.
                 (Privilege1, [], [], false, false, null, "No action specified should fail."),
 
                 // Verify grant and revocation set restrictions.
                 (Privilege1, [PrincipalName1], [PrincipalName1], false, false, null, "Overlapping grants and revocations should fail."),
+                (Privilege1, [PrincipalName1], [PrincipalName1.ToUpperInvariant()], false, false, null, "Overlapping grants and revocations differing only by case should fail."),
                 (Privilege1, [PrincipalName1, PrincipalName1], [], false, false, null, "Duplicate grants should fail."),
+                (Privilege1, [PrincipalName1, PrincipalName1.ToUpperInvariant()], [], false, false, null, "Duplicate grants differing only by case should fail."),
                 (Privilege1, [], [PrincipalName1, PrincipalName1], false, false, null, "Duplicate revocations should fail.")
             ];
         }
@@ -135,6 +157,7 @@ public static class ValidateParametersTestData
 
         // Grant and revoke (no overlap).
         (Privilege1, [PrincipalName1], [PrincipalName2], false, false, null, "Grant and revoke without overlap should pass."),
+        (Privilege1, [PrincipalName1], [SoftHyphenPrincipalName1], false, false, null, "Grant and revoke differing by an ignorable character should pass."),
 
         // RevokeAll alone.
         (Privilege1, [], [], true, false, null, "RevokeAll alone should pass."),

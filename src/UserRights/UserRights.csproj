@@ -9,7 +9,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CsvHelper" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Microsoft.Windows.CsWin32">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Serilog" />
     <PackageReference Include="Serilog.Enrichers.Environment" />
     <PackageReference Include="Serilog.Enrichers.GlobalLogContext" />
@@ -18,12 +23,7 @@
     <PackageReference Include="Serilog.Extensions.Hosting" />
     <PackageReference Include="Serilog.Sinks.Console" />
     <PackageReference Include="Serilog.Sinks.EventLog" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\UserRights.Application\UserRights.Application.csproj" />
-    <ProjectReference Include="..\UserRights.Cli\UserRights.Cli.csproj" />
-    <ProjectReference Include="..\UserRights.Logging\UserRights.Logging.csproj" />
+    <PackageReference Include="System.CommandLine" />
   </ItemGroup>
 
 </Project>

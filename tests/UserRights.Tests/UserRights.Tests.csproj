@@ -22,8 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\UserRights.Application\UserRights.Application.csproj" />
-    <ProjectReference Include="..\..\src\UserRights.Cli\UserRights.Cli.csproj" />
+    <ProjectReference Include="..\..\src\UserRights\UserRights.csproj" />
   </ItemGroup>
 
 </Project>

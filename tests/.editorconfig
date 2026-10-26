@@ -1,3 +1,5 @@
 [*.cs]
 dotnet_diagnostic.CA1062.severity = none # Validate arguments of public methods.
 dotnet_diagnostic.CA1707.severity = none # Identifiers should not contain underscores.
+
+dotnet_diagnostic.MSTEST0084.severity = none # Platform compatibility attributes should be consistent with '[OSCondition]'.

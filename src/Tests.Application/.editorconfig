@@ -1,7 +1,0 @@
-﻿[*.cs]
-dotnet_diagnostic.CA1707.severity = none # Identifiers should not contain underscores.
-
-dotnet_diagnostic.MA0110.severity = none # Use the Regex source generator.
-
-[UserRightsManagerPrivilegeTests.cs]
-dotnet_diagnostic.SA1515.severity = none # Single-line comment should be preceded by blank line.

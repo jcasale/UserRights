@@ -28,7 +28,7 @@ jobs:
         id: setup-dotnet
         uses: actions/setup-dotnet@v6
         with:
-          global-json-file: src/global.json
+          global-json-file: global.json
 
       - name: Set base name
         id: base-name
@@ -45,14 +45,10 @@ jobs:
           'value={0}' -f $value |Tee-Object -FilePath $env:GITHUB_OUTPUT -Append
 
       - name: Run tests
-        run: |
-          cd .\src
-          dotnet.exe test --configuration Release --output Detailed
+        run: dotnet.exe test --configuration Release --output Detailed
 
       - name: Clean solution
-        run: |
-          cd .\src
-          dotnet.exe clean .\UserRights.slnx
+        run: dotnet.exe clean .\UserRights.slnx
 
       - name: Publish framework-dependent release
         run: |
@@ -72,9 +68,7 @@ jobs:
             if-no-files-found: error
 
       - name: Clean solution
-        run: |
-          cd .\src
-          dotnet.exe clean .\UserRights.slnx
+        run: dotnet.exe clean .\UserRights.slnx
 
       - name: Publish self-contained release
         run: |

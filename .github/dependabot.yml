@@ -12,7 +12,7 @@ updates:
 
   - package-ecosystem: "nuget"
     directories:
-      - "/src"
+      - "/"
     schedule:
       interval: weekly
       day: friday
@@ -27,7 +27,7 @@ updates:
           - "patch"
 
   - package-ecosystem: "dotnet-sdk"
-    directory: "/src"
+    directory: "/"
     schedule:
       interval: weekly
       day: friday

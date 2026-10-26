@@ -1,0 +1,21 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/UserRights.Application/UserRights.Application.csproj" />
+    <Project Path="src/UserRights.Cli/UserRights.Cli.csproj" />
+    <Project Path="src/UserRights.Extensions/UserRights.Extensions.csproj" />
+    <Project Path="src/UserRights.Logging/UserRights.Logging.csproj" />
+    <Project Path="src/UserRights/UserRights.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/UserRights.Tests.Application/UserRights.Tests.Application.csproj" />
+    <Project Path="tests/UserRights.Tests.Cli/UserRights.Tests.Cli.csproj" />
+    <Project Path="tests/UserRights.Tests.Extensions/UserRights.Tests.Extensions.csproj" />
+    <Project Path="tests/UserRights.Tests/UserRights.Tests.csproj" />
+  </Folder>
+</Solution>

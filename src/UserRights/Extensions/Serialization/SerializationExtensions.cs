@@ -1,11 +1,8 @@
 namespace UserRights.Extensions.Serialization;
 
-using System.Globalization;
-using System.Text;
 using System.Text.Json;
 
 using CsvHelper;
-using CsvHelper.Configuration;
 
 /// <summary>
 /// Represents extensions for converting and serializing objects.
@@ -13,9 +10,18 @@ using CsvHelper.Configuration;
 public static class SerializationExtensions
 {
     /// <summary>
+    /// Configures the CSV serializer options to always quote output and escape it when necessary.
+    /// </summary>
+    private static readonly CsvWriterOptions CsvOptions = new()
+    {
+        Injection = CsvInjection.Escape,
+        Quoting = CsvQuoting.Always
+    };
+
+    /// <summary>
     /// Configures the JSON serializer options to format output as indented.
     /// </summary>
-    private static readonly JsonSerializerOptions Options = new()
+    private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true
     };
@@ -33,23 +39,10 @@ public static class SerializationExtensions
         ArgumentNullException.ThrowIfNull(data);
         ArgumentNullException.ThrowIfNull(stream);
 
-        var csvConfiguration = new CsvConfiguration(CultureInfo.InvariantCulture)
-        {
-            InjectionOptions = InjectionOptions.Escape,
-            ShouldQuote = _ => true
-        };
-
         try
         {
-            var writer = new StreamWriter(stream, new UTF8Encoding(false), leaveOpen: true);
-            await using (writer.ConfigureAwait(false))
-            {
-                var csv = new CsvWriter(writer, csvConfiguration, leaveOpen: true);
-                await using (csv.ConfigureAwait(false))
-                {
-                    await csv.WriteRecordsAsync(data, cancellationToken).ConfigureAwait(false);
-                }
-            }
+            await using var writer = CsvWriter.Create(stream, CsvOptions, true);
+            await writer.WriteRecordsAsync(data, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception e) when (e is not OperationCanceledException)
         {
@@ -72,7 +65,7 @@ public static class SerializationExtensions
 
         try
         {
-            await JsonSerializer.SerializeAsync(stream, data, Options, cancellationToken).ConfigureAwait(false);
+            await JsonSerializer.SerializeAsync(stream, data, JsonOptions, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception e) when (e is not OperationCanceledException)
         {

@@ -10,7 +10,7 @@ public interface IUserRightsManager
     /// </summary>
     /// <param name="policy">A connection to the local security authority.</param>
     /// <returns>A sequence of all user rights.</returns>
-    IEnumerable<IUserRightEntry> GetUserRights(IUserRights policy);
+    IEnumerable<UserRightEntry> GetUserRights(IUserRights policy);
 
     /// <summary>
     /// Modifies the specified principal.

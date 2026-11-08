@@ -1,9 +1,12 @@
 namespace UserRights.Application;
 
+using CsvHelper;
+
 /// <summary>
 /// Represents an entry in the local security database.
 /// </summary>
-public sealed record UserRightEntry : IUserRightEntry
+[CsvRecord]
+public partial record UserRightEntry
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="UserRightEntry"/> class.
@@ -35,7 +38,7 @@ public sealed record UserRightEntry : IUserRightEntry
     /// Gets the account name of the principal.
     /// </summary>
     /// <remarks>
-    /// The account name may be empty if the security identifier cannot be translated, as the account may be unknown locally or it may have been deleted.
+    /// The account name may be empty if the security identifier cannot be translated, as the account may be unknown locally, or it may have been deleted.
     /// </remarks>
     public string? AccountName { get; }
 }

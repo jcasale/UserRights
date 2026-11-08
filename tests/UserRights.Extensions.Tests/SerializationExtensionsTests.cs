@@ -67,12 +67,9 @@ public class SerializationExtensionsTests
     /// <returns>A task whose result is the CSV text.</returns>
     private async Task<string> WriteCsv(UserRightEntry[] entries)
     {
-        var stream = new MemoryStream();
-        await using (stream.ConfigureAwait(false))
-        {
-            await entries.ToCsv(stream, TestContext.CancellationToken).ConfigureAwait(false);
+        await using var stream = new MemoryStream();
+        await entries.ToCsv(stream, TestContext.CancellationToken).ConfigureAwait(false);
 
-            return Encoding.UTF8.GetString(stream.ToArray());
-        }
+        return Encoding.UTF8.GetString(stream.ToArray());
     }
 }

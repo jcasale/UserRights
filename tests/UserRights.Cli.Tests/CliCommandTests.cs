@@ -1,11 +1,9 @@
 namespace UserRights.Cli.Tests;
 
-using System.Globalization;
 using System.Security.Principal;
 using System.Text.Json;
 
 using CsvHelper;
-using CsvHelper.Configuration;
 
 using Moq;
 
@@ -117,13 +115,7 @@ public class CliCommandTests
         {
             rc = await rootCommand.Parse(args).ThrowIfInvalid().RunAsync(TestContext.CancellationToken).ConfigureAwait(false);
 
-            var csvConfiguration = new CsvConfiguration(CultureInfo.InvariantCulture)
-            {
-                PrepareHeaderForMatch = a => a.Header.ToUpperInvariant() ?? throw new InvalidOperationException()
-            };
-
-            using var streamReader = new StreamReader(file);
-            using var csvReader = new CsvReader(streamReader, csvConfiguration);
+            await using var csvReader = CsvReader.FromFile(file);
 
             actual = await csvReader.GetRecordsAsync<UserRightEntry>(TestContext.CancellationToken)
                 .ToArrayAsync(TestContext.CancellationToken)

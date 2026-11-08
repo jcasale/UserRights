@@ -61,7 +61,7 @@ internal static class Program
         // Wrap the execution with error handling.
         try
         {
-            return await Run(args).ConfigureAwait(false);
+            return await Run(args);
         }
         catch (SyntaxException e)
         {
@@ -85,7 +85,7 @@ internal static class Program
         }
         finally
         {
-            await Log.CloseAndFlushAsync().ConfigureAwait(false);
+            await Log.CloseAndFlushAsync();
         }
     }
 
@@ -168,15 +168,13 @@ internal static class Program
         var levelSwitch = new LoggingLevelSwitch { MinimumLevel = LogEventLevel.Warning };
 
         // The logger is not disposed with the service provider, Main flushes and disposes it so errors can still be logged.
-        var serviceProvider = new ServiceCollection()
+        await using var serviceProvider = new ServiceCollection()
             .AddSingleton<ILsaUserRights, LsaUserRights>()
             .AddSingleton<IUserRightsManager, UserRightsManager>()
             .AddSingleton<CliBuilder>()
             .AddLogging()
             .AddSerilog((_, configuration) => ConfigureLogger(configuration, levelSwitch, args))
             .BuildServiceProvider();
-
-        await using var _ = serviceProvider.ConfigureAwait(false);
 
         var builder = serviceProvider.GetRequiredService<CliBuilder>();
 
@@ -189,6 +187,6 @@ internal static class Program
             levelSwitch.MinimumLevel = LogEventLevel.Verbose;
         }
 
-        return await parseResult.RunAsync().ConfigureAwait(false);
+        return await parseResult.RunAsync();
     }
 }

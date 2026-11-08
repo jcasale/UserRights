@@ -1,5 +1,13 @@
 [*.cs]
 dotnet_diagnostic.CA1062.severity = none # Validate arguments of public methods.
 dotnet_diagnostic.CA1707.severity = none # Identifiers should not contain underscores.
+dotnet_diagnostic.CA2007.severity = none # Do not directly await a Task (disabled for console applications).
+
+dotnet_diagnostic.MA0004.severity = none # Use Task.ConfigureAwait (disabled for console applications).
 
 dotnet_diagnostic.MSTEST0084.severity = none # Platform compatibility attributes should be consistent with '[OSCondition]'.
+
+[GlobalUsings.cs]
+dotnet_diagnostic.SA1200.severity = none # Global using directives must appear outside namespaces.
+
+csharp_using_directive_placement = outside_namespace:warning

@@ -25,7 +25,7 @@ public class UserRightsManager : IUserRightsManager
     public UserRightsManager(ILogger<UserRightsManager> logger) => _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     /// <inheritdoc />
-    public IEnumerable<IUserRightEntry> GetUserRights(IUserRights policy)
+    public IEnumerable<UserRightEntry> GetUserRights(IUserRights policy)
     {
         ArgumentNullException.ThrowIfNull(policy);
 

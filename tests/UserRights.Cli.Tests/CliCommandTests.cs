@@ -51,8 +51,7 @@ public class CliCommandTests
         var args = new[] { "list", "--json", "--path", file };
 
         // Act.
-        UserRightEntry[] actual;
-        var rc = await rootCommand.Parse(args).ThrowIfInvalid().RunAsync(TestContext.CancellationToken).ConfigureAwait(false);
+        var rc = await rootCommand.Parse(args).ThrowIfInvalid().RunAsync(TestContext.CancellationToken);
 
         await using var stream = new FileStream(
             file,
@@ -62,11 +61,8 @@ public class CliCommandTests
             bufferSize: 4096,
             FileOptions.DeleteOnClose | FileOptions.Asynchronous);
 
-        await using (stream.ConfigureAwait(false))
-        {
-            var results = await JsonSerializer.DeserializeAsync<UserRightEntry[]>(stream, cancellationToken: TestContext.CancellationToken).ConfigureAwait(false);
-            actual = results?.ToArray() ?? [];
-        }
+        var results = await JsonSerializer.DeserializeAsync<UserRightEntry[]>(stream, cancellationToken: TestContext.CancellationToken);
+        var actual = results?.ToArray() ?? [];
 
         // Assert.
         Assert.AreEqual(0, rc);
@@ -108,15 +104,13 @@ public class CliCommandTests
         var args = new[] { "list", "--path", file };
 
         // Act.
-        var rc = await rootCommand.Parse(args).ThrowIfInvalid().RunAsync(TestContext.CancellationToken)
-            .ConfigureAwait(false);
+        var rc = await rootCommand.Parse(args).ThrowIfInvalid().RunAsync(TestContext.CancellationToken);
 
         UserRightEntry[] actual;
         await using (var csvReader = CsvReader.FromFile(file))
         {
             actual = await csvReader.GetRecordsAsync<UserRightEntry>(TestContext.CancellationToken)
-                .ToArrayAsync(TestContext.CancellationToken)
-                .ConfigureAwait(false);
+                .ToArrayAsync(TestContext.CancellationToken);
         }
 
         File.Delete(file);

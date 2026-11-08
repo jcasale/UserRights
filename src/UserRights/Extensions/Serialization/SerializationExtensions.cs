@@ -42,7 +42,7 @@ public static class SerializationExtensions
         try
         {
             await using var writer = CsvWriter.Create(stream, CsvOptions, true);
-            await writer.WriteRecordsAsync(data, cancellationToken).ConfigureAwait(false);
+            await writer.WriteRecordsAsync(data, cancellationToken);
         }
         catch (Exception e) when (e is not OperationCanceledException)
         {
@@ -65,7 +65,7 @@ public static class SerializationExtensions
 
         try
         {
-            await JsonSerializer.SerializeAsync(stream, data, JsonOptions, cancellationToken).ConfigureAwait(false);
+            await JsonSerializer.SerializeAsync(stream, data, JsonOptions, cancellationToken);
         }
         catch (Exception e) when (e is not OperationCanceledException)
         {

@@ -1,2 +1,5 @@
 ﻿[Program.cs]
 dotnet_diagnostic.CA1031.severity = none # Modify 'Main' to catch a more specific allowed exception type, or rethrow the exception.
+dotnet_diagnostic.CA2007.severity = none # Do not directly await a Task (disabled for console applications).
+
+dotnet_diagnostic.MA0004.severity = none # Use Task.ConfigureAwait (disabled for console applications).

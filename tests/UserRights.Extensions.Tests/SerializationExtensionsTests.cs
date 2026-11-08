@@ -34,7 +34,7 @@ public class SerializationExtensionsTests
         UserRightEntry[] entries = [new(privilege, PrincipalSid1.Value, PrincipalName1)];
 
         // Act.
-        var text = await WriteCsv(entries).ConfigureAwait(false);
+        var text = await WriteCsv(entries);
 
         // Assert.
         Assert.Contains(privilege, text, StringComparison.Ordinal);
@@ -52,7 +52,7 @@ public class SerializationExtensionsTests
         UserRightEntry[] entries = [new(Privilege1, PrincipalSid1.Value, PrincipalName1)];
 
         // Act.
-        var text = await WriteCsv(entries).ConfigureAwait(false);
+        var text = await WriteCsv(entries);
 
         // Assert.
         Assert.Contains($"\"{Privilege1}\"", text, StringComparison.Ordinal);
@@ -68,7 +68,7 @@ public class SerializationExtensionsTests
     private async Task<string> WriteCsv(UserRightEntry[] entries)
     {
         await using var stream = new MemoryStream();
-        await entries.ToCsv(stream, TestContext.CancellationToken).ConfigureAwait(false);
+        await entries.ToCsv(stream, TestContext.CancellationToken);
 
         return Encoding.UTF8.GetString(stream.ToArray());
     }

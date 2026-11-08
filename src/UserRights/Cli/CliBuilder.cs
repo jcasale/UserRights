@@ -116,7 +116,7 @@ public class CliBuilder
                 {
                     Console.OutputEncoding = Encoding.UTF8;
 
-                    await writeAsync(stream, cancellationToken).ConfigureAwait(false);
+                    await writeAsync(stream, cancellationToken);
                 }
                 finally
                 {
@@ -125,11 +125,8 @@ public class CliBuilder
             }
             else
             {
-                var stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true);
-                await using (stream.ConfigureAwait(false))
-                {
-                    await writeAsync(stream, cancellationToken).ConfigureAwait(false);
-                }
+                await using var stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true);
+                await writeAsync(stream, cancellationToken);
             }
         });
 

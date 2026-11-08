@@ -25,7 +25,7 @@ public static class CliExtensions
             EnableDefaultExceptionHandler = false
         };
 
-        return await parseResult.InvokeAsync(invocationConfiguration, cancellationToken).ConfigureAwait(false);
+        return await parseResult.InvokeAsync(invocationConfiguration, cancellationToken);
     }
 
     /// <summary>

@@ -9,9 +9,9 @@
     <Project Path="src/UserRights/UserRights.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/UserRights.Tests.Application/UserRights.Tests.Application.csproj" />
-    <Project Path="tests/UserRights.Tests.Cli/UserRights.Tests.Cli.csproj" />
-    <Project Path="tests/UserRights.Tests.Extensions/UserRights.Tests.Extensions.csproj" />
-    <Project Path="tests/UserRights.Tests/UserRights.Tests.csproj" />
+    <Project Path="tests/Common/Common.csproj" />
+    <Project Path="tests/UserRights.Application.Tests/UserRights.Application.Tests.csproj" />
+    <Project Path="tests/UserRights.Cli.Tests/UserRights.Cli.Tests.csproj" />
+    <Project Path="tests/UserRights.Extensions.Tests/UserRights.Extensions.Tests.csproj" />
   </Folder>
 </Solution>

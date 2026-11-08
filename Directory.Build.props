@@ -19,27 +19,4 @@
     </PackageReference>
   </ItemGroup>
 
-  <Target Name="SetVersionFromGit" BeforeTargets="BeforeBuild;AssignTargetPaths" Condition="'$(GitTag)' == ''">
-    <Exec Command="git.exe describe --tags --abbrev=0" WorkingDirectory="$(MSBuildProjectDirectory)" ConsoleToMSBuild="true" StandardOutputImportance="Low">
-      <Output TaskParameter="ConsoleOutput" PropertyName="GitTag" />
-    </Exec>
-
-    <PropertyGroup>
-      <GitTagPattern><![CDATA[^(?<major>0|[1-9]\d*)\.(?<minor>0|[1-9]\d*)\.(?<patch>0|[1-9]\d*)(?:-(?<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$]]></GitTagPattern>
-      <GitTagMajor>$([System.Text.RegularExpressions.Regex]::Match($(GitTag), $(GitTagPattern)).Groups['major'].Value)</GitTagMajor>
-      <GitTagMinor>$([System.Text.RegularExpressions.Regex]::Match($(GitTag), $(GitTagPattern)).Groups['minor'].Value)</GitTagMinor>
-      <GitTagPatch>$([System.Text.RegularExpressions.Regex]::Match($(GitTag), $(GitTagPattern)).Groups['patch'].Value)</GitTagPatch>
-      <GitTagBuildMetadata>$([System.Text.RegularExpressions.Regex]::Match($(GitTag), $(GitTagPattern)).Groups['buildmetadata'].Value)</GitTagBuildMetadata>
-      <GitTagBuildMetadata Condition="'$(GitTagBuildMetadata)' == ''">0</GitTagBuildMetadata>
-      <ModuleVersion Condition="'$(GitTagMajor)' != '' AND '$(GitTagMinor)' != '' AND '$(GitTagPatch)' != ''">$(GitTagMajor).$(GitTagMinor).$(GitTagPatch)</ModuleVersion>
-      <ModuleVersion Condition="'$(ModuleVersion)' == ''">0.0.1</ModuleVersion>
-      <Version Condition="'$(GitTagMajor)' != '' AND '$(GitTagMinor)' != '' AND '$(GitTagPatch)' != ''">$(GitTagMajor).$(GitTagMinor).$(GitTagPatch).$(GitTagBuildMetadata)</Version>
-      <AssemblyVersion>$(Version)</AssemblyVersion>
-      <FileVersion>$(Version)</FileVersion>
-      <InformationalVersion>$([System.Text.RegularExpressions.Regex]::Match($(GitTag), $(GitTagPattern)).Groups[0].Value)</InformationalVersion>
-    </PropertyGroup>
-
-    <Message Text="InformationalVersion $(InformationalVersion)" Importance="high" />
-  </Target>
-
 </Project>

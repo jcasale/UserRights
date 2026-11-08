@@ -5,6 +5,11 @@ on:
     tags:
       - '*'
   workflow_dispatch:
+    inputs:
+      create_release:
+        description: 'Create release?'
+        type: boolean
+        default: false
 
 env:
   DOTNET_CLI_TELEMETRY_OPTOUT: true
@@ -30,19 +35,28 @@ jobs:
         with:
           global-json-file: global.json
 
-      - name: Set base name
-        id: base-name
+      - name: Generate version
+        id: version
         run: |
-          if ('${{ github.ref_type }}' -eq 'tag')
+          $path = '.\src\UserRights\UserRights.csproj'
+          dotnet build $path -tl:off -p:MinVerVerbosity=detailed
+          $version = dotnet msbuild $path -target:MinVer -getProperty:Version
+
+          if ([string]::IsNullOrWhiteSpace($version))
           {
-            $value = 'UserRights-x64-${{ github.ref_name }}'
-          }
-          else
-          {
-            $value = 'UserRights-x64'
+              throw 'Failed to parse the Version property.'
           }
 
-          'value={0}' -f $value |Tee-Object -FilePath $env:GITHUB_OUTPUT -Append
+          'version={0}' -f $version |Tee-Object -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Set distribution names
+        id: base-name
+        run: |
+          $value = 'UserRights-x64-{0}' -f $env:VERSION
+          'framework-dependent={0}' -f $value |Tee-Object -FilePath $env:GITHUB_OUTPUT -Append
+          'self-contained={0}-self-contained' -f $value |Tee-Object -FilePath $env:GITHUB_OUTPUT -Append
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
 
       - name: Run tests
         run: dotnet.exe test --configuration Release --output Detailed
@@ -58,12 +72,12 @@ jobs:
       - name: Archive framework-dependent release
         run: |
           cd .\src\publish-fdd
-          Get-ChildItem . -Exclude *.pdb,*.xml -Recurse |Compress-Archive -DestinationPath .\${{ steps.base-name.outputs.value }}.zip
+          Get-ChildItem . -Exclude *.pdb,*.xml -Recurse |Compress-Archive -DestinationPath .\${{ steps.base-name.outputs.framework-dependent }}.zip
 
       - name: Upload framework-dependent release
         uses: actions/upload-artifact@v7
         with:
-            name: ${{ steps.base-name.outputs.value }}
+            name: ${{ steps.base-name.outputs.framework-dependent }}
             path: ./src/publish-fdd
             if-no-files-found: error
 
@@ -78,30 +92,87 @@ jobs:
       - name: Archive self-contained release
         run: |
           cd .\src\publish-scd
-          Compress-Archive -Path ./UserRights.exe -DestinationPath .\${{ steps.base-name.outputs.value }}-self-contained.zip
+          Compress-Archive -Path ./UserRights.exe -DestinationPath .\${{ steps.base-name.outputs.self-contained }}.zip
 
       - name: Upload self-contained release
         uses: actions/upload-artifact@v7
         with:
-            name: ${{ steps.base-name.outputs.value }}-self-contained
+            name: ${{ steps.base-name.outputs.self-contained }}
             path: ./src/publish-scd
             if-no-files-found: error
 
+      - name: Validate release tag
+        if: >-
+          (github.event_name == 'push' && github.ref_type == 'tag') ||
+          (github.event_name == 'workflow_dispatch' && inputs.create_release)
+        run: |
+          # Validate MinVer Version as the release tag.
+          $tag = $env:VERSION
+          git check-ref-format "refs/tags/$tag"
+          if ($LASTEXITCODE -ne 0)
+          {
+            throw "Invalid release tag: $tag"
+          }
+
+          # Require the pushed tag to match MinVer Version.
+          if ($env:GITHUB_EVENT_NAME -eq 'push' -and $env:GITHUB_REF_NAME -cne $tag)
+          {
+            throw "Pushed tag '$env:GITHUB_REF_NAME' does not match MinVer Version '$tag'."
+          }
+
+          # Identify the commit that was built.
+          $commit = git rev-parse HEAD
+          if ($LASTEXITCODE -ne 0)
+          {
+            throw 'Failed to resolve the built commit.'
+          }
+
+          # Check tags fetched during checkout.
+          git show-ref --verify --quiet "refs/tags/$tag"
+          if ($LASTEXITCODE -eq 0)
+          {
+            # Resolve annotated tags and verify the built commit.
+            $tagCommit = git rev-parse "refs/tags/$tag^{commit}"
+            if ($LASTEXITCODE -ne 0)
+            {
+              throw "Failed to resolve release tag '$tag'."
+            }
+            if ($tagCommit -ne $commit)
+            {
+              throw "Release tag '$tag' does not point to the built commit '$commit'."
+            }
+          }
+          elseif ($LASTEXITCODE -eq 1 -and $env:GITHUB_EVENT_NAME -eq 'workflow_dispatch')
+          {
+            # Let gh release create add the missing tag for manual releases.
+            exit 0
+          }
+          else
+          {
+            # Tag-push releases require a tag from checkout.
+            throw "Failed to find release tag '$tag' locally."
+          }
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+
       - name: Publish release
-        if: github.ref_type == 'tag'
+        if: >-
+          (github.event_name == 'push' && github.ref_type == 'tag') ||
+          (github.event_name == 'workflow_dispatch' && inputs.create_release)
         run: |
           @'
           # Windows User Rights Assignment Utility
 
           Compiled with .NET SDK ${{ steps.setup-dotnet.outputs.dotnet-version }}
 
-          ## ${{ steps.base-name.outputs.value }}-self-contained.zip
+          ## ${{ steps.base-name.outputs.self-contained }}.zip
 
           Self-contained release for Windows x64
 
-          ## ${{ steps.base-name.outputs.value }}.zip
+          ## ${{ steps.base-name.outputs.framework-dependent }}.zip
 
           Framework-dependent release for Windows x64
-          '@ |gh.exe release create ${{ github.ref_name }} --verify-tag --title ${{ github.ref_name }} --notes-file - .\src\publish-fdd\${{ steps.base-name.outputs.value }}.zip .\src\publish-scd\${{ steps.base-name.outputs.value }}-self-contained.zip
+          '@ |gh.exe release create "$env:VERSION" --target "$env:GITHUB_SHA" --title "$env:VERSION" --notes-file - .\src\publish-fdd\${{ steps.base-name.outputs.framework-dependent }}.zip .\src\publish-scd\${{ steps.base-name.outputs.self-contained }}.zip
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}

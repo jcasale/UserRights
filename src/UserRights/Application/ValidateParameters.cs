@@ -54,8 +54,8 @@ public static class ValidateParameters
         }
 
         // Ensure the grants do not overlap with revocations or contain duplicates.
-        var grantsSet = grants?.ToHashSet(StringComparer.OrdinalIgnoreCase) ?? [];
-        var revocationsSet = revocations?.ToHashSet(StringComparer.OrdinalIgnoreCase) ?? [];
+        var grantsSet = grants?.ToHashSet(StringComparer.OrdinalIgnoreCase) ?? [with(StringComparer.OrdinalIgnoreCase)];
+        var revocationsSet = revocations?.ToHashSet(StringComparer.OrdinalIgnoreCase) ?? [with(StringComparer.OrdinalIgnoreCase)];
 
         if (grantsSet.Overlaps(revocationsSet))
         {
@@ -140,8 +140,8 @@ public static class ValidateParameters
         }
 
         // Ensure the grants do not overlap with revocations or contain duplicates.
-        var grantsSet = grants?.ToHashSet(StringComparer.OrdinalIgnoreCase) ?? [];
-        var revocationsSet = revocations?.ToHashSet(StringComparer.OrdinalIgnoreCase) ?? [];
+        var grantsSet = grants?.ToHashSet(StringComparer.OrdinalIgnoreCase) ?? [with(StringComparer.OrdinalIgnoreCase)];
+        var revocationsSet = revocations?.ToHashSet(StringComparer.OrdinalIgnoreCase) ?? [with(StringComparer.OrdinalIgnoreCase)];
 
         if (grantsSet.Overlaps(revocationsSet))
         {

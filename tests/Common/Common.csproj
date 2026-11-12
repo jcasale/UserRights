@@ -1,11 +1,11 @@
 ﻿<Project Sdk="MSTest.Sdk">
 
   <PropertyGroup>
-    <AssemblyName>UserRights.Testing</AssemblyName>
-    <RootNamespace>UserRights.Testing</RootNamespace>
-    <TargetFramework>net10.0-windows</TargetFramework>
+    <TargetFramework>net11.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AssemblyName>UserRights.Testing</AssemblyName>
+    <RootNamespace>UserRights.Testing</RootNamespace>
     <AnalysisLevel>latest-all</AnalysisLevel>
     <MSTestAnalysisMode>all</MSTestAnalysisMode>
     <IsTestApplication>false</IsTestApplication>

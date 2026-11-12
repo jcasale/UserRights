@@ -6,7 +6,7 @@ using CsvHelper;
 /// Represents an entry in the local security database.
 /// </summary>
 [CsvRecord]
-public partial record UserRightEntry
+public sealed partial record UserRightEntry
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="UserRightEntry"/> class.
@@ -27,11 +27,13 @@ public partial record UserRightEntry
     /// <summary>
     /// Gets the privilege assigned to the principal.
     /// </summary>
+    [CsvColumn(nameof(Privilege))]
     public string Privilege { get; }
 
     /// <summary>
     /// Gets the security id of the principal.
     /// </summary>
+    [CsvColumn(nameof(SecurityId))]
     public string SecurityId { get; }
 
     /// <summary>
@@ -40,5 +42,6 @@ public partial record UserRightEntry
     /// <remarks>
     /// The account name may be empty if the security identifier cannot be translated, as the account may be unknown locally, or it may have been deleted.
     /// </remarks>
+    [CsvColumn(nameof(AccountName))]
     public string? AccountName { get; }
 }

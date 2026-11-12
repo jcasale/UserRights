@@ -207,7 +207,7 @@ public class LsaUserRightsSnapshotFixture : IDisposable
             var values = child.Value.Split(',');
             foreach (var value in values)
             {
-                var securityIdentifier = value.StartsWith('*')
+                var securityIdentifier = value.StartsWith('*', StringComparison.Ordinal)
                     ? new(value.TrimStart('*'))
                     : value.ToSecurityIdentifier();
 

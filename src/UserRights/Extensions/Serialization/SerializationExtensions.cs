@@ -34,6 +34,12 @@ public static class SerializationExtensions
     /// <param name="stream">The UTF-8 stream to write to.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to cancel the write operation.</param>
     /// <returns>A task that represents the asynchronous write operation.</returns>
+    /// <remarks>
+    /// The type <typeparamref name="T"/> must be a partial type marked with <see cref="CsvRecordAttribute"/>, as the CSV serializer uses source-generated mapping code and does not support other types.
+    /// </remarks>
+    /// <exception cref="SerializationException">
+    /// Thrown when <typeparamref name="T"/> is not marked with <see cref="CsvRecordAttribute"/>, or when the data cannot be written.
+    /// </exception>
     public static async Task ToCsv<T>(this IEnumerable<T> data, Stream stream, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(data);

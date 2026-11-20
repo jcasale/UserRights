@@ -4,7 +4,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="CsvHelper" Version="34.0.0" />
-    <PackageVersion Include="Meziantou.Analyzer" Version="3.0.337" />
+    <PackageVersion Include="Meziantou.Analyzer" Version="3.0.341" />
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="11.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Ini" Version="11.0.0" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="11.0.0" />
